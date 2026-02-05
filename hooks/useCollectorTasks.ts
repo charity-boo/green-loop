@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -13,8 +13,8 @@ export interface Task {
   collectorId?: string;
   photoUrl?: string;
   volume?: number;
-  createdAt: any;
-  completedAt?: any;
+  createdAt: Timestamp;
+  completedAt?: Timestamp;
 }
 
 export const useCollectorTasks = () => {

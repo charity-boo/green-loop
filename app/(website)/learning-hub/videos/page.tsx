@@ -42,11 +42,10 @@ interface VideoCardProps {
     title: string;
     description: string;
     duration: string;
-    thumbnail: string;
     link: string;
 }
 
-const VideoCard = ({ title, description, duration, thumbnail, link }: VideoCardProps) => (
+const VideoCard = ({ title, description, duration, link }: VideoCardProps) => (
     <Link href={link} className="block bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
         <div className="relative h-48 bg-gray-200">
             {/* Replace with actual Image component if you have the images in /public */}
@@ -90,7 +89,6 @@ export default function EducationalVideosPage() {
                         title={video.title}
                         description={video.description}
                         duration={video.duration}
-                        thumbnail={video.thumbnail}
                         link={video.link}
                     />
                 ))}

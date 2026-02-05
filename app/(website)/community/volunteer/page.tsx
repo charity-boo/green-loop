@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Handshake, Calendar, MapPin } from 'lucide-react';
+import { Handshake } from 'lucide-react';
 // Assuming Shadcn components are available
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,7 +73,7 @@ export default function VolunteerPage() {
                         <CardContent>
                             {success && (
                                 <div className="mb-4 p-3 text-sm text-green-700 bg-green-100 rounded-lg text-center">
-                                    ✅ Thank you! We've received your application and will be in touch soon.
+                                    ✅ Thank you! We&apos;ve received your application and will be in touch soon.
                                 </div>
                             )}
                             <form onSubmit={handleSubmit} className="space-y-4">

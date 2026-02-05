@@ -1,8 +1,5 @@
 "use client";
 
-import Link from 'next/link';
-import { DollarSign, Globe, Target } from 'lucide-react';
-
 interface PartnerCategoryProps {
     title: string;
     description: string;
@@ -41,7 +38,7 @@ export default function PartnershipsPage() {
 
         <div className="mt-12 p-8 bg-white rounded-xl shadow-2xl">
             <p className="text-xl font-bold text-green-700 mb-4">
-                Let's Build the Future Together
+                Let&apos;s Build the Future Together
             </p>
             <a 
                 href="/contact" 

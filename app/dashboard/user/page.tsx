@@ -4,19 +4,62 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import DashboardLayout from "../dashboard-layout";
 import ProtectedRoute from "@/components/auth/protectedroute";
+import { PickupHistoryItem, UserMetrics, WasteContribution } from "@/types";
 
 // --- MOCK SHADCN COMPONENTS (for runnability) ---
-const Card: React.FC<any> = ({ children, className }) => <div className={`rounded-xl border bg-white shadow ${className}`}>{children}</div>;
-const CardHeader: React.FC<any> = ({ children, className }) => <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>{children}</div>;
-const CardTitle: React.FC<any> = ({ children, className }) => <h3 className={`text-xl font-semibold leading-none tracking-tight ${className}`}>{children}</h3>;
-const CardContent: React.FC<any> = ({ children, className }) => <div className={`p-6 pt-0 ${className}`}>{children}</div>;
-const Table: React.FC<any> = ({ children, className }) => <div className={`w-full overflow-auto ${className}`}><table className="w-full caption-bottom text-sm">{children}</table></div>;
-const TableHeader: React.FC<any> = ({ children, className }) => <thead className={`[&_tr]:border-b ${className}`}>{children}</thead>;
-const TableBody: React.FC<any> = ({ children, className }) => <tbody className={`[&_tr:last-child]:border-0 ${className}`}>{children}</tbody>;
-const TableRow: React.FC<any> = ({ children, className }) => <tr className={`border-b transition-colors hover:bg-gray-50 ${className}`}>{children}</tr>;
-const TableHead: React.FC<any> = ({ children, className, ...props }) => <th className={`h-12 px-4 text-left align-middle font-medium text-gray-500 [&:has([role=checkbox])]:pr-0 ${className}`} {...props}>{children}</th>;
-const TableCell: React.FC<any> = ({ children, className }) => <td className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 ${className}`}>{children}</td>;
-const Badge: React.FC<any> = ({ children, variant = 'default', className }) => (
+interface CardProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface TableProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface TableHeaderProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface TableBodyProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface TableRowProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface TableHeadProps {
+  children?: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
+
+interface TableCellProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+interface BadgeProps {
+  children?: React.ReactNode;
+  variant?: 'default' | 'success' | 'warning';
+  className?: string;
+}
+
+const Card: React.FC<CardProps> = ({ children, className }) => <div className={`rounded-xl border bg-white shadow ${className}`}>{children}</div>;
+const CardHeader: React.FC<CardProps> = ({ children, className }) => <div className={`flex flex-col space-y-1.5 p-6 ${className}`}>{children}</div>;
+const CardTitle: React.FC<CardProps> = ({ children, className }) => <h3 className={`text-xl font-semibold leading-none tracking-tight ${className}`}>{children}</h3>;
+const CardContent: React.FC<CardProps> = ({ children, className }) => <div className={`p-6 pt-0 ${className}`}>{children}</div>;
+const Table: React.FC<TableProps> = ({ children, className }) => <div className={`w-full overflow-auto ${className}`}><table className="w-full caption-bottom text-sm">{children}</table></div>;
+const TableHeader: React.FC<TableHeaderProps> = ({ children, className }) => <thead className={`[&_tr]:border-b ${className}`}>{children}</thead>;
+const TableBody: React.FC<TableBodyProps> = ({ children, className }) => <tbody className={`[&_tr:last-child]:border-0 ${className}`}>{children}</tbody>;
+const TableRow: React.FC<TableRowProps> = ({ children, className }) => <tr className={`border-b transition-colors hover:bg-gray-50 ${className}`}>{children}</tr>;
+const TableHead: React.FC<TableHeadProps> = ({ children, className, ...props }) => <th className={`h-12 px-4 text-left align-middle font-medium text-gray-500 [&:has([role=checkbox])]:pr-0 ${className}`} {...props}>{children}</th>;
+const TableCell: React.FC<TableCellProps> = ({ children, className }) => <td className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 ${className}`}>{children}</td>;
+const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className }) => (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${variant === 'default' ? 'bg-gray-100 text-gray-800' : variant === 'success' ? 'bg-green-100 text-green-800' : variant === 'warning' ? 'bg-yellow-100 text-yellow-800' : ''} ${className}`}>
         {children}
     </span>
@@ -24,14 +67,14 @@ const Badge: React.FC<any> = ({ children, variant = 'default', className }) => (
 // --- End Mock Components ---
 
 // Mock data
-const userMetrics = {
+const userMetrics: UserMetrics = {
   totalPickups: 28,
   totalWeight: 152.5, // in kg
   rewardPoints: 1250,
   lastPickup: "2025-11-10",
 };
 
-const pickupHistory = [
+const pickupHistory: PickupHistoryItem[] = [
   { id: "PUK-001", date: "2025-11-10", status: "Completed", weight: 15.2, wasteType: "Mixed Recyclables", points: 150 },
   { id: "PUK-002", date: "2025-10-25", status: "Completed", weight: 12.8, wasteType: "Plastics", points: 130 },
   { id: "PUK-003", date: "2025-10-10", status: "Completed", weight: 20.5, wasteType: "Paper and Cardboard", points: 200 },
@@ -40,7 +83,7 @@ const pickupHistory = [
   { id: "PUK-006", date: "2025-08-30", status: "Completed", weight: 18.0, wasteType: "Mixed Recyclables", points: 180 },
 ];
 
-const wasteContributionData = [
+const wasteContributionData: WasteContribution[] = [
   { name: "Plastics", weight: 45.2 },
   { name: "Paper", weight: 60.8 },
   { name: "Glass", weight: 22.5 },
@@ -67,15 +110,17 @@ export default function UserDashboardPage() {
   };
 
   const sortedHistory = [...pickupHistory]
-    .filter((item) =>
-      Object.values(item).some((val) =>
+    .filter((item: PickupHistoryItem) =>
+      Object.values(item).some((val: string | number) =>
         String(val).toLowerCase().includes(searchTerm.toLowerCase())
       )
     )
-    .sort((a, b) => {
+    .sort((a: PickupHistoryItem, b: PickupHistoryItem) => {
       if (!sortConfig) return 0;
-      if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === "asc" ? -1 : 1;
-      if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === "asc" ? 1 : -1;
+      const aVal = a[sortConfig.key];
+      const bVal = b[sortConfig.key];
+      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -111,7 +156,7 @@ export default function UserDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{userMetrics.totalWeight} kg</div>
-                <p className="text-xs text-gray-500">+20.1% from last month</p>
+                <p className="text-xs text-gray-500">+20.1&#37; from last month</p>
               </CardContent>
             </Card>
             <Card>
@@ -132,7 +177,7 @@ export default function UserDashboardPage() {
               <CardHeader>
                 <CardTitle>Waste Contribution</CardTitle>
                 <p className="text-sm text-gray-500">
-                  Total weight of different waste types you've recycled.
+                  Total weight of different waste types you&apos;ve recycled.
                 </p>
               </CardHeader>
               <CardContent>
