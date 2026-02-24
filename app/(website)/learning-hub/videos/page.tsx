@@ -1,108 +1,167 @@
 "use client";
 
+import React from 'react';
 import Link from "next/link";
+import { 
+  Play, 
+  Clock, 
+  ArrowLeft, 
+  ChevronRight, 
+  Monitor,
+  CheckCircle2,
+  Calendar
+} from "lucide-react";
+import { motion } from "framer-motion";
 
-// Mock video data
 const videoLibrary = [
   {
     id: 1,
     title: "How AI Sorts Your Trash",
-    description: "A quick look behind the scenes at our smart sorting facility.",
+    desc: "A behind-the-scenes look at our smart sorting facility in Ndagani.",
     duration: "2:45",
-    thumbnail: "/images/video_ai.png", // Placeholder image
-    link: "#video-1", 
+    category: "Technology",
+    thumbnail: "bg-green-100"
   },
   {
     id: 2,
-    title: "Composting 101: Kitchen Scraps",
-    description: "Turn your food waste into nutrient-rich soil at home easily.",
+    title: "Composting 101: Scraps",
+    desc: "Turn your food waste into nutrient-rich soil at home easily.",
     duration: "4:10",
-    thumbnail: "/images/video_compost.png", // Placeholder image
-    link: "#video-2",
+    category: "Composting",
+    thumbnail: "bg-green-200"
   },
   {
     id: 3,
     title: "Plastic Codes Explained",
-    description: "Understanding the numbers on plastic containers and what they mean for recycling.",
+    desc: "Understanding the numbers on plastic containers for recycling.",
     duration: "1:55",
-    thumbnail: "/images/video_plastic.png", // Placeholder image
-    link: "#video-3",
+    category: "Sorting",
+    thumbnail: "bg-green-300"
   },
   {
     id: 4,
-    title: "Safe Disposal of Batteries and E-Waste",
-    description: "Crucial steps for handling hazardous household items safely.",
+    title: "Hazardous Waste Safety",
+    desc: "Crucial steps for handling batteries and chemicals safely.",
     duration: "3:30",
-    thumbnail: "/images/video_ewaste.png", // Placeholder image
-    link: "#video-4",
+    category: "Safety",
+    thumbnail: "bg-green-400"
   },
+  {
+    id: 5,
+    title: "The Zero-Waste Kitchen",
+    desc: "Simple swaps to reduce packaging waste in your daily cooking.",
+    duration: "5:20",
+    category: "Living",
+    thumbnail: "bg-green-500"
+  },
+  {
+    id: 6,
+    title: "Community Clean-up Highlights",
+    desc: "Relive the energy from our last massive Ndagani street cleanup.",
+    duration: "2:15",
+    category: "Community",
+    thumbnail: "bg-green-600"
+  }
 ];
-
-interface VideoCardProps {
-    title: string;
-    description: string;
-    duration: string;
-    link: string;
-}
-
-const VideoCard = ({ title, description, duration, link }: VideoCardProps) => (
-    <Link href={link} className="block bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
-        <div className="relative h-48 bg-gray-200">
-            {/* Replace with actual Image component if you have the images in /public */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
-                <span className="text-gray-600 font-semibold text-sm">Video Thumbnail Placeholder</span>
-            </div>
-            {/* Play button overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity opacity-0 hover:opacity-100">
-                <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v14zm11-7l-6 4V8l6 4z"/>
-                </svg>
-            </div>
-            {/* Duration badge */}
-            <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                {duration}
-            </span>
-        </div>
-        <div className="p-4">
-            <h3 className="text-lg font-bold text-gray-800 mb-1">{title}</h3>
-            <p className="text-sm text-gray-600">{description}</p>
-        </div>
-    </Link>
-);
-
 
 export default function EducationalVideosPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
-        <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl font-extrabold text-green-800 mb-2 text-center">
-                📺 Educational Video Library
-            </h1>
-            <p className="text-lg text-gray-600 mb-10 text-center max-w-2xl mx-auto">
-                Watch guides and tutorials on recycling best practices, AI technology, and waste minimization tips.
-            </p>
+    <div className="min-h-screen bg-white text-green-950">
+        {/* Header Section */}
+        <section className="bg-green-50 py-20 px-6 overflow-hidden relative">
+            <div className="max-w-4xl mx-auto text-center relative z-10">
+                <Link 
+                    href="/learning-hub" 
+                    className="inline-flex items-center gap-2 text-green-600 font-bold mb-8 hover:text-green-800 transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" /> Back to Learning Hub
+                </Link>
+                <h1 className="text-4xl md:text-6xl font-black text-green-950 mb-6 leading-tight">
+                    Educational <br/><span className="text-green-600">Video Library</span>
+                </h1>
+                <p className="text-xl text-green-800 font-medium max-w-2xl mx-auto">
+                    Visual guides and expert walkthroughs to help you master 
+                    waste management and sustainable living.
+                </p>
+            </div>
+        </section>
 
+        {/* Video Grid */}
+        <section className="py-24 max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {videoLibrary.map(video => (
-                    <VideoCard 
+                {videoLibrary.map((video, i) => (
+                    <motion.div 
                         key={video.id}
-                        title={video.title}
-                        description={video.description}
-                        duration={video.duration}
-                        link={video.link}
-                    />
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.1 }}
+                        className="group flex flex-col bg-white border border-green-50 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500"
+                    >
+                        <div className={`h-52 relative overflow-hidden ${video.thumbnail}`}>
+                            <div className="absolute inset-0 bg-green-900/10 group-hover:bg-green-900/30 transition-colors"></div>
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-green-600">
+                                    <Play className="w-6 h-6 fill-current" />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-4 right-4 px-3 py-1 bg-green-950/80 backdrop-blur-md rounded-full text-[10px] font-black text-white flex items-center gap-1.5">
+                                <Clock className="w-3 h-3 text-green-400" /> {video.duration}
+                            </div>
+                            <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-black text-green-900 uppercase tracking-widest">
+                                {video.category}
+                            </div>
+                        </div>
+                        <div className="p-8 flex flex-col flex-grow">
+                            <h3 className="text-2xl font-black mb-3 group-hover:text-green-600 transition-colors">
+                                {video.title}
+                            </h3>
+                            <p className="text-green-800 mb-8 flex-grow leading-relaxed font-medium">
+                                {video.desc}
+                            </p>
+                            <button className="flex items-center gap-2 font-black text-green-950 group-hover:text-green-600 transition-colors">
+                                Watch Tutorial <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+                    </motion.div>
                 ))}
             </div>
 
-            <div className="mt-12 text-center">
-                <Link 
-                    href="/learning-hub/guides"
-                    className="text-green-600 font-semibold hover:underline"
-                >
-                    ← Back to Recycling Guides
-                </Link>
+            {/* Featured Workshop Spot */}
+            <div className="mt-24 bg-green-950 rounded-[3.5rem] p-12 md:p-20 text-white relative overflow-hidden flex flex-col lg:flex-row items-center gap-12 shadow-2xl">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-green-600 rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+                
+                <div className="lg:w-3/5 relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-green-800/50 rounded-full text-green-400 text-xs font-black mb-8 border border-green-700/50 uppercase tracking-widest">
+                        <Monitor className="w-4 h-4" /> Monthly Live Workshop
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight">
+                        Interactive <span className="text-green-500">Q&A Session</span>
+                    </h2>
+                    <p className="text-xl text-green-100/80 mb-10 leading-relaxed font-medium max-w-xl">
+                        Join our lead sustainability experts for a live session on the first 
+                        Monday of every month. Ask questions and get real-time sorting advice.
+                    </p>
+                    <div className="flex flex-wrap gap-6">
+                        <div className="flex items-center gap-3 font-bold text-green-400">
+                            <Calendar className="w-5 h-5" /> March 2, 2026
+                        </div>
+                        <div className="flex items-center gap-3 font-bold text-green-400">
+                            <CheckCircle2 className="w-5 h-5" /> 200+ Registered
+                        </div>
+                    </div>
+                </div>
+
+                <div className="lg:w-2/5 w-full">
+                    <button className="w-full py-6 bg-green-600 text-white font-black rounded-3xl hover:bg-green-500 transition shadow-2xl shadow-green-900/50 text-xl transform hover:-translate-y-1">
+                        Register for Live Event
+                    </button>
+                    <Link href="/learning-hub/guides" className="mt-6 block text-center font-bold text-green-400 hover:text-white transition">
+                        Download Session Materials →
+                    </Link>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
   );
 }

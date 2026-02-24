@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-// Ensure all necessary Lucide icons are imported
-import { BookOpen, Recycle, Lightbulb, Building } from "lucide-react"; 
+import { BookOpen, Recycle, Lightbulb, Building, ArrowLeft, Download, ChevronRight } from "lucide-react"; 
+import { motion } from "framer-motion";
 
 interface GuideCardProps {
     title: string;
@@ -12,67 +12,92 @@ interface GuideCardProps {
 }
 
 const GuideCard = ({ title, description, icon, link }: GuideCardProps) => (
-    <Link href={link} className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 border-l-4 border-green-500 hover:border-green-700">
-        <div className="flex items-center space-x-4">
-            <div className="p-3 bg-green-100 rounded-full text-green-700">
-                {icon}
-            </div>
-            <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-1">{title}</h3>
-                <p className="text-sm text-gray-600">{description}</p>
-            </div>
+    <motion.div 
+        whileHover={{ y: -5 }}
+        className="p-8 bg-white rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all duration-300 border border-green-50 flex flex-col"
+    >
+        <div className="mb-6 p-4 bg-green-50 rounded-2xl w-fit text-green-600">
+            {icon}
         </div>
-    </Link>
+        <h3 className="text-2xl font-black text-green-950 mb-3">{title}</h3>
+        <p className="text-green-800 font-medium leading-relaxed mb-8 flex-grow">{description}</p>
+        <Link 
+            href={link} 
+            className="flex items-center justify-between p-4 bg-green-50 hover:bg-green-600 hover:text-white rounded-2xl text-green-700 font-black transition-all group"
+        >
+            <span>Download PDF</span>
+            <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+        </Link>
+    </motion.div>
 );
-
 
 export default function RecyclingGuidesPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
-        <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-extrabold text-green-800 mb-2">
-                📚 Essential Recycling Guides
-            </h1>
-            <p className="text-lg text-gray-600 mb-10">
-                Download comprehensive guides to master sorting, minimizing contamination, and maximizing your Green Points.
-            </p>
+    <div className="min-h-screen bg-white">
+        {/* Header Section */}
+        <section className="bg-green-50 py-20 px-6">
+            <div className="max-w-4xl mx-auto text-center">
+                <Link 
+                    href="/learning-hub" 
+                    className="inline-flex items-center gap-2 text-green-600 font-bold mb-8 hover:text-green-800 transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" /> Back to Learning Hub
+                </Link>
+                <h1 className="text-4xl md:text-6xl font-black text-green-950 mb-6 leading-tight">
+                    Essential <br/><span className="text-green-600 underline decoration-green-200">Recycling Guides</span>
+                </h1>
+                <p className="text-xl text-green-800 font-medium max-w-2xl mx-auto">
+                    Download comprehensive, easy-to-read manuals to master sorting, 
+                    minimizing contamination, and maximizing your Green Points.
+                </p>
+            </div>
+        </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Guides Grid */}
+        <section className="py-24 max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                 <GuideCard 
                     title="Residential Sorting Manual"
-                    description="Step-by-step instructions for separating household waste for curb-side pickup."
-                    icon={<Recycle className="w-6 h-6" />}
+                    description="Our core manual for households. Learn exactly which items go into each bin to ensure 100% recycling success at home."
+                    icon={<Recycle className="w-8 h-8" />}
                     link="#manual-pdf"
                 />
                 <GuideCard 
                     title="Commercial Best Practices"
-                    description="Guidelines for businesses on high-volume cardboard, packaging, and food waste management."
-                    icon={<Building className="w-6 h-6" />}
+                    description="High-volume waste management strategies for businesses, offices, and restaurants in Ndagani."
+                    icon={<Building className="w-8 h-8" />}
                     link="#commercial-guide"
                 />
                 <GuideCard 
                     title="Composting at Home"
-                    description="A beginner's guide to organic waste diversion and creating healthy soil."
-                    icon={<Lightbulb className="w-6 h-6" />}
+                    description="Turn your kitchen scraps into gold. A simple guide to starting and maintaining a home compost bin."
+                    icon={<Lightbulb className="w-8 h-8" />}
                     link="#compost-guide"
                 />
                 <GuideCard 
-                    title="E-Waste & Hazardous Items"
-                    description="Safe disposal points and handling instructions for electronics and batteries."
-                    icon={<BookOpen className="w-6 h-6" />}
+                    title="Electronic Waste Safety"
+                    description="Safe handling and disposal instructions for old batteries, phones, and hazardous household chemicals."
+                    icon={<BookOpen className="w-8 h-8" />}
                     link="#ewaste-guide"
                 />
             </div>
 
-            <div className="mt-12 text-center">
-                <Link 
-                    href="/learning-hub/videos"
-                    className="text-green-600 font-semibold hover:underline"
-                >
-                    Prefer video tutorials? View our Video Library →
-                </Link>
+            <div className="mt-24 p-12 bg-green-950 rounded-[3rem] text-center text-white relative overflow-hidden">
+                <div className="relative z-10">
+                    <h2 className="text-3xl font-black mb-6">Need a physical copy?</h2>
+                    <p className="text-green-200 text-lg mb-10 font-medium">
+                        Visit our Ndagani collection center to pick up printed waterproof 
+                        guides to stick on your recycling bins.
+                    </p>
+                    <Link 
+                        href="/learning-hub/videos"
+                        className="inline-flex items-center gap-2 font-black hover:text-green-400 transition"
+                    >
+                        Prefer video tutorials? View our Library <ChevronRight className="w-5 h-5" />
+                    </Link>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
   );
 }

@@ -1,0 +1,122 @@
+[debug] [2026-02-24T09:26:42.130Z] ----------------------------------------------------------------------
+[debug] [2026-02-24T09:26:42.139Z] Command:       /usr/local/bin/firebase /home/chacha/.cache/firebase/tools/lib/node_modules/firebase-tools/lib/bin/firebase init
+[debug] [2026-02-24T09:26:42.140Z] CLI Version:   15.7.0
+[debug] [2026-02-24T09:26:42.140Z] Platform:      linux
+[debug] [2026-02-24T09:26:42.140Z] Node Version:  v20.18.2
+[debug] [2026-02-24T09:26:42.140Z] Time:          Tue Feb 24 2026 12:26:42 GMT+0300 (East Africa Time)
+[debug] [2026-02-24T09:26:42.141Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-02-24T09:26:42.144Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /home/chacha/Projects/green-loop
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[debug] [2026-02-24T09:26:45.229Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-02-24T09:26:45.230Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-02-24T09:27:05.230Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-24T09:27:05.232Z] > authorizing via signed-in user (mugendicharity1@gmail.com)
+[debug] [2026-02-24T09:27:05.235Z] Checked if tokens are valid: false, expires at: 1771832923599
+[debug] [2026-02-24T09:27:05.236Z] Checked if tokens are valid: false, expires at: 1771832923599
+[debug] [2026-02-24T09:27:05.237Z] > refreshing access token with scopes: []
+[debug] [2026-02-24T09:27:05.242Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-02-24T09:27:05.242Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-02-24T09:27:05.919Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-02-24T09:27:05.919Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-02-24T09:27:05.939Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/green-loop-7ae51 [none]
+[debug] [2026-02-24T09:27:06.937Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/green-loop-7ae51 200
+[debug] [2026-02-24T09:27:06.938Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/green-loop-7ae51 {"projectId":"green-loop-7ae51","projectNumber":"469248450314","displayName":"green-loop","name":"projects/green-loop-7ae51","resources":{"hostingSite":"green-loop-7ae51"},"state":"ACTIVE","etag":"1_09ae70d4-8bc5-40a0-8d1a-67ceed0f2dda"}
+[info] i  Using project green-loop-7ae51 (green-loop) . 
+[info] 
+=== Firestore Setup
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-02-24T09:27:06.960Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:06.960Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:06.961Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/firestore.googleapis.com [none]
+[debug] [2026-02-24T09:27:06.962Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/firestore.googleapis.com  x-goog-user-project=green-loop-7ae51
+[debug] [2026-02-24T09:27:09.190Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/firestore.googleapis.com 200
+[debug] [2026-02-24T09:27:09.191Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/firestore.googleapis.com [omitted]
+[info] ✔  firestore: required API firestore.googleapis.com is enabled 
+[debug] [2026-02-24T09:27:09.202Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:09.203Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:09.204Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases [none]
+[debug] [2026-02-24T09:27:10.949Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases 200
+[debug] [2026-02-24T09:27:10.949Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases {"databases":[{"name":"projects/green-loop-7ae51/databases/(default)","uid":"bd2ef32a-b6d3-49f1-8fc1-e67b5ad18ee1","createTime":"2025-11-14T16:24:25.323381Z","updateTime":"2025-11-14T16:24:25.323381Z","locationId":"africa-south1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-02-24T08:27:10.777831Z","appEngineIntegrationMode":"DISABLED","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"INioru/n8ZIDMNiohIbp45ID"}]}
+[info] 
+[info] Firestore Security Rules allow you to define how and when to allow
+[info] requests. You can keep these rules in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2026-02-24T09:27:10.955Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:10.956Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:10.958Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/green-loop-7ae51/releases pageSize=10&pageToken=
+[debug] [2026-02-24T09:27:12.261Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/green-loop-7ae51/releases 200
+[debug] [2026-02-24T09:27:12.263Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/green-loop-7ae51/releases {"releases":[{"name":"projects/green-loop-7ae51/releases/cloud.firestore","rulesetName":"projects/green-loop-7ae51/rulesets/688da4ef-9864-48b9-89a6-2c8ceaaeef5c","createTime":"2025-11-14T16:24:30.532548Z","updateTime":"2026-02-23T12:18:55.651642Z"}]}
+[debug] [2026-02-24T09:27:12.264Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:12.265Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:12.266Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/green-loop-7ae51/rulesets/688da4ef-9864-48b9-89a6-2c8ceaaeef5c [none]
+[debug] [2026-02-24T09:27:13.080Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/green-loop-7ae51/rulesets/688da4ef-9864-48b9-89a6-2c8ceaaeef5c 200
+[debug] [2026-02-24T09:27:13.080Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/green-loop-7ae51/rulesets/688da4ef-9864-48b9-89a6-2c8ceaaeef5c [omitted]
+[info] i  Downloaded the existing Firestore Security Rules from the Firebase console 
+[info] i  Skipping write of firestore.rules 
+[info] 
+[info] Firestore indexes allow you to perform complex queries while
+[info] maintaining performance that scales with the size of the result
+[info] set. You can keep index definitions in your project directory
+[info] and publish them with firebase deploy.
+[info] 
+[debug] [2026-02-24T09:27:15.818Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:15.818Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:15.819Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:15.819Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:15.819Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2026-02-24T09:27:15.821Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2026-02-24T09:27:16.735Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2026-02-24T09:27:16.736Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/green-loop-7ae51/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}}]}
+[debug] [2026-02-24T09:27:16.913Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2026-02-24T09:27:16.914Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/green-loop-7ae51/databases/(default)/collectionGroups/-/indexes {}
+[info] i  Downloaded the existing Firestore indexes from the Firebase console 
+[info] i  firestore.indexes.json is unchanged 
+[info] 
+=== Functions Setup
+[debug] [2026-02-24T09:27:16.926Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-24T09:27:16.927Z] > authorizing via signed-in user (mugendicharity1@gmail.com)
+[debug] [2026-02-24T09:27:16.928Z] [iam] checking project green-loop-7ae51 for permissions ["firebase.projects.get"]
+[debug] [2026-02-24T09:27:16.929Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:16.930Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:16.931Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/green-loop-7ae51:testIamPermissions [none]
+[debug] [2026-02-24T09:27:16.931Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/green-loop-7ae51:testIamPermissions  x-goog-user-project=green-loop-7ae51
+[debug] [2026-02-24T09:27:16.932Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/green-loop-7ae51:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-02-24T09:27:19.076Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/green-loop-7ae51:testIamPermissions 200
+[debug] [2026-02-24T09:27:19.076Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/green-loop-7ae51:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-02-24T09:27:19.078Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:19.078Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:19.079Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:19.079Z] Checked if tokens are valid: true, expires at: 1771928824920
+[debug] [2026-02-24T09:27:19.080Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-24T09:27:19.081Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/cloudfunctions.googleapis.com  x-goog-user-project=green-loop-7ae51
+[debug] [2026-02-24T09:27:19.091Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/runtimeconfig.googleapis.com [none]
+[debug] [2026-02-24T09:27:19.091Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/runtimeconfig.googleapis.com  x-goog-user-project=green-loop-7ae51
+[debug] [2026-02-24T09:27:20.779Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/runtimeconfig.googleapis.com 200
+[debug] [2026-02-24T09:27:20.779Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2026-02-24T09:27:20.800Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-24T09:27:20.801Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/green-loop-7ae51/services/cloudfunctions.googleapis.com [omitted]
+[info] 
+Detected existing codebase(s): default
+

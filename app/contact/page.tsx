@@ -50,7 +50,7 @@ export default function ContactPage() {
                         Get In Touch with Green Loop
                     </h1>
                     <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                        Whether you have a general inquiry, need service support, or are interested in a partnership, we're here to help.
+                        Whether you have a general inquiry, need service support, or are interested in a partnership, we&apos;re here to help.
                     </p>
                 </div>
 
@@ -110,7 +110,7 @@ export default function ContactPage() {
 
                         {success && (
                             <div className="mb-4 p-4 text-sm text-green-700 bg-green-100 border border-green-200 rounded-lg text-center">
-                                ✅ Your message has been sent successfully! We will respond within 48 hours.
+                                Your message has been sent successfully! We will respond within 48 hours.
                             </div>
                         )}
                         {error && (

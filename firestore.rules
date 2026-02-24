@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Allow users to read any profile (optional, could be restricted to isOwner or isAdmin)
+      allow read: if isAuthenticated();
+      
+      // Allow a user to create their own document during registration
+      // Ensure they can't set their own role to anything other than 'USER'
+      allow create: if isOwner(userId) && request.resource.data.role == 'USER';
+      
+      // Allow users to update their own profile, but NOT their role
+      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+      
+      // Only admins can delete users or change roles
+      allow delete: if isAdmin();
+      allow update: if isAdmin();
+    }
+
+    // Waste collection rules
+    match /waste/{wasteId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated(); // More granular rules should be added based on status/role
+      allow delete: if isAdmin();
+    }
+    
+    // Notifications collection rules
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Default rule for other collections
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

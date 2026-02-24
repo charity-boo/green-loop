@@ -32,7 +32,7 @@ export default function CareersPage() {
 
         <div className="mt-12 p-6 bg-blue-50 rounded-xl">
             <p className="text-lg font-medium text-blue-700">
-                Don't see a fit? Send your CV to <a href="mailto:careers@greenloop.com" className="hover:underline">careers@greenloop.com</a>
+                Don&apos;t see a fit? Send your CV to <a href="mailto:careers@greenloop.com" className="hover:underline">careers@greenloop.com</a>
             </p>
         </div>
       </div>

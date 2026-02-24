@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Trash2, Package, Leaf, Zap } from 'lucide-react';
+import { Trash2, Package, Leaf, Zap, ArrowLeft, ChevronRight, Info } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WasteCategory {
     id: string;
@@ -11,6 +12,7 @@ interface WasteCategory {
     description: string;
     examples: string[];
     color: string;
+    accent: string;
 }
 
 const categories: WasteCategory[] = [
@@ -25,7 +27,8 @@ const categories: WasteCategory[] = [
             "Cardboard & Paper", 
             "Glass bottles & Jars"
         ],
-        color: 'border-blue-500 text-blue-700 bg-blue-50'
+        color: 'bg-green-100 text-green-900 border-green-200',
+        accent: 'bg-green-600'
     },
     {
         id: 'organics',
@@ -38,7 +41,8 @@ const categories: WasteCategory[] = [
             "Yard trimmings & Grass", 
             "Compostable paper towels"
         ],
-        color: 'border-green-500 text-green-700 bg-green-50'
+        color: 'bg-green-50 text-green-800 border-green-100',
+        accent: 'bg-green-500'
     },
     {
         id: 'landfill',
@@ -51,7 +55,8 @@ const categories: WasteCategory[] = [
             "Contaminated paper/cardboard", 
             "Broken ceramics & Non-recyclable glass"
         ],
-        color: 'border-gray-500 text-gray-700 bg-gray-50'
+        color: 'bg-green-900 text-green-50 border-green-800',
+        accent: 'bg-green-700'
     },
     {
         id: 'hazardous',
@@ -64,7 +69,8 @@ const categories: WasteCategory[] = [
             "Fluorescent bulbs", 
             "Paints, chemicals, or oils"
         ],
-        color: 'border-yellow-600 text-yellow-800 bg-yellow-50'
+        color: 'bg-green-800 text-green-100 border-green-700',
+        accent: 'bg-green-400'
     },
 ];
 
@@ -73,67 +79,114 @@ export default function WasteClassificationPage() {
     const selectedCategory = categories.find(cat => cat.id === activeCategory) || categories[0];
 
     return (
-        <div className="min-h-screen bg-white p-4 sm:p-8">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="text-4xl font-extrabold text-gray-800 mb-2 text-center">
-                    🔬 Waste Classification Guide
-                </h1>
-                <p className="text-lg text-gray-600 mb-10 text-center max-w-2xl mx-auto">
-                    Know your bins! Correct sorting is the first step to achieving zero waste. Select a category below to view detailed guidelines.
-                </p>
+        <div className="min-h-screen bg-white">
+            {/* Header Section */}
+            <section className="bg-green-950 py-20 px-6 text-white text-center overflow-hidden relative">
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-green-400 rounded-full blur-[80px] translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-600 rounded-full blur-[80px] -translate-x-1/2 translate-y-1/2"></div>
+                </div>
+                
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <Link 
+                        href="/learning-hub" 
+                        className="inline-flex items-center gap-2 text-green-400 font-bold mb-8 hover:text-green-300 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" /> Back to Learning Hub
+                    </Link>
+                    <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                        🔬 Waste <span className="text-green-500">Classification</span>
+                    </h1>
+                    <p className="text-xl text-green-100 font-medium max-w-2xl mx-auto">
+                        Know your bins! Correct sorting is the first step to achieving zero waste. 
+                        Select a category below to view detailed guidelines.
+                    </p>
+                </div>
+            </section>
 
+            <div className="max-w-7xl mx-auto px-6 py-24">
                 {/* --- Category Tabs --- */}
-                <div className="flex flex-wrap justify-center gap-4 border-b border-gray-200 pb-4 mb-8">
+                <div className="flex flex-wrap justify-center gap-4 mb-16">
                     {categories.map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id)}
-                            className={`flex items-center space-x-2 px-6 py-3 rounded-full font-semibold transition-colors duration-200 ${
+                            className={`flex items-center space-x-3 px-8 py-4 rounded-2xl font-black transition-all duration-300 ${
                                 activeCategory === cat.id
-                                    ? `bg-${cat.id === 'recyclables' ? 'blue' : cat.id === 'organics' ? 'green' : cat.id === 'landfill' ? 'gray' : 'yellow'}-600 text-white shadow-lg`
-                                    : 'text-gray-600 hover:bg-gray-100'
+                                    ? `bg-green-950 text-white shadow-xl shadow-green-900/20 scale-105`
+                                    : 'bg-green-50 text-green-800 hover:bg-green-100'
                             }`}
                         >
-                            {cat.icon}
+                            <span className={activeCategory === cat.id ? 'text-green-400' : 'text-green-600'}>
+                                {cat.icon}
+                            </span>
                             <span>{cat.name.split(' (')[0]}</span>
                         </button>
                     ))}
                 </div>
 
                 {/* --- Detailed Content Area --- */}
-                <div className={`p-8 rounded-xl shadow-2xl border-l-8 ${selectedCategory.color}`}>
-                    <div className="flex items-center space-x-4 mb-4">
-                        <div className="p-3 rounded-full bg-white shadow-md">
-                            {selectedCategory.icon}
-                        </div>
-                        <h2 className="text-3xl font-bold text-gray-800">
-                            {selectedCategory.name}
-                        </h2>
-                    </div>
+                <AnimatePresence mode="wait">
+                    <motion.div 
+                        key={activeCategory}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className={`p-10 md:p-16 rounded-[3.5rem] border shadow-2xl overflow-hidden relative ${selectedCategory.id === 'landfill' ? 'bg-green-950 text-green-50 border-green-900' : 'bg-white border-green-50 shadow-green-900/5'}`}
+                    >
+                        <div className="flex flex-col lg:flex-row gap-16 relative z-10">
+                            <div className="lg:w-3/5">
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className={`p-4 rounded-3xl ${selectedCategory.accent} text-white shadow-lg`}>
+                                        {selectedCategory.icon}
+                                    </div>
+                                    <h2 className="text-3xl md:text-5xl font-black">
+                                        {selectedCategory.name}
+                                    </h2>
+                                </div>
 
-                    <p className="text-lg text-gray-700 mb-6 border-b pb-4">
-                        {selectedCategory.description}
-                    </p>
+                                <p className="text-xl leading-relaxed mb-10 font-medium">
+                                    {selectedCategory.description}
+                                </p>
 
-                    <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                        Key Examples:
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-gray-600">
-                        {selectedCategory.examples.map((example, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                                <span className="text-green-500 font-bold text-lg">•</span>
-                                <span>{example}</span>
+                                <div className="bg-green-500/10 p-8 rounded-3xl border border-green-500/20">
+                                    <h3 className="text-xl font-black mb-6 flex items-center gap-2">
+                                        <Info className="w-5 h-5 text-green-500" /> Key Examples:
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+                                        {selectedCategory.examples.map((example, index) => (
+                                            <div key={index} className="flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-green-500 shrink-0"></div>
+                                                <span className="font-bold">{example}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
+                            
+                            <div className="lg:w-2/5 flex items-center justify-center">
+                                <div className="w-full aspect-square bg-green-50 rounded-[3rem] flex items-center justify-center border-4 border-dashed border-green-200">
+                                    <div className="text-center p-8">
+                                        <div className={`w-32 h-48 mx-auto rounded-xl border-4 ${selectedCategory.id === 'landfill' ? 'border-white bg-white/10' : 'border-green-900 bg-green-50'} mb-6 relative overflow-hidden`}>
+                                            <div className="absolute top-4 left-0 w-full text-center font-black text-[10px] uppercase tracking-tighter opacity-20 leading-none">
+                                                {selectedCategory.id}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm font-black uppercase tracking-widest opacity-50">Bin Visual Representation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
 
-                <div className="mt-12 text-center">
+                <div className="mt-24 text-center">
                     <Link 
                         href="/learning-hub/guides"
-                        className="text-gray-600 hover:text-green-600 font-semibold hover:underline"
+                        className="inline-flex items-center gap-2 font-black text-green-950 hover:text-green-600 transition-colors group"
                     >
-                        ← View Recycling Guides
+                        ← View Recycling Guides <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform opacity-0 group-hover:opacity-100" />
                     </Link>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AuthCTA } from '../hospitals/page';
+import { AuthCTA } from '@/components/features/auth/auth-cta';
 
 
 export default function SmeWastePage() {

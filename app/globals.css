@@ -116,7 +116,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
   }
 }

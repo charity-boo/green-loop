@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AuthCTA } from '@/components/AuthCTA';
+import { AuthCTA } from '@/components/features/auth/auth-cta';
 
 export default function PrivateHomesWastePage() {
   const currentPath = '/waste/residential/private-homes';
@@ -17,7 +17,7 @@ export default function PrivateHomesWastePage() {
         {/* Key Features */}
         <div className="bg-white p-8 rounded-xl shadow-lg mb-8 text-left border-t-4 border-lime-500">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            What's Included?
+            What&apos;s Included?
           </h2>
           <ul className="list-disc list-inside space-y-3 text-gray-700 ml-4">
             <li>**Flexible Scheduling:** Choose weekly, bi-weekly, or on-demand pickups via the app.</li>

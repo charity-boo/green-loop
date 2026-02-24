@@ -1,0 +1,25 @@
+{
+  "root": true,
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": ["react", "@typescript-eslint"],
+  "ignorePatterns": [
+    ".backup-routes/",
+    "test-db.js"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "app/(website)/about-us/WhoWeAre.tsx",
+        "app/(website)/technology-innovation.tsx"
+      ],
+      "rules": {
+        "react/no-unescaped-entities": "off"
+      }
+    }
+  ]
+}

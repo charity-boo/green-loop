@@ -36,6 +36,13 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
-  ]
-}
+        "node_modules",
+        "**/*.native.ts",
+        "**/*.native.tsx",
+        ".next",
+        "test-function.ts",
+        "test-db.js",
+        "test.sql"
+      ]
+    }
+    

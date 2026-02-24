@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AuthCTA } from '@/components/AuthCTA';
+import { AuthCTA } from '@/components/features/auth/auth-cta';
 
 export default function ApartmentsWastePage() {
   const currentPath = '/waste/residential/apartments';

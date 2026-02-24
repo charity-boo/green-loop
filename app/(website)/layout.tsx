@@ -1,15 +1,13 @@
-import FooterComponent from '@/components/FooterComponent'
-import GreenLoopNavBar from '@/components/Navbar'
+import DynamicFooter from '@/components/layout/dynamic-footer'
 import React from 'react'
 
-const layout = ({ children} : { children: React.ReactNode }) => {
+const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-    <GreenLoopNavBar />
-    <main>
+      <main>
         {children}
-    </main>
-    <FooterComponent />
+      </main>
+      <DynamicFooter />
     </>
   )
 }

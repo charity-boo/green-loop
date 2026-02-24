@@ -1,32 +1,22 @@
-'use client';
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+export default async function DashboardRootPage() {
+  const session = await getSession();
 
-export default function DashboardRootPage() {
-  const router = useRouter();
-  const { user, isLoading } = useAuth();
+  if (!session || !session.user) {
+    // This should not happen due to the layout protection, but as a safeguard
+    redirect("/auth/login");
+  }
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push("/login"); // redirect unauthenticated users
-      } else {
-        // redirect based on role
-        switch (user.role) {
-          case "admin":
-            router.push("/dashboard/admin");
-            break;
-          case "collector":
-            router.push("/dashboard/collector");
-            break;
-          default:
-            router.push("/dashboard/user");
-        }
-      }
-    }
-  }, [user, isLoading, router]);
+  const { role } = session.user;
 
-  return <p>Loading...</p>;
+  switch (role) {
+    case 'ADMIN':
+      redirect("/dashboard/admin");
+    case 'COLLECTOR':
+      redirect("/dashboard/collector");
+    default:
+      redirect("/dashboard/user");
+  }
 }

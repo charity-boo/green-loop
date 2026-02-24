@@ -1,10 +1,7 @@
-import Hero from "@/components/Heroslider";
-import ServicesSection from "@/components/ServicesSection";
-import CombinedWastePage from "@/components/CombinedWastePage";
-import AIHeroSection from "@/components/AIHeroSection"
-
-
-
+import Hero from "@/components/features/hero/slider";
+import ServicesSection from "@/components/features/waste/services-section";
+import CombinedWastePage from "@/components/features/waste/combined-page";
+import SustainabilitySection from "@/components/features/waste/sustainability-section";
 
 export default function Home() {
   return (
@@ -12,8 +9,7 @@ export default function Home() {
       <Hero />
       <ServicesSection />
       <CombinedWastePage />
-      <AIHeroSection />
-
+      <SustainabilitySection />
     </main>
   );
 }

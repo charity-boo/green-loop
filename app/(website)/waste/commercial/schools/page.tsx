@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AuthCTA } from '@/components/AuthCTA'; // Import the new component
+import { AuthCTA } from '@/components/features/auth/auth-cta'; // Import the new component
 
 export default function SchoolsWastePage() {
   const currentPath = '/waste/commercial/schools'; // The path to redirect to
