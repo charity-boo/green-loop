@@ -29,6 +29,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+firebase-debug.log*
+firestore-debug.log
+database-debug.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -45,3 +48,10 @@ next-env.d.ts
 
 # test files
 test-db.js
+
+# firebase emulator data
+.firebase-emulator-data/
+firebase-export-*/
+
+/lib/generated/prisma
+.worktrees/
