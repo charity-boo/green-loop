@@ -4,6 +4,8 @@ if (!admin.apps.length) {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const resolvedProjectId = projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
   if (projectId && clientEmail && privateKey) {
     try {
@@ -21,7 +23,10 @@ if (!admin.apps.length) {
       console.error('Firebase admin initialization error', error);
     }
   } else {
-    if (process.env.NODE_ENV === 'production') {
+    if (isDevelopment && resolvedProjectId) {
+      admin.initializeApp({ projectId: resolvedProjectId });
+      console.log(`Firebase admin initialized for development using project "${resolvedProjectId}"`);
+    } else if (process.env.NODE_ENV === 'production') {
       console.warn('Firebase admin credentials missing in production environment');
     } else {
       console.warn('Firebase admin credentials missing, skipping initialization');

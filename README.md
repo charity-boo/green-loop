@@ -28,7 +28,10 @@ To start the development server:
 pnpm dev
 ```
 
-This will start the application in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+This starts Firebase emulators and runs the Next.js app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+By default, client SDK calls use local Firebase emulators in development. Set `NEXT_PUBLIC_USE_FIREBASE_EMULATORS=false` to disable emulator usage.
+Emulator data is imported from and exported to `.firebase-emulator-data/` on each `pnpm dev` run.
 
 ## Build
 

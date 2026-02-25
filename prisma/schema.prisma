@@ -32,8 +32,22 @@ model User {
   assignedSchedules Schedule[] @relation("CollectorSchedules")
   schedules         Schedule[] @relation("UserSchedules")
   aiAnalyses        AIAnalysis[]
+  notifications     Notification[]
 
   @@index([role])
+}
+
+model Notification {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  type              String
+  message           String
+  relatedScheduleId String?
+  isRead            Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Schedule {

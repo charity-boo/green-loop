@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 import type { FirebaseApp } from 'firebase/app';
 
@@ -29,6 +29,20 @@ export const db: Firestore = (app && firebaseConfig.apiKey)
 export const auth: Auth = (app && firebaseConfig.apiKey)
   ? getAuth(app) 
   : (null as unknown as Auth);
+
+const useFirebaseEmulators =
+  process.env.NODE_ENV === 'development' &&
+  process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS !== 'false';
+
+const globalForEmulatorConnection = globalThis as typeof globalThis & {
+  __firebaseEmulatorsConnected?: boolean;
+};
+
+if (typeof window !== 'undefined' && app && firebaseConfig.apiKey && useFirebaseEmulators && !globalForEmulatorConnection.__firebaseEmulatorsConnected) {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  globalForEmulatorConnection.__firebaseEmulatorsConnected = true;
+}
 
 // Initialize analytics only on the client
 let analytics: Analytics | null = null;
