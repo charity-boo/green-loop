@@ -23,6 +23,13 @@ interface Props {
     meta: Meta;
 }
 
+function getRateColor(c: CollectorPerformance) {
+    if (c.assigned === 0) return "text-gray-400";
+    if (c.completionRate >= 90) return "text-emerald-600";
+    if (c.completionRate >= 70) return "text-amber-500 font-medium";
+    return "text-red-600 font-medium";
+}
+
 export default function CollectorTable({ data, meta }: Props) {
     return (
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
@@ -43,7 +50,9 @@ export default function CollectorTable({ data, meta }: Props) {
                             <td className="px-4">{c.assigned}</td>
                             <td className="px-4">{c.completed}</td>
                             <td className="px-4">{c.missed}</td>
-                            <td className="px-4 text-right">{c.completionRate}%</td>
+                            <td className={`px-4 text-right ${getRateColor(c)}`}>
+                                {c.completionRate}%
+                            </td>
                         </tr>
                     ))}
                     {data.length === 0 && (
@@ -74,8 +83,8 @@ export default function CollectorTable({ data, meta }: Props) {
                 <Link
                     href={`?page=${meta.currentPage + 1}`}
                     className={`px-4 py-2 text-sm font-medium rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition-colors ${meta.currentPage >= meta.totalPages || meta.totalPages === 0
-                            ? "opacity-50 pointer-events-none cursor-not-allowed"
-                            : ""
+                        ? "opacity-50 pointer-events-none cursor-not-allowed"
+                        : ""
                         }`}
                     aria-disabled={meta.currentPage >= meta.totalPages || meta.totalPages === 0}
                 >
