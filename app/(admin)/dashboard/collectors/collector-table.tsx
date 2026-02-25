@@ -21,6 +21,8 @@ interface Meta {
 interface Props {
     data: CollectorPerformance[];
     meta: Meta;
+    sortBy: string;
+    sortOrder: "asc" | "desc";
 }
 
 function getRateColor(c: CollectorPerformance) {
@@ -30,17 +32,43 @@ function getRateColor(c: CollectorPerformance) {
     return "text-red-600 font-medium";
 }
 
-export default function CollectorTable({ data, meta }: Props) {
+export default function CollectorTable({ data, meta, sortBy, sortOrder }: Props) {
+    function buildSortLink(column: string) {
+        const isActive = sortBy === column;
+        const nextOrder = isActive && sortOrder === "asc" ? "desc" : "asc";
+        return `?page=1&sortBy=${column}&sortOrder=${nextOrder}`;
+    }
+
+    const paginationLink = (newPage: number) => {
+        return `?page=${newPage}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+    };
+
     return (
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
             <table className="w-full text-sm border-collapse">
                 <thead>
-                    <tr className="text-left border-b">
-                        <th className="py-2 px-4">Name</th>
-                        <th className="px-4">Assigned</th>
-                        <th className="px-4">Completed</th>
-                        <th className="px-4">Missed</th>
-                        <th className="px-4 text-right">Rate (%)</th>
+                    <tr className="text-left border-b font-medium text-slate-500">
+                        <th className="py-2 px-4 focus-within:bg-slate-50">
+                            <Link href={buildSortLink("name")} className="hover:text-slate-900 transition-colors inline-flex items-center gap-1 group">
+                                Name
+                            </Link>
+                        </th>
+                        <th className="px-4">
+                            <Link href={buildSortLink("assigned")} className="hover:text-slate-900 transition-colors inline-flex items-center gap-1 group">
+                                Assigned
+                            </Link>
+                        </th>
+                        <th className="px-4 cursor-default">Completed</th>
+                        <th className="px-4">
+                            <Link href={buildSortLink("missed")} className="hover:text-slate-900 transition-colors inline-flex items-center gap-1 group">
+                                Missed
+                            </Link>
+                        </th>
+                        <th className="px-4 text-right">
+                            <Link href={buildSortLink("completionRate")} className="hover:text-slate-900 transition-colors inline-flex items-center gap-1 group">
+                                Rate (%)
+                            </Link>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,7 +96,7 @@ export default function CollectorTable({ data, meta }: Props) {
             {/* Pagination */}
             <div className="flex justify-between items-center pt-4 border-t">
                 <Link
-                    href={`?page=${Math.max(meta.currentPage - 1, 1)}`}
+                    href={paginationLink(Math.max(meta.currentPage - 1, 1))}
                     className={`px-4 py-2 text-sm font-medium rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition-colors ${meta.currentPage <= 1 ? "opacity-50 pointer-events-none cursor-not-allowed" : ""
                         }`}
                     aria-disabled={meta.currentPage <= 1}
@@ -81,7 +109,7 @@ export default function CollectorTable({ data, meta }: Props) {
                 </span>
 
                 <Link
-                    href={`?page=${meta.currentPage + 1}`}
+                    href={paginationLink(meta.currentPage + 1)}
                     className={`px-4 py-2 text-sm font-medium rounded-md border bg-white text-gray-700 hover:bg-gray-50 transition-colors ${meta.currentPage >= meta.totalPages || meta.totalPages === 0
                         ? "opacity-50 pointer-events-none cursor-not-allowed"
                         : ""
