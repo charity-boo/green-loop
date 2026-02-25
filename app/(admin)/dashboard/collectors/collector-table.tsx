@@ -23,6 +23,7 @@ interface Props {
     meta: Meta;
     sortBy: string;
     sortOrder: "asc" | "desc";
+    window: "7" | "30" | "90" | "all";
 }
 
 function getRateColor(c: CollectorPerformance) {
@@ -32,19 +33,40 @@ function getRateColor(c: CollectorPerformance) {
     return "text-red-600 font-medium";
 }
 
-export default function CollectorTable({ data, meta, sortBy, sortOrder }: Props) {
+export default function CollectorTable({ data, meta, sortBy, sortOrder, window }: Props) {
     function buildSortLink(column: string) {
         const isActive = sortBy === column;
         const nextOrder = isActive && sortOrder === "asc" ? "desc" : "asc";
-        return `?page=1&sortBy=${column}&sortOrder=${nextOrder}`;
+        return `?page=1&sortBy=${column}&sortOrder=${nextOrder}&window=${window}`;
     }
 
     const paginationLink = (newPage: number) => {
-        return `?page=${newPage}&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+        return `?page=${newPage}&sortBy=${sortBy}&sortOrder=${sortOrder}&window=${window}`;
     };
+
+    function buildWindowLink(w: string) {
+        return `?page=1&sortBy=${sortBy}&sortOrder=${sortOrder}&window=${w}`;
+    }
 
     return (
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+            {/* Window Selector */}
+            <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-2">Timeframe:</span>
+                {["7", "30", "90", "all"].map((w) => (
+                    <Link
+                        key={w}
+                        href={buildWindowLink(w)}
+                        className={`text-xs px-3 py-1 rounded-full border transition-all ${window === w
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                            }`}
+                    >
+                        {w === "all" ? "Lifetime" : `${w}D`}
+                    </Link>
+                ))}
+            </div>
+
             <table className="w-full text-sm border-collapse">
                 <thead>
                     <tr className="text-left border-b font-medium text-slate-500">
