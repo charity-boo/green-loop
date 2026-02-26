@@ -27,12 +27,12 @@ export default async function CollectorPerformancePage({ searchParams }: PagePro
         : "30";
 
     // Date Calculation
-    let startDate: Date | undefined;
+    let startDate: Date;
     const now = new Date();
     if (window === "7") startDate = subDays(now, 7);
     else if (window === "30") startDate = subDays(now, 30);
     else if (window === "90") startDate = subDays(now, 90);
-    else startDate = undefined; // "all"
+    else startDate = new Date(0); // "all"
 
     // Page Sanitization
     const page = Math.max(Number(pageStr) || 1, 1);

@@ -96,7 +96,14 @@ export default function CollectorTable({ data, meta, sortBy, sortOrder, window }
                 <tbody>
                     {data.map((c) => (
                         <tr key={c.collectorId} className="border-b hover:bg-gray-50 transition-colors">
-                            <td className="py-3 px-4 font-medium">{c.name}</td>
+                            <td className="py-3 px-4 font-medium">
+                                <Link
+                                    href={`/dashboard/collectors/${c.collectorId}?window=${window}&sortBy=${sortBy}&sortOrder=${sortOrder}`}
+                                    className="text-emerald-700 hover:text-emerald-800 hover:underline"
+                                >
+                                    {c.name}
+                                </Link>
+                            </td>
                             <td className="px-4">{c.assigned}</td>
                             <td className="px-4">{c.completed}</td>
                             <td className="px-4">{c.missed}</td>
