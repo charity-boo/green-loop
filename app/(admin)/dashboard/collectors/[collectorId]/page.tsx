@@ -4,6 +4,7 @@ import { subDays, format } from "date-fns";
 import Link from "next/link";
 import { ArrowLeft, UserCircle, CalendarDays, CheckCircle2, XCircle } from "lucide-react";
 import ScheduleTable from "./schedule-table";
+import CollectorStatusToggle from "./collector-status-toggle";
 
 interface PageProps {
     params: Promise<{ collectorId: string }>;
@@ -64,26 +65,32 @@ export default async function CollectorDetailPage({ params, searchParams }: Page
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto align-top">
-            <div className="flex items-center gap-4">
-                <Link
-                    href={backUrl}
-                    className="p-2 -ml-2 rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
-                    aria-label="Back to collectors"
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-semibold text-slate-900 flex items-center gap-2">
-                        {detail.name}
-                        {!detail.active && (
-                            <span className="text-xs font-medium px-2 py-0.5 rounded border border-red-200 bg-red-50 text-red-600 uppercase tracking-wide">
-                                Inactive
-                            </span>
-                        )}
-                    </h1>
-                    <p className="text-sm text-slate-500">
-                        {window === "all" ? "Lifetime Performance" : `Performance over the last ${window} days`}
-                    </p>
+            <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                    <Link
+                        href={backUrl}
+                        className="p-2 -ml-2 rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
+                        aria-label="Back to collectors"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-semibold text-slate-900 flex items-center gap-2">
+                            {detail.name}
+                            {!detail.active && (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded border border-red-200 bg-red-50 text-red-600 uppercase tracking-wide">
+                                    Inactive
+                                </span>
+                            )}
+                        </h1>
+                        <p className="text-sm text-slate-500">
+                            {window === "all" ? "Lifetime Performance" : `Performance over the last ${window} days`}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center mt-1">
+                    <CollectorStatusToggle collectorId={collectorId} active={detail.active} />
                 </div>
             </div>
 
