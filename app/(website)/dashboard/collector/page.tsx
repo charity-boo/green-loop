@@ -7,6 +7,8 @@ import { PerformanceStats } from '@/components/dashboard/collector/performance-s
 import { JobHistory } from '@/components/dashboard/collector/job-history';
 import { useAuth } from '@/hooks/use-auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import {
     ClipboardList,
     BarChart3,
@@ -20,8 +22,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CollectorDashboard() {
     const { user } = useAuth();
+    const searchParams = useSearchParams();
     const { tasks, loading, error, isOffline } = useCollectorTasks(user?.uid || '');
     const [activeTab, setActiveTab] = useState('tasks');
+
+    useEffect(() => {
+        if (searchParams.get('success') === 'true') {
+            setActiveTab('performance');
+        }
+    }, [searchParams]);
 
     if (loading) {
         return (
@@ -73,7 +82,7 @@ export default function CollectorDashboard() {
             </header>
 
             <main className="max-w-xl mx-auto px-6 py-10">
-                <Tabs defaultValue="tasks" className="w-full" onValueChange={setActiveTab}>
+                <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
                     <TabsList className="grid w-full grid-cols-2 bg-white dark:bg-[#064e3b]/20 backdrop-blur-xl border border-slate-200 dark:border-emerald-800/10 p-2 rounded-[1.5rem] mb-12 shadow-xl shadow-slate-200/50 dark:shadow-none">
                         <TabsTrigger
                             value="tasks"
