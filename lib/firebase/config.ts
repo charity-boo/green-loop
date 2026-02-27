@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, Firestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 import type { FirebaseApp } from 'firebase/app';
@@ -16,18 +16,31 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app: FirebaseApp = firebaseConfig.apiKey 
-  ? (getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)) 
+const app: FirebaseApp = firebaseConfig.apiKey
+  ? (getApps().length > 0 ? getApp() : initializeApp(firebaseConfig))
   : (null as unknown as FirebaseApp);
 
 // Get Firestore instance
 export const db: Firestore = (app && firebaseConfig.apiKey)
-  ? getFirestore(app) 
+  ? getFirestore(app)
   : (null as unknown as Firestore);
+
+// Initialize multi-tab persistence for offline support
+if (typeof window !== 'undefined' && db && firebaseConfig.apiKey) {
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      // Multiple tabs open, persistence can only be enabled in one tab at a time.
+      console.warn('Firestore persistence failed: multiple tabs open');
+    } else if (err.code === 'unimplemented') {
+      // The current browser does not support all of the features required to enable persistence
+      console.warn('Firestore persistence is not supported by this browser');
+    }
+  });
+}
 
 // Get Auth instance
 export const auth: Auth = (app && firebaseConfig.apiKey)
-  ? getAuth(app) 
+  ? getAuth(app)
   : (null as unknown as Auth);
 
 const useFirebaseEmulators =

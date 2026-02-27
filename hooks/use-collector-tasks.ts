@@ -1,63 +1,91 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth-provider';
-import { CollectorTask } from '@/types';
-import { db } from '@/lib/firebase/config';
-import { collection, query, where, onSnapshot, doc, updateDoc, FirestoreError as _FirestoreError } from 'firebase/firestore';
+'use client';
 
-export const useCollectorTasks = () => {
-  const { user, status } = useAuth();
+import { useState, useEffect } from 'react';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  QuerySnapshot,
+  DocumentData,
+  doc,
+  updateDoc
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+import { CollectorTask } from '@/types';
+
+/**
+ * Hook to fetch and sync waste collection tasks assigned to a specific collector.
+ * Uses real-time snapshots with offline support and sync status tracking.
+ * 
+ * @param uid The unique identifier of the collector.
+ * @returns An object containing tasks, loading state, error, and sync metadata.
+ */
+export function useCollectorTasks(uid: string | undefined) {
   const [tasks, setTasks] = useState<CollectorTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
+  const [hasPendingWrites, setHasPendingWrites] = useState(false);
 
   useEffect(() => {
-    if (status !== 'authenticated' || !user?.uid || !db) {
+    if (!uid) {
+      setTasks([]);
       setLoading(false);
       return;
     }
 
-    const q = query(
-      collection(db, 'waste'),
-      where('assignedCollectorId', '==', user.uid)
-    );
+    setLoading(true);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tasksData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as unknown as CollectorTask[];
-      
-      setTasks(tasksData);
-      setLoading(false);
-    }, (err) => {
-      console.error("Error fetching tasks:", err);
-      setError(err.message);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user, status]);
-
-  const updateTask = async (taskId: string, updatedFields: Partial<CollectorTask>) => {
     try {
-      if (!db) throw new Error('Firestore not initialized');
-      const taskRef = doc(db, 'waste', taskId);
-      await updateDoc(taskRef, {
-        ...updatedFields,
-        updatedAt: new Date().toISOString()
-      });
-    } catch (err: _FirestoreError) {
-      console.error(`Error updating task ${taskId}:`, err);
-      setError(err.message);
+      // Per USER_REQUEST: collection is 'waste_schedules' and field is 'collectorId'
+      const q = query(
+        collection(db, 'waste_schedules'),
+        where('collectorId', '==', uid),
+        orderBy('createdAt', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(
+        q,
+        { includeMetadataChanges: true },
+        (snapshot: QuerySnapshot<DocumentData>) => {
+          const tasksData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as unknown as CollectorTask[];
+
+          setTasks(tasksData);
+          setLoading(false);
+          setIsOffline(snapshot.metadata.fromCache);
+          setHasPendingWrites(snapshot.metadata.hasPendingWrites);
+        },
+        (err) => {
+          console.error('Error in useCollectorTasks snapshot:', err);
+          setError(err.message);
+          setLoading(false);
+        }
+      );
+
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Error setting up useCollectorTasks listener:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setLoading(false);
     }
+  }, [uid]);
+
+  /**
+   * Helper to update task status or fields directly.
+   */
+  const updateTask = async (taskId: string, updatedFields: Partial<CollectorTask>) => {
+    if (!db) return;
+    const taskRef = doc(db, 'waste_schedules', taskId);
+    return updateDoc(taskRef, {
+      ...updatedFields,
+      updatedAt: new Date().toISOString()
+    });
   };
 
-  const uploadPhoto = async (taskId: string, _file: File) => {
-    // This would typically use Firebase Storage
-    // Keeping it as a placeholder but removing the maintenance message
-    console.log(`Photo upload requested for task ${taskId}. Implementation pending storage configuration.`);
-    return null;
-  };
-
-  return { tasks, loading, error, updateTask, uploadPhoto };
-};
+  return { tasks, loading, error, isOffline, hasPendingWrites, updateTask };
+}
