@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import {
     ClipboardList,
@@ -5,9 +7,9 @@ import {
     Award,
     MapPin,
     Clock,
-    CheckCircle2,
     ChevronRight
 } from 'lucide-react';
+import { TaskList } from '@/components/dashboard/collector/task-list';
 
 export default function CollectorDashboard() {
     return (
@@ -76,20 +78,8 @@ export default function CollectorDashboard() {
                             </button>
                         </div>
 
-                        {/* Empty State placeholder for Task List */}
-                        <div className="bg-white/80 dark:bg-[#064e3b]/30 backdrop-blur-xl border border-dashed border-emerald-200 dark:border-emerald-800/50 rounded-[2.5rem] p-16 text-center shadow-inner relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mx-auto mb-8 transition-transform group-hover:scale-110">
-                                <CheckCircle2 className="w-12 h-12 text-emerald-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">No Active Tasks</h3>
-                            <p className="text-slate-500 dark:text-emerald-100/50 mb-10 max-w-sm mx-auto">
-                                The Ndagani region is currently clean! New collection requests will appear here in real-time.
-                            </p>
-                            <button className="px-10 py-3.5 bg-white dark:bg-emerald-900/40 text-emerald-700 dark:text-[#10b981] border-2 border-emerald-100 dark:border-emerald-800 font-bold rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-800/60 transition-all shadow-sm">
-                                Refresh Queue
-                            </button>
-                        </div>
+                        {/* Real-time Task List Component */}
+                        <TaskList />
                     </div>
 
                     {/* Sidebar Area */}

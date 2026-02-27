@@ -53,7 +53,8 @@ export function useCollectorTasks(uid: string | undefined) {
           const tasksData = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          })) as unknown as CollectorTask[];
+            hasPendingWrites: doc.metadata.hasPendingWrites,
+          })) as unknown as (CollectorTask & { hasPendingWrites: boolean })[];
 
           setTasks(tasksData);
           setLoading(false);
