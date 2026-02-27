@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, Firestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
+import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 import type { FirebaseApp } from 'firebase/app';
 
@@ -43,6 +44,11 @@ export const auth: Auth = (app && firebaseConfig.apiKey)
   ? getAuth(app)
   : (null as unknown as Auth);
 
+// Get Storage instance
+export const storage: FirebaseStorage = (app && firebaseConfig.apiKey)
+  ? getStorage(app)
+  : (null as unknown as FirebaseStorage);
+
 const useFirebaseEmulators =
   process.env.NODE_ENV === 'development' &&
   process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS !== 'false';
@@ -54,6 +60,7 @@ const globalForEmulatorConnection = globalThis as typeof globalThis & {
 if (typeof window !== 'undefined' && app && firebaseConfig.apiKey && useFirebaseEmulators && !globalForEmulatorConnection.__firebaseEmulatorsConnected) {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectStorageEmulator(storage, '127.0.0.1', 9199);
   globalForEmulatorConnection.__firebaseEmulatorsConnected = true;
 }
 
