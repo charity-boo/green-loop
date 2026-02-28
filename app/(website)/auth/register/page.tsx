@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import { auth, db } from "@/lib/firebase/config";
+import { useAuth } from "@/context/auth-provider";
 
 // Import Shadcn UI Components
 import { Button } from "@/components/ui/button";
@@ -18,12 +19,24 @@ export const dynamic = "force-dynamic";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { role, status } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Only redirect if not currently in the registration submission process
+    if (status === 'authenticated' && role && !loading) {
+      if (role === 'ADMIN') {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    }
+  }, [status, role, router, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +82,8 @@ export default function RegisterPage() {
         updatedAt: new Date().toISOString(),
       });
 
-      // Redirect to home page on success
-      router.push("/");
+      // Firestore document creation is successful.
+      // The useAuth hook will detect the auth state change and handle the redirection.
     } catch (err: unknown) {
       console.error("Registration Error:", err);
       
