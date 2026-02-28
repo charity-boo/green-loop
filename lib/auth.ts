@@ -61,14 +61,23 @@ export async function getSession(): Promise<AuthSession | null> {
       return null;
     }
     const decodedToken = await adminAuth.verifyIdToken(token);
-    console.log('Firebase ID token verified. User UID:', decodedToken.uid);
+    const resolvedRole = (decodedToken.role?.toUpperCase() as Role) || 'USER';
+    console.log('[getSession] Token verified:', {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      rawRoleClaim: decodedToken.role,       // what Firebase actually has in claims
+      resolvedRole,                           // what the app will use
+      tokenIssuedAt: new Date(decodedToken.iat * 1000).toISOString(),
+      tokenExpires: new Date(decodedToken.exp * 1000).toISOString(),
+      allClaims: JSON.stringify(decodedToken), // full claims for inspection
+    });
 
     return {
       user: {
         id: decodedToken.uid,
         email: decodedToken.email || '',
         name: decodedToken.name || null,
-        role: (decodedToken.role as Role) || 'USER',
+        role: resolvedRole,
         image: decodedToken.picture || null,
       },
       expires: new Date(decodedToken.exp * 1000).toISOString(),
