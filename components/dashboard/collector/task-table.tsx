@@ -1,12 +1,13 @@
 "use client";
 
+import Image from 'next/image';
 import React from 'react';
 import { CollectorTask } from '@/types';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
-    Leaf, Recycle, Box, MapPin, Play, ScanLine, CheckCircle2,
+    Leaf, Recycle, Box, MapPin, Play, CheckCircle2,
     Image as ImageIcon, User, SkipForward
 } from 'lucide-react';
 import { WasteStatus } from '@/lib/types/waste-status';
@@ -49,8 +50,8 @@ function StatusButton({ task }: { task: CollectorTask }) {
                 onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/active/${task.id}/verify`); }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-blue-500/20"
             >
-                <ScanLine size={12} />
-                Verify QR
+                 <CheckCircle2 size={12} />
+                Verify
             </button>
         );
     }
@@ -109,9 +110,9 @@ export function TaskTable({ tasks }: TaskTableProps) {
                         >
                             {/* ── Mobile layout ── */}
                             <div className="flex items-center gap-3 lg:hidden">
-                                <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-emerald-900/30 flex-shrink-0">
+                                <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-emerald-900/30 flex-shrink-0">
                                     {task.imageUrl ? (
-                                        <img src={task.imageUrl} alt="Waste preview" className="w-full h-full object-cover" />
+                                        <Image src={task.imageUrl} alt="Waste preview" fill className="object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <ImageIcon size={16} className="text-slate-400 dark:text-emerald-700" />
@@ -139,9 +140,9 @@ export function TaskTable({ tasks }: TaskTableProps) {
                             {/* ── Desktop table row ── */}
                             <div className="hidden lg:grid grid-cols-[56px_1fr_150px_130px] gap-4 items-center">
                                 {/* AI Preview */}
-                                <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-emerald-900/30 flex-shrink-0 group-hover:ring-2 ring-[#10b981]/20 transition-all">
+                                <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-emerald-900/30 flex-shrink-0 group-hover:ring-2 ring-[#10b981]/20 transition-all">
                                     {task.imageUrl ? (
-                                        <img src={task.imageUrl} alt="Waste preview" className="w-full h-full object-cover" />
+                                        <Image src={task.imageUrl} alt="Waste preview" fill className="object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <ImageIcon size={16} className="text-slate-400 dark:text-emerald-700" />

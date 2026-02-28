@@ -19,6 +19,8 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       ".backup-routes/**",
+      ".agents/**",
+      ".worktrees/**",
       "test-db.js",
       "test-*.ts",
       "functions/**",

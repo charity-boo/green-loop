@@ -40,18 +40,42 @@ export async function GET(req: Request) {
     }
 
     const snapshot = await wasteRef.orderBy('createdAt', 'desc').get();
-    
-    const wasteItems = await Promise.all(snapshot.docs.map(async (doc) => {
-      const data = doc.data();
-      
-      // Fetch user and collector data manually as Firestore doesn't support joins
-      const [userDoc, collectorDoc] = await Promise.all([
-        adminDb.collection('users').doc(data.userId).get(),
-        data.assignedCollectorId ? adminDb.collection('users').doc(data.assignedCollectorId).get() : Promise.resolve(null)
-      ]);
 
-      const userData = userDoc.exists ? userDoc.data() : null;
-      const collectorData = (collectorDoc && collectorDoc.exists) ? collectorDoc.data() : null;
+    if (snapshot.empty) {
+      return NextResponse.json([]);
+    }
+
+    // Collect unique owner and collector IDs across all waste docs
+    const userIdSet = new Set<string>();
+    const collectorIdSet = new Set<string>();
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      if (data.userId) userIdSet.add(data.userId);
+      if (data.assignedCollectorId) collectorIdSet.add(data.assignedCollectorId);
+    }
+
+    // Batch-fetch all referenced users in 2 round-trips instead of 2n individual reads
+    const userRefs = [...userIdSet].map((id) => adminDb.collection('users').doc(id));
+    const collectorRefs = [...collectorIdSet].map((id) => adminDb.collection('users').doc(id));
+    const [userDocs, collectorDocs] = await Promise.all([
+      userRefs.length ? adminDb.getAll(...userRefs) : Promise.resolve([]),
+      collectorRefs.length ? adminDb.getAll(...collectorRefs) : Promise.resolve([]),
+    ]);
+
+    // Build O(1) lookup maps
+    const userMap = new Map(
+      userDocs.filter((d) => d.exists).map((d) => [d.id, d.data() as { name: string; email: string }]),
+    );
+    const collectorMap = new Map(
+      collectorDocs.filter((d) => d.exists).map((d) => [d.id, d.data() as { name: string; email: string }]),
+    );
+
+    const wasteItems = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      const userData = userMap.get(data.userId);
+      const collectorData = data.assignedCollectorId
+        ? collectorMap.get(data.assignedCollectorId)
+        : undefined;
 
       return {
         id: doc.id,
@@ -59,7 +83,7 @@ export async function GET(req: Request) {
         user: userData ? { name: userData.name, email: userData.email } : null,
         assignedCollector: collectorData ? { name: collectorData.name, email: collectorData.email } : null,
       };
-    }));
+    });
 
     return NextResponse.json(wasteItems);
   } catch (error) {

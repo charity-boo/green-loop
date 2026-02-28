@@ -1,12 +1,11 @@
 "use client";
 
-import React from 'react';
+import Image from "next/image";
 import Link from "next/link";
 import {
     Truck,
     MapPin,
     Zap,
-    ArrowRight,
     Route,
     Timer,
     ShieldCheck,
@@ -58,11 +57,12 @@ export default function EcoCollectionInfoPage() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="lg:w-1/2 relative"
                         >
-                            <div className="relative z-10 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-8 border-white group">
-                                <img
+                            <div className="relative z-10 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-8 border-white group" style={{ height: '500px' }}>
+                                <Image
                                     src="/images/3d/eco-collection.png"
                                     alt="Eco-Friendly Collection Truck 3D Render"
-                                    className="w-full h-[500px] object-cover transition-transform duration-700 group-hover:scale-110"
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-green-900/40 to-transparent"></div>
                             </div>

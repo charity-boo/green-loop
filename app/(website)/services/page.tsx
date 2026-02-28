@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Truck,
@@ -74,8 +73,6 @@ const ServiceCard = ({ icon: Icon, title, description, features, link, color, st
 );
 
 export default function ServicesPage() {
-  const [activeTab] = useState("residential");
-
   const services = [
     {
       id: "pickup",
@@ -172,7 +169,7 @@ export default function ServicesPage() {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, idx) => (
+            {services.map((service) => (
               <ServiceCard key={service.id} {...service} />
             ))}
           </div>

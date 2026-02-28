@@ -11,8 +11,8 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
     ClipboardList, Map, History, AlertTriangle, TrendingUp,
-    QrCode, Scale, User, Bell, WifiOff, Loader2,
-    CheckCircle2, MapPin, Send, Wifi, Package
+    Scale, User, Bell, WifiOff, Loader2,
+    CheckCircle2, MapPin, Send, Wifi, Package, LogOut
 } from 'lucide-react';
 
 type SidebarView = 'tasks' | 'map' | 'history' | 'issues' | 'earnings';
@@ -33,7 +33,7 @@ const collectionPoints = [
 ];
 
 export default function CollectorDashboard() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const router = useRouter();
     const { tasks, loading, isOffline } = useCollectorTasks(user?.uid || '');
 
@@ -43,6 +43,19 @@ export default function CollectorDashboard() {
     const [reportSent, setReportSent]       = useState(false);
     const [weightInput, setWeightInput]     = useState('');
     const [selectedTaskId, setSelectedTaskId] = useState('');
+    const [isSigningOut, setIsSigningOut]   = useState(false);
+
+    const handleSignOut = async () => {
+        setIsSigningOut(true);
+        try {
+            await logout();
+            router.push('/auth/login');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        } finally {
+            setIsSigningOut(false);
+        }
+    };
 
     const activeTasks    = useMemo(() => tasks.filter(t => t.status !== 'completed'), [tasks]);
     const completedTasks = useMemo(() => tasks.filter(t => t.status === 'completed'),  [tasks]);
@@ -105,6 +118,18 @@ export default function CollectorDashboard() {
                         </button>
                         <button className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/20 transition-colors">
                             <User className="w-5 h-5 text-slate-400 dark:text-emerald-100/40" />
+                        </button>
+                        <button 
+                            onClick={handleSignOut}
+                            disabled={isSigningOut}
+                            className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Sign Out"
+                        >
+                            {isSigningOut ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <LogOut className="w-5 h-5" />
+                            )}
                         </button>
                     </div>
                 </div>
@@ -170,14 +195,14 @@ export default function CollectorDashboard() {
                         {[
                             { label: 'Assigned Jobs', value: activeTasks.length.toString(),    sub: 'Remaining today',    color: 'text-amber-500',    bg: 'bg-amber-50 dark:bg-amber-900/20',       icon: ClipboardList },
                             { label: 'Total Weight',  value: `${totalWeight.toFixed(1)}kg`,    sub: 'Collected today',    color: 'text-[#10b981]',    bg: 'bg-emerald-50 dark:bg-emerald-900/20',   icon: Scale         },
-                            { label: 'Completion',    value: `${completionRate}%`,             sub: 'QR-verified rate',   color: 'text-blue-500',     bg: 'bg-blue-50 dark:bg-blue-900/20',         icon: CheckCircle2  },
+                            { label: 'Completion',    value: `${completionRate}%`,             sub: 'Task success rate',  color: 'text-blue-500',     bg: 'bg-blue-50 dark:bg-blue-900/20',         icon: CheckCircle2  },
                         ].map((stat, i) => (
                             <motion.div
                                 key={stat.label}
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.07 }}
-                                className="bg-white dark:bg-[#022c22]/60 rounded-2xl p-3.5 border border-slate-100 dark:border-emerald-800/10 shadow-sm"
+                                className="bg-white dark:bg-[#022c22]/60 rounded-2xl p-3.5 border border-slate-100 dark:border-emerald-800/10 shadow-sm hover:shadow-md transition-shadow"
                             >
                                 <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center mb-2.5', stat.bg)}>
                                     <stat.icon size={15} className={stat.color} />
@@ -192,7 +217,7 @@ export default function CollectorDashboard() {
                     {/* Content panel */}
                     <div className="bg-white dark:bg-[#022c22]/60 rounded-3xl border border-slate-100 dark:border-emerald-800/10 shadow-sm overflow-hidden">
                         {/* Panel header */}
-                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-emerald-800/10">
+                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-emerald-800/10 bg-slate-50/50 dark:bg-emerald-900/5">
                             {(() => {
                                 const item = navItems.find(n => n.id === activeView)!;
                                 const Icon = item.icon;
@@ -211,7 +236,7 @@ export default function CollectorDashboard() {
                             {activeView === 'tasks' && (
                                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#10b981]/10 text-[#10b981] rounded-full text-[9px] font-black tracking-widest uppercase">
                                     <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                                    Live
+                                    Live Queue
                                 </span>
                             )}
                         </div>
@@ -222,26 +247,41 @@ export default function CollectorDashboard() {
 
                                 {/* ACTIVE TASKS */}
                                 {activeView === 'tasks' && (
-                                    <motion.div key="tasks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <motion.div 
+                                        key="tasks" 
+                                        initial={{ opacity: 0, x: -10 }} 
+                                        animate={{ opacity: 1, x: 0 }} 
+                                        exit={{ opacity: 0, x: 10 }}
+                                    >
                                         <TaskTable tasks={activeTasks} />
                                     </motion.div>
                                 )}
 
                                 {/* ROUTE MAP */}
                                 {activeView === 'map' && (
-                                    <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                                        <div className="rounded-2xl overflow-hidden border border-slate-100 dark:border-emerald-800/20 h-60">
+                                    <motion.div 
+                                        key="map" 
+                                        initial={{ opacity: 0, x: -10 }} 
+                                        animate={{ opacity: 1, x: 0 }} 
+                                        exit={{ opacity: 0, x: 10 }} 
+                                        className="space-y-4"
+                                    >
+                                        <div className="rounded-2xl overflow-hidden border border-slate-100 dark:border-emerald-800/20 h-64 relative">
                                             <iframe
                                                 title="Ndagani Collection Map"
                                                 src="https://maps.google.com/maps?q=Ndagani,Chuka,Kenya&t=&z=14&ie=UTF8&iwloc=&output=embed"
-                                                className="w-full h-full border-0"
+                                                className="w-full h-full border-0 grayscale dark:invert-[0.9] dark:hue-rotate-180 contrast-125"
                                                 allowFullScreen
                                                 loading="lazy"
                                             />
+                                            <div className="absolute top-4 right-4 bg-white/90 dark:bg-emerald-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200 dark:border-emerald-800/20 flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+                                                <span className="text-[10px] font-black uppercase tracking-wider dark:text-emerald-100">Live GPS tracking</span>
+                                            </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             {collectionPoints.map(pt => (
-                                                <div key={pt.name} className="p-3 rounded-2xl bg-slate-50 dark:bg-emerald-950/20 border border-slate-100 dark:border-emerald-800/20">
+                                                <div key={pt.name} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-emerald-950/20 border border-slate-100 dark:border-emerald-800/20 hover:bg-white dark:hover:bg-emerald-900/30 transition-all cursor-default">
                                                     <div className="flex items-start justify-between gap-2">
                                                         <div>
                                                             <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{pt.name}</p>
@@ -250,7 +290,7 @@ export default function CollectorDashboard() {
                                                                 {pt.tasks} task{pt.tasks !== 1 ? 's' : ''}
                                                             </div>
                                                         </div>
-                                                        <span className={cn('text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0',
+                                                        <span className={cn('text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0 shadow-sm',
                                                             pt.status === 'Active'    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
                                                             pt.status === 'Scheduled' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
                                                                                         'bg-slate-100 dark:bg-slate-800/30 text-slate-500')}>
@@ -265,24 +305,35 @@ export default function CollectorDashboard() {
 
                                 {/* COLLECTION HISTORY */}
                                 {activeView === 'history' && (
-                                    <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <motion.div 
+                                        key="history" 
+                                        initial={{ opacity: 0, x: -10 }} 
+                                        animate={{ opacity: 1, x: 0 }} 
+                                        exit={{ opacity: 0, x: 10 }}
+                                    >
                                         <JobHistory tasks={tasks} />
                                     </motion.div>
                                 )}
 
                                 {/* ISSUES / ALERTS */}
                                 {activeView === 'issues' && (
-                                    <motion.div key="issues" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
+                                    <motion.div 
+                                        key="issues" 
+                                        initial={{ opacity: 0, x: -10 }} 
+                                        animate={{ opacity: 1, x: 0 }} 
+                                        exit={{ opacity: 0, x: 10 }} 
+                                        className="space-y-5"
+                                    >
                                         {reportSent ? (
                                             <div className="flex flex-col items-center justify-center py-16 text-center">
-                                                <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-4">
-                                                    <CheckCircle2 className="text-[#10b981]" size={28} />
+                                                <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center mb-4 border border-emerald-100 dark:border-emerald-800/20">
+                                                    <CheckCircle2 className="text-[#10b981]" size={32} />
                                                 </div>
-                                                <h3 className="text-base font-black text-slate-900 dark:text-white">Report Sent</h3>
-                                                <p className="text-sm text-slate-400 dark:text-emerald-100/40 mt-1">Your issue has been logged and dispatched.</p>
+                                                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">Report Logged Successfully</h3>
+                                                <p className="text-sm text-slate-400 dark:text-emerald-100/40 mt-1 max-w-[240px] mx-auto">Field operations has received your alert. We&apos;ll monitor for updates.</p>
                                                 <button
                                                     onClick={() => { setReportSent(false); setIssueDesc(''); }}
-                                                    className="mt-5 px-5 py-2 rounded-xl bg-[#10b981] text-white text-sm font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98]"
+                                                    className="mt-6 px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-emerald-600 text-white text-xs font-black shadow-lg hover:opacity-90 transition-all active:scale-[0.98] uppercase tracking-widest"
                                                 >
                                                     New Report
                                                 </button>
@@ -290,8 +341,8 @@ export default function CollectorDashboard() {
                                         ) : (
                                             <>
                                                 <div>
-                                                    <label className="text-[9px] font-black text-slate-500 dark:text-emerald-100/40 uppercase tracking-widest mb-2 block">Issue Type</label>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                                    <label className="text-[9px] font-black text-slate-500 dark:text-emerald-100/40 uppercase tracking-widest mb-3 block">Category of Issue</label>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                                                         {[
                                                             { val: 'overflow',  label: 'Overflowing Bin'  },
                                                             { val: 'drain',     label: 'Blocked Drain'    },
@@ -304,10 +355,10 @@ export default function CollectorDashboard() {
                                                                 key={opt.val}
                                                                 onClick={() => setIssueType(opt.val)}
                                                                 className={cn(
-                                                                    'py-2 px-3 rounded-xl text-xs font-bold transition-all text-left border',
+                                                                    'py-2.5 px-3 rounded-xl text-[10px] font-black transition-all text-center border uppercase tracking-tighter',
                                                                     issueType === opt.val
                                                                         ? 'bg-[#10b981] text-white border-[#10b981] shadow-md shadow-emerald-500/20'
-                                                                        : 'bg-slate-50 dark:bg-emerald-950/20 text-slate-600 dark:text-emerald-100/50 border-slate-100 dark:border-emerald-800/20 hover:border-[#10b981]/40'
+                                                                        : 'bg-white dark:bg-emerald-950/20 text-slate-500 dark:text-emerald-100/50 border-slate-100 dark:border-emerald-800/20 hover:border-[#10b981]/40'
                                                                 )}
                                                             >
                                                                 {opt.label}
@@ -316,22 +367,22 @@ export default function CollectorDashboard() {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="text-[9px] font-black text-slate-500 dark:text-emerald-100/40 uppercase tracking-widest mb-2 block">Description</label>
+                                                    <label className="text-[9px] font-black text-slate-500 dark:text-emerald-100/40 uppercase tracking-widest mb-3 block">Detailed Description</label>
                                                     <textarea
                                                         value={issueDesc}
                                                         onChange={e => setIssueDesc(e.target.value)}
                                                         rows={4}
-                                                        placeholder="Describe the issue in detail..."
-                                                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-emerald-950/20 border border-slate-200 dark:border-emerald-800/20 text-sm text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-emerald-100/20 font-medium resize-none focus:outline-none focus:ring-2 focus:ring-[#10b981]/30 focus:border-[#10b981]/50 transition-all"
+                                                        placeholder="Please provide specifics (Location, Severity, etc...)"
+                                                        className="w-full px-4 py-3.5 rounded-2xl bg-white dark:bg-emerald-950/20 border border-slate-200 dark:border-emerald-800/20 text-sm text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-emerald-100/20 font-medium resize-none focus:outline-none focus:ring-2 focus:ring-[#10b981]/30 transition-all"
                                                     />
                                                 </div>
                                                 <button
                                                     onClick={() => issueDesc.trim() && setReportSent(true)}
                                                     disabled={!issueDesc.trim()}
-                                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#10b981] hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-black transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                                                    className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[#10b981] hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] uppercase tracking-[0.2em]"
                                                 >
                                                     <Send size={14} />
-                                                    Submit Report
+                                                    Dispatch Incident Report
                                                 </button>
                                             </>
                                         )}
@@ -340,7 +391,12 @@ export default function CollectorDashboard() {
 
                                 {/* EARNINGS */}
                                 {activeView === 'earnings' && (
-                                    <motion.div key="earnings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <motion.div 
+                                        key="earnings" 
+                                        initial={{ opacity: 0, x: -10 }} 
+                                        animate={{ opacity: 1, x: 0 }} 
+                                        exit={{ opacity: 0, x: 10 }}
+                                    >
                                         <PerformanceStats tasks={tasks} />
                                     </motion.div>
                                 )}
@@ -353,30 +409,30 @@ export default function CollectorDashboard() {
                 {/* ── RIGHT SIDEBAR ── */}
                 <aside className="hidden lg:flex flex-col w-72 flex-shrink-0 border-l border-slate-200 dark:border-emerald-900/20 bg-white dark:bg-[#022c22]/50 sticky top-[3.75rem] h-[calc(100vh-3.75rem)] overflow-y-auto pt-5 pb-6 px-4 gap-4">
 
-                    {/* QR Scanner Widget */}
-                    <div className="rounded-2xl border border-slate-100 dark:border-emerald-800/20 overflow-hidden">
-                        <div className="bg-slate-50 dark:bg-emerald-950/20 px-4 py-2.5 border-b border-slate-100 dark:border-emerald-800/20">
-                            <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.2em]">QR Verification</p>
+                    {/* Quick Action Widget */}
+                    <div className="rounded-2xl border border-slate-100 dark:border-emerald-800/20 overflow-hidden bg-white dark:bg-emerald-950/10">
+                        <div className="bg-slate-50 dark:bg-emerald-950/40 px-4 py-2.5 border-b border-slate-100 dark:border-emerald-800/20">
+                            <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.2em]">Quick Actions</p>
                         </div>
                         <div className="p-4 flex flex-col items-center gap-3">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-900 dark:bg-emerald-950 flex items-center justify-center shadow-inner">
-                                <QrCode className="w-7 h-7 text-white" />
+                            <div className="w-14 h-14 rounded-2xl bg-[#10b981]/10 dark:bg-emerald-500/10 flex items-center justify-center">
+                                <CheckCircle2 className="w-7 h-7 text-[#10b981]" />
                             </div>
                             <div className="text-center">
-                                <p className="text-xs font-black text-slate-900 dark:text-white">Scan Resident QR</p>
-                                <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium mt-0.5">Confirm identity &amp; log pickup</p>
+                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Log Field Pickup</p>
+                                <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium mt-1 leading-relaxed px-2">Perform manual verification and weight assessment for current task</p>
                             </div>
                             <button
                                 onClick={() => activeJob && router.push(`/dashboard/active/${activeJob.id}/verify`)}
                                 disabled={!activeJob}
                                 className={cn(
-                                    'w-full py-2.5 rounded-xl text-sm font-black transition-all active:scale-[0.98]',
+                                    'w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all active:scale-[0.98]',
                                     activeJob
                                         ? 'bg-[#10b981] hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
                                         : 'bg-slate-100 dark:bg-emerald-900/20 text-slate-400 dark:text-emerald-100/30 cursor-not-allowed'
                                 )}
                             >
-                                {activeJob ? 'Open QR Scanner' : 'No Active Job'}
+                                {activeJob ? 'Open Verification' : 'Queue Empty'}
                             </button>
                         </div>
                     </div>
@@ -456,11 +512,39 @@ export default function CollectorDashboard() {
                                     </div>
                                 ))}
                             </div>
+                            <button
+                                onClick={handleSignOut}
+                                disabled={isSigningOut}
+                                className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl border border-red-100 dark:border-red-900/10 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSigningOut ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <LogOut size={14} />
+                                )}
+                                {isSigningOut ? 'Signing Out...' : 'End Shift & Sign Out'}
+                            </button>
                         </div>
                     </div>
 
                 </aside>
             </div>
+
+            {/* Global signing out overlay */}
+            {isSigningOut && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
+                    <div className="bg-slate-900 border border-emerald-500/20 rounded-3xl px-10 py-8 flex flex-col items-center gap-5 shadow-2xl shadow-emerald-500/10">
+                        <div className="relative">
+                            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
+                            <div className="absolute inset-0 blur-xl bg-emerald-400/20 rounded-full animate-pulse" />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-white font-black text-xl uppercase tracking-tight">Closing Session</p>
+                            <p className="text-emerald-100/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">Securing field data...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── MOBILE BOTTOM NAV ── */}
             <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white/92 dark:bg-[#011a14]/95 backdrop-blur-2xl border-t border-slate-200 dark:border-emerald-900/20">

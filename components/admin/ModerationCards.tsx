@@ -35,12 +35,12 @@ interface WasteReportDoc {
   createdAt: string;
   updatedAt?: string;
 }
+import Image from 'next/image';
 import { 
   AlertTriangle, 
   Clock, 
   CheckCircle2, 
   XCircle, 
-  ExternalLink, 
   MapPin, 
   MessageSquare, 
   User, 
@@ -230,10 +230,11 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all group flex flex-col">
       <div className="relative h-48 bg-slate-100 overflow-hidden">
-        <img 
+        <Image 
           src={report.imageUrl} 
           alt="Waste classification" 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3 flex gap-2">
           <div className={cn(

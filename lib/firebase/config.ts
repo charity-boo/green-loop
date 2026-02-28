@@ -3,6 +3,7 @@ import { getFirestore, Firestore, connectFirestoreEmulator, initializeFirestore,
 import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
+import { getMessaging, Messaging } from 'firebase/messaging';
 import type { FirebaseApp } from 'firebase/app';
 
 // Firebase configuration
@@ -62,9 +63,11 @@ if (typeof window !== 'undefined' && app && firebaseConfig.apiKey && useFirebase
 
 // Initialize analytics only on the client
 let analytics: Analytics | null = null;
+let messaging: Messaging | null = null;
 if (typeof window !== 'undefined' && app && firebaseConfig.apiKey) {
   analytics = getAnalytics(app);
+  messaging = getMessaging(app);
 }
 
-export { analytics };
+export { analytics, messaging };
 export default app;

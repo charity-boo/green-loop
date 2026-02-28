@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Zap, Award, Star, ChevronRight } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 
 interface RewardsTrackerProps {
     points: number;

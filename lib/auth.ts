@@ -1,7 +1,6 @@
 import { adminAuth } from "@/lib/firebase/admin";
 import { cookies, headers } from "next/headers";
-
-export type Role = 'USER' | 'ADMIN' | 'COLLECTOR';
+export type { Role } from '@/lib/types/firestore';
 
 export interface SessionUser {
   id: string;
@@ -42,21 +41,23 @@ export async function getSession(): Promise<AuthSession | null> {
 
     console.log('Verifying Firebase ID token with admin SDK...');
     if (typeof adminAuth.verifyIdToken !== 'function') {
-      console.warn('Firebase Admin SDK (adminAuth.verifyIdToken) is not initialized. Using development bypass.');
+      // Firebase Admin SDK failed to initialize (missing credentials).
+      // Only allow a dev fallback when running with the Auth emulator — never in production.
+      const emulatorsEnabled =
+        process.env.NODE_ENV === 'development' &&
+        process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS !== 'false' &&
+        !!process.env.FIREBASE_AUTH_EMULATOR_HOST;
 
-      // Development Bypass: If we're in dev and have any token, return a mock user
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Generating mock session for development...');
-        return {
-          user: {
-            id: 'mock-user-123',
-            email: 'dev@greenloop.test',
-            name: 'Development User',
-            role: 'USER',
-            image: null,
-          },
-          expires: new Date(Date.now() + 3600 * 1000).toISOString(),
-        };
+      if (emulatorsEnabled) {
+        console.warn(
+          'Firebase Admin SDK not initialized but Auth emulator is configured. ' +
+          'Returning null — ensure the emulator is running and the SDK can connect.',
+        );
+      } else {
+        console.error(
+          'Firebase Admin SDK is not initialized. ' +
+          'Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.',
+        );
       }
       return null;
     }

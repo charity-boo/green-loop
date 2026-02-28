@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { 
   getDashboardKPIs, 
   getWasteTrendData, 
@@ -192,8 +193,7 @@ export default async function AnalyticsPage() {
                   <div className="flex -space-x-3">
                      {[1,2,3,4,5].map(i => (
                         <div key={i} className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center font-bold text-xs text-slate-600 shadow-sm overflow-hidden">
-                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                           <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" className="w-full h-full object-cover" />
+                           <Image src={`https://i.pravatar.cc/150?u=${i}`} alt="user" width={40} height={40} className="w-full h-full object-cover" />
                         </div>
                      ))}
                      <div className="w-10 h-10 rounded-full bg-emerald-100 border-2 border-white flex items-center justify-center font-bold text-[10px] text-emerald-600 shadow-sm">
@@ -209,7 +209,7 @@ export default async function AnalyticsPage() {
   );
 }
 
-function KPIReportCard({ title, value, trend, up, color, desc }: { title: string; value: string | number; trend: string; up: boolean; color: string; desc: string }) {
+function KPIReportCard({ title, value, trend, up, color: _color, desc }: { title: string; value: string | number; trend: string; up: boolean; color: string; desc: string }) {
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
       <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-100 group-hover:bg-emerald-500 transition-colors" />

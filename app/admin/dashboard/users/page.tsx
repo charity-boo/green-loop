@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 
 interface UserFilters {
   role?: Role;
+  status?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -40,6 +41,7 @@ export default function UserManagementPage() {
       params.set('page', String(filters.page || 1));
       params.set('limit', String(filters.limit || 10));
       if (filters.role) params.set('role', filters.role);
+      if (filters.status) params.set('status', filters.status);
       if (filters.search) params.set('search', filters.search);
       const res = await fetch(`/api/admin/users?${params}`);
       if (!res.ok) throw new Error('Failed to fetch users');
@@ -107,13 +109,23 @@ export default function UserManagementPage() {
             { label: 'Residents', value: 'USER' },
             { label: 'Collectors', value: 'COLLECTOR' },
             { label: 'Admins', value: 'ADMIN' },
+            { label: 'Pending Approvals', value: 'PENDING' },
           ].map((item) => (
             <button
               key={item.value}
-              onClick={() => handleRoleFilter(item.value as Role | 'ALL')}
+              onClick={() => {
+                if (item.value === 'PENDING') {
+                  setFilters(prev => ({ ...prev, role: undefined, status: 'PENDING_APPROVAL', page: 1 }));
+                } else {
+                  handleRoleFilter(item.value as Role | 'ALL');
+                  setFilters(prev => ({ ...prev, status: undefined }));
+                }
+              }}
               className={cn(
                 "px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border",
-                (filters.role === item.value || (item.value === 'ALL' && !filters.role))
+                ((item.value === 'PENDING' && filters.status === 'PENDING_APPROVAL') || 
+                 (item.value === 'ALL' && !filters.role && !filters.status) ||
+                 (item.value !== 'PENDING' && item.value !== 'ALL' && filters.role === item.value))
                   ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                   : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
               )}

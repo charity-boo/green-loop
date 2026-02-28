@@ -10,15 +10,23 @@ export default async function AdminLayout({
     children: React.ReactNode;
 }) {
     const session = await getSession();
+    console.log('[AdminLayout] Session check:', session
+      ? { uid: session.user.id, email: session.user.email, role: session.user.role }
+      : 'no session'
+    );
 
     // Route Protection: Security before cosmetics
     if (!session) {
+        console.log('[AdminLayout] No session → redirecting to /auth/login');
         redirect("/auth/login");
     }
 
     if (session.user.role !== 'ADMIN') {
+        console.log('[AdminLayout] Role is not ADMIN (got:', session.user.role, ') → redirecting to /');
         redirect("/");
     }
+
+    console.log('[AdminLayout] Access granted for ADMIN:', session.user.email);
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">

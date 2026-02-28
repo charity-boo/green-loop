@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signInFirebase, signInWithGoogle, getFirebaseIdToken } from "@/lib/firebase/auth-integration";
+import { signInFirebase, signInWithGoogle } from "@/lib/firebase/auth-integration";
 import { useAuth } from "@/context/auth-provider";
 
 // Import Shadcn UI Components
@@ -71,15 +71,6 @@ export function LoginForm() {
         try {
             await signInFirebase(email, password);
             console.log('signInFirebase successful.');
-            const idToken = await getFirebaseIdToken();
-            if (idToken) {
-                console.log('Firebase ID token obtained. Setting cookie.');
-                const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString(); // 1 hour from now
-                const isSecure = window.location.protocol === 'https:';
-                document.cookie = `firebase-token=${idToken}; path=/; expires=${expires}; ${isSecure ? 'secure;' : ''} samesite=Lax`;
-            } else {
-                console.log('No Firebase ID token obtained after signInFirebase.');
-            }
             setLoading(false);
             console.log('setLoading(false) after handleSubmit success.');
         } catch (err: unknown) {
@@ -114,15 +105,6 @@ export function LoginForm() {
         try {
             await signInWithGoogle();
             console.log('signInWithGoogle successful.');
-            const idToken = await getFirebaseIdToken();
-            if (idToken) {
-                console.log('Firebase ID token obtained (Google). Setting cookie.');
-                const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString(); // 1 hour from now
-                const isSecure = window.location.protocol === 'https:';
-                document.cookie = `firebase-token=${idToken}; path=/; expires=${expires}; ${isSecure ? 'secure;' : ''} samesite=Lax`;
-            } else {
-                console.log('No Firebase ID token obtained after signInWithGoogle.');
-            }
             setLoading(false);
             console.log('setLoading(false) after handleGoogleSignIn success.');
         } catch (err: unknown) {

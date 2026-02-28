@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TreePine, Zap, Wind } from "lucide-react";
+import { TreePine, Wind } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface CarbonSavingsPulseProps {

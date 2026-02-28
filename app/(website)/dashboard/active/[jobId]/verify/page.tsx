@@ -7,7 +7,7 @@ import { PhotoUpload } from '@/components/dashboard/collector/photo-upload';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
-import { ArrowLeft, Send, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -72,56 +72,70 @@ export default function VerificationPage() {
         <div className="min-h-screen bg-[#f8fafc] dark:bg-[#022c22] text-slate-900 dark:text-white p-4 pb-40 font-outfit transition-colors duration-500">
             <div className="max-w-xl mx-auto space-y-10">
                 {/* Mobile Header */}
-                <div className="flex items-center justify-between py-4">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" asChild className="text-slate-700 dark:text-emerald-100 hover:bg-emerald-500/10 rounded-full">
+                <div className="flex items-center justify-between py-6">
+                    <div className="flex items-center gap-5">
+                        <Button variant="ghost" size="icon" asChild className="text-slate-700 dark:text-emerald-100 hover:bg-emerald-500/10 rounded-2xl w-12 h-12">
                             <Link href={`/dashboard/active/${jobId}`}>
                                 <ArrowLeft className="w-6 h-6" />
                             </Link>
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-black tracking-tight leading-none uppercase italic">Field Audit</h1>
-                            <p className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.3em] mt-1">Batch ID: {jobId.slice(-8).toUpperCase()}</p>
+                            <h1 className="text-3xl font-black tracking-tight leading-none uppercase italic text-slate-900 dark:text-white">Field Audit</h1>
+                            <p className="text-[11px] font-black text-[#10b981] uppercase tracking-[0.4em] mt-2">Protocol: Batch-{jobId.slice(-8).toUpperCase()}</p>
                         </div>
                     </div>
-                    <div className="p-3 bg-[#10b981]/10 rounded-2xl">
-                        <ShieldCheck className="w-6 h-6 text-[#10b981]" />
+                    <div className="w-14 h-14 bg-[#10b981]/10 rounded-[1.5rem] flex items-center justify-center border border-[#10b981]/20">
+                        <ShieldCheck className="w-7 h-7 text-[#10b981]" />
                     </div>
                 </div>
 
                 {/* Evidence Section */}
                 <section className="space-y-6">
                     <div className="flex items-center gap-4 mb-2">
-                        <div className="w-10 h-10 rounded-2xl bg-[#10b981] flex items-center justify-center font-black text-white shadow-lg shadow-emerald-500/30">1</div>
-                        <h2 className="text-xl font-black uppercase tracking-tighter italic">Evidence Capture</h2>
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-slate-900 dark:bg-[#10b981] flex items-center justify-center font-black text-white shadow-xl shadow-emerald-500/20 text-lg">1</div>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white">Evidence Capture</h2>
+                            <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-bold uppercase tracking-widest mt-0.5">Visual verification of site conditions</p>
+                        </div>
                     </div>
-                    <div className="bg-white dark:bg-[#064e3b]/20 backdrop-blur-md border border-slate-200 dark:border-emerald-800/10 rounded-[2.5rem] p-8 space-y-10 shadow-xl shadow-slate-200/50 dark:shadow-none">
-                        <PhotoUpload
-                            jobId={jobId}
-                            type="before"
-                            label="Pre-Collection State"
-                            onUploadComplete={setBeforeUrl}
-                        />
-                        <div className="h-px bg-slate-100 dark:bg-emerald-950/50" />
-                        <PhotoUpload
-                            jobId={jobId}
-                            type="after"
-                            label="Post-Collection Verification"
-                            onUploadComplete={setAfterUrl}
-                        />
+                    <div className="bg-white dark:bg-[#064e3b]/20 backdrop-blur-md border border-slate-200 dark:border-emerald-800/10 rounded-[3rem] p-10 space-y-12 shadow-2xl shadow-slate-200/50 dark:shadow-none">
+                        <div className="space-y-4">
+                            <PhotoUpload
+                                jobId={jobId}
+                                type="before"
+                                label="Pre-Collection State"
+                                onUploadComplete={setBeforeUrl}
+                            />
+                            <p className="text-[10px] text-center text-slate-400 dark:text-emerald-100/20 font-medium italic">Capture the bin/area before starting collection</p>
+                        </div>
+                        <div className="h-px bg-gradient-to-r from-transparent via-slate-100 dark:via-emerald-950/50 to-transparent" />
+                        <div className="space-y-4">
+                            <PhotoUpload
+                                jobId={jobId}
+                                type="after"
+                                label="Post-Collection Verification"
+                                onUploadComplete={setAfterUrl}
+                            />
+                            <p className="text-[10px] text-center text-slate-400 dark:text-emerald-100/20 font-medium italic">Verification of cleared area and sorted waste</p>
+                        </div>
                     </div>
                 </section>
 
                 {/* Weight Section */}
-                <section className="space-y-6 pb-20">
+                <section className="space-y-6 pb-24">
                     <div className="flex items-center gap-4 mb-2">
-                        <div className="w-10 h-10 rounded-2xl bg-[#10b981] flex items-center justify-center font-black text-white shadow-lg shadow-emerald-500/30">2</div>
-                        <h2 className="text-xl font-black uppercase tracking-tighter italic">Payload Audit</h2>
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-slate-900 dark:bg-[#10b981] flex items-center justify-center font-black text-white shadow-xl shadow-emerald-500/20 text-lg">2</div>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white">Payload Audit</h2>
+                            <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-bold uppercase tracking-widest mt-0.5">Quantifying collected resources</p>
+                        </div>
                     </div>
-                    <WeightEntry
-                        onConfirm={(w) => setWeight(w)}
-                        isSubmitting={isSubmitting}
-                    />
+                    <div className="bg-white dark:bg-[#064e3b]/20 backdrop-blur-md border border-slate-200 dark:border-emerald-800/10 rounded-[3rem] p-2 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none">
+                        <WeightEntry
+                            onConfirm={(w) => setWeight(w)}
+                            isSubmitting={isSubmitting}
+                        />
+                    </div>
                 </section>
 
                 {/* Global Submission Bar */}

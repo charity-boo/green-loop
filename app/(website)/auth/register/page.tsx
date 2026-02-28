@@ -24,6 +24,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"USER" | "COLLECTOR">("USER");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +78,9 @@ export default function RegisterPage() {
         id: user.uid,
         name,
         email,
-        role: 'USER',
+        role: 'USER', // Always start as USER for security
+        requestedRole: selectedRole,
+        status: selectedRole === 'COLLECTOR' ? 'PENDING_APPROVAL' : 'ACTIVE',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -153,8 +156,22 @@ export default function RegisterPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Must be at least 6 characters"
+                placeholder="Must be at least 8 characters"
               />
+            </div>
+
+            {/* Role Selection */}
+            <div className="grid gap-2">
+              <Label htmlFor="role">I am a...</Label>
+              <select
+                id="role"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value as "USER" | "COLLECTOR")}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="USER">Resident / Business (User)</option>
+                <option value="COLLECTOR">Waste Collector</option>
+              </select>
             </div>
 
             {/* Error Message */}

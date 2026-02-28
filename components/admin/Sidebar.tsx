@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -8,15 +8,17 @@ import {
     Users,
     Truck,
     BarChart3,
-    Settings,
     LogOut,
     Leaf,
     Calendar,
     Activity,
-    ShieldCheck
+    ShieldCheck,
+    Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 
 const menuItems = [
     { icon: LayoutDashboard, label: 'Overview', href: '/admin/dashboard' },
@@ -30,6 +32,15 @@ const menuItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { logout: signOut } = useAuth();
+    const router = useRouter();
+    const [signingOut, setSigningOut] = useState(false);
+
+    const handleSignOut = async () => {
+        setSigningOut(true);
+        await signOut();
+        router.push('/auth/login');
+    };
 
     return (
         <div className="flex flex-col h-full w-64 bg-slate-900 text-white border-r border-slate-800">
@@ -71,11 +82,26 @@ export function Sidebar() {
             </nav>
 
             <div className="p-4 mt-auto">
-                <button className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all duration-200">
+                <button
+                    onClick={handleSignOut}
+                    disabled={signingOut}
+                    className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
                     <LogOut className="w-5 h-5" />
                     <span className="font-medium">Sign Out</span>
                 </button>
             </div>
+
+            {/* Logging out overlay */}
+            {signingOut && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl px-8 py-6 flex flex-col items-center gap-4 shadow-xl">
+                        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+                        <p className="text-white font-medium text-lg">Signing out…</p>
+                        <p className="text-slate-400 text-sm">Please wait a moment</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import {
     BrainCircuit,
     Cpu,
@@ -9,7 +10,6 @@ import {
     Scan,
     CloudLightning,
     BarChart3,
-    ArrowRight,
     Search,
     History
 } from "lucide-react";
@@ -57,11 +57,12 @@ export default function AISortingInfoPage() {
                             transition={{ duration: 1 }}
                             className="lg:w-1/2 relative"
                         >
-                            <div className="relative z-10 rounded-[3rem] overflow-hidden border border-slate-700 shadow-[0_0_100px_-20px_rgba(16,185,129,0.2)] bg-slate-800 group">
-                                <img
+                            <div className="relative z-10 rounded-[3rem] overflow-hidden border border-slate-700 shadow-[0_0_100px_-20px_rgba(16,185,129,0.2)] bg-slate-800 group" style={{ height: '550px' }}>
+                                <Image
                                     src="/images/3d/ai-brain.png"
                                     alt="AI Neural Network 3D Visualization"
-                                    className="w-full h-[550px] object-cover mix-blend-lighten transition-transform duration-700 group-hover:scale-105"
+                                    fill
+                                    className="object-cover mix-blend-lighten transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
                                 

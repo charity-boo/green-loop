@@ -429,6 +429,66 @@ export const classifyWasteImage = onDocumentCreated(
 );
 
 /**
+ * Cloud Function triggered when an admin creates a document in the `broadcasts` collection.
+ * Sends a push notification to every user who has an fcmToken.
+ *
+ * Expected document shape:
+ *   { title: string; body: string; createdBy: string; }
+ */
+export const onAdminBroadcast = onDocumentCreated(
+  "broadcasts/{broadcastId}",
+  async (event) => {
+    const broadcastId = event.params.broadcastId;
+    const data = event.data?.data();
+
+    if (!data) {
+      logger.error(`No data for broadcast: ${broadcastId}`);
+      return;
+    }
+
+    const { title = "Green Loop", body = "You have a new update from Green Loop." } = data;
+
+    try {
+      // Fetch all users that have an fcmToken
+      const usersSnap = await db.collection("users").where("fcmToken", "!=", null).get();
+
+      if (usersSnap.empty) {
+        logger.info(`No users with FCM tokens. Broadcast ${broadcastId} skipped.`);
+        return;
+      }
+
+      const tokens: string[] = usersSnap.docs
+        .map((d) => d.data().fcmToken as string)
+        .filter(Boolean);
+
+      logger.info(`Sending broadcast ${broadcastId} to ${tokens.length} device(s).`);
+
+      // Send in batches of 500 (FCM multicast limit)
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < tokens.length; i += BATCH_SIZE) {
+        const batch = tokens.slice(i, i + BATCH_SIZE);
+        const response = await admin.messaging().sendEachForMulticast({
+          tokens: batch,
+          notification: { title, body },
+          data: { broadcastId },
+        });
+        logger.info(
+          `Broadcast batch ${i / BATCH_SIZE + 1}: ${response.successCount} sent, ${response.failureCount} failed.`
+        );
+      }
+
+      // Mark broadcast as sent
+      await db.collection("broadcasts").doc(broadcastId).update({
+        sentAt: FieldValue.serverTimestamp(),
+        recipientCount: tokens.length,
+      });
+    } catch (error) {
+      logger.error(`Error sending broadcast ${broadcastId}:`, error);
+    }
+  }
+);
+
+/**
  * Simulates waste classification using AI.
  * In production, integrate with Google Vision API or Vertex AI.
  */

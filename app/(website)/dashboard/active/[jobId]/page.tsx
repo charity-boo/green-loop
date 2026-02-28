@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -157,8 +158,8 @@ export default function ActiveJobPage() {
                         </div>
 
                         {job.imageUrl && (
-                            <div className="mt-8 relative group rounded-3xl overflow-hidden shadow-2xl">
-                                <img src={job.imageUrl} alt="Request Preview" className="w-full h-56 object-cover" />
+                            <div className="mt-8 relative group rounded-3xl overflow-hidden shadow-2xl" style={{ height: '224px' }}>
+                                <Image src={job.imageUrl} alt="Request Preview" fill className="object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                                 <div className="absolute bottom-4 left-6 flex items-center gap-2">
                                     <div className="p-1 px-3 bg-[#10b981] text-white text-[10px] font-black rounded-full uppercase tracking-tighter">Verified Preview</div>

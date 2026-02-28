@@ -21,17 +21,25 @@ function LoginFormFallback() {
 
 export default async function LoginPage() {
   const session = await getSession();
+  console.log('[LoginPage] Server-side session check:', session
+    ? { uid: session.user.id, email: session.user.email, role: session.user.role }
+    : 'no session'
+  );
 
   // STEP 1 & 2: Server-side redirect if session exists
   if (session) {
     const { role } = session.user;
+    console.log('[LoginPage] Session found, redirecting. Role:', role);
 
     // STEP 3: Role-based routing
     if (role === 'ADMIN') {
+      console.log('[LoginPage] → redirecting to /admin');
       redirect("/admin");
     } else if (role === 'COLLECTOR') {
+      console.log('[LoginPage] → redirecting to /dashboard (COLLECTOR)');
       redirect("/dashboard");
     } else {
+      console.log('[LoginPage] → redirecting to /dashboard (USER/default)');
       redirect("/dashboard");
     }
   }

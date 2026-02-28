@@ -1,7 +1,6 @@
 "use client";
 
 import { Trophy, Flame, Users, TrendingUp } from "lucide-react";
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 
 interface SocialMiniBoardProps {

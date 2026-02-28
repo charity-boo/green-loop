@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import Image from 'next/image';
 import Link from "next/link";
 import {
     RefreshCcw,
@@ -60,11 +60,12 @@ export default function CircularEconomyPage() {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="lg:w-1/2 relative"
                         >
-                            <div className="relative z-10 rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-8 border-white group">
-                                <img
+                            <div className="relative z-10 rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-8 border-white group" style={{ height: '600px' }}>
+                                <Image
                                     src="/images/3d/circular-economy.png"
                                     alt="Circular Economy 3D Symbol"
-                                    className="w-full h-[600px] object-cover transition-transform duration-700 group-hover:scale-110"
+                                    fill
+                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/40 to-transparent"></div>
                             </div>
@@ -210,11 +211,11 @@ export default function CircularEconomyPage() {
                     <div className="flex flex-col lg:flex-row items-center gap-20">
                         <div className="lg:w-1/2 order-2 lg:order-1">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="aspect-square rounded-[3rem] overflow-hidden shadow-xl border-4 border-white transform -rotate-3">
-                                    <img src="https://images.unsplash.com/photo-1544333346-64e393c3c72e?auto=format&fit=crop&q=80&w=1000" alt="Community cleanup" className="w-full h-full object-cover" />
+                                <div className="relative aspect-square rounded-[3rem] overflow-hidden shadow-xl border-4 border-white transform -rotate-3">
+                                    <Image src="https://images.unsplash.com/photo-1544333346-64e393c3c72e?auto=format&fit=crop&q=80&w=1000" alt="Community cleanup" fill className="object-cover" />
                                 </div>
-                                <div className="aspect-square rounded-[3rem] overflow-hidden shadow-xl border-4 border-white transform rotate-3 translate-y-8">
-                                    <img src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=1000" alt="Sustainability workshop" className="w-full h-full object-cover" />
+                                <div className="relative aspect-square rounded-[3rem] overflow-hidden shadow-xl border-4 border-white transform rotate-3 translate-y-8">
+                                    <Image src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=1000" alt="Sustainability workshop" fill className="object-cover" />
                                 </div>
                             </div>
                         </div>

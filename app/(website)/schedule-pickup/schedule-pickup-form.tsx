@@ -30,7 +30,7 @@ interface SchedulePickupFormProps {
   userName: string;
 }
 
-export default function SchedulePickupForm({ userName }: SchedulePickupFormProps) {
+export default function SchedulePickupForm({ userName: _userName }: SchedulePickupFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wasteDetails, setWasteDetails] = useState<WasteDetails>({ type: "", classificationSource: "manual", aiPhotoUsed: false });
   const [pickupDetails, setPickupDetails] = useState<PickupDetails>({ address: "", date: undefined, timeSlot: "", instructions: "" });
