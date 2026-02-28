@@ -3,6 +3,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
+import { useFCMToken } from '@/lib/firebase/messaging';
+
+function setAuthCookie(token: string) {
+  const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString();
+  const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  document.cookie = `firebase-token=${token}; path=/; expires=${expires}; ${isSecure ? 'secure;' : ''} samesite=Lax`;
+}
+
+function clearAuthCookie() {
+  document.cookie = 'firebase-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=Lax';
+}
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +30,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [role, setRole] = useState<string | null>(null);
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
   const [error, setError] = useState<Error | null>(null);
+
+  // Register FCM token whenever the user is authenticated
+  useFCMToken(user?.uid ?? null);
 
   useEffect(() => {
     console.log('AuthProvider useEffect triggered. Initial auth object:', auth);
@@ -37,16 +51,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(firebaseUser);
           
           try {
-            // Extract role from custom claims
+            // Extract role from custom claims and set cookie before marking authenticated
             console.log('Fetching ID token result for:', firebaseUser.uid);
             const idTokenResult = await firebaseUser.getIdTokenResult();
             const userRole = idTokenResult.claims.role as string;
             console.log('ID token claims fetched. Role:', userRole);
-            setRole(userRole || 'USER');
+            // Set the cookie here so middleware sees it before any redirect fires
+            setAuthCookie(idTokenResult.token);
+            setRole(userRole?.toUpperCase() || 'USER');
             setStatus('authenticated');
             console.log('Auth status set to authenticated. User role:', userRole || 'USER');
           } catch (err) {
             console.error('Error fetching token claims:', err);
+            // Still try to set cookie with a basic token
+            try {
+              const token = await firebaseUser.getIdToken();
+              setAuthCookie(token);
+            } catch {
+              // ignore
+            }
             setRole('USER');
             setStatus('authenticated'); // Still sets to authenticated even on error to avoid infinite loading
             console.log('Auth status set to authenticated (with claims error). User role: USER');
@@ -54,6 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
           setUser(null);
           setRole(null);
+          clearAuthCookie();
           setStatus('unauthenticated');
           console.log('Auth status set to unauthenticated. No user.');
         }
@@ -84,8 +108,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await firebaseSignOut(auth);
       setUser(null);
       setRole(null);
+      clearAuthCookie();
       setStatus('unauthenticated');
       console.log('Firebase signOut successful. Setting unauthenticated.');
+      window.location.href = "/";
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('Sign out failed');
       setError(errorObj);
