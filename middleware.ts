@@ -1,37 +1,65 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(base64);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("firebase-token")?.value;
   const { pathname } = request.nextUrl;
 
-  // List of routes that require authentication
-  const protectedRoutes = [
+  console.log('[Middleware] Request:', pathname, '| Has token:', !!token);
+
+  const isProtectedRoute = [
     "/dashboard",
-    "/dashboard/collector",
     "/schedule-pickup",
     "/api/waste",
     "/api/admin",
     "/admin",
-  ];
+    "/api/collector",
+  ].some((route) => pathname.startsWith(route));
 
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  if (!isProtectedRoute) return NextResponse.next();
 
-  if (isProtectedRoute) {
-    if (!token) {
-      // If it's an API route, return 401
+  // No token at all -> redirect/401
+  if (!token) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const url = new URL("/auth/login", request.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Decode (without verifying) to extract role for routing
+  const claims = decodeJwtPayload(token);
+  const role = (claims?.role as string | undefined)?.toUpperCase() ?? 'USER';
+
+  console.log('[Middleware] Decoded role from token:', role, 'for path:', pathname);
+
+  // Admin routes: require ADMIN
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+    if (role !== 'ADMIN') {
       if (pathname.startsWith("/api/")) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
-      // Otherwise redirect to login
-      const url = new URL("/auth/login", request.url);
-      url.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  // Collector API routes: require COLLECTOR or ADMIN
+  if (pathname.startsWith("/api/collector")) {
+    if (role !== 'COLLECTOR' && role !== 'ADMIN') {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
 
@@ -45,6 +73,7 @@ export const config = {
     "/schedule-pickup",
     "/api/waste/:path*",
     "/api/admin/:path*",
+    "/api/collector/:path*",
     "/admin/:path*",
   ],
 };
