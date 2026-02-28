@@ -7,7 +7,7 @@ import { useFCMToken } from '@/lib/firebase/messaging';
 import { useRouter } from 'next/navigation';
 
 function setAuthCookie(token: string) {
-  const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString();
+  const expires = new Date(Date.now() + 2 * 60 * 60 * 1000).toUTCString();
   const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
   document.cookie = `firebase-token=${token}; path=/; expires=${expires}; ${isSecure ? 'secure;' : ''} samesite=Lax`;
 }
