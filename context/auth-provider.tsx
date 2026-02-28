@@ -1,9 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { User, onIdTokenChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useFCMToken } from '@/lib/firebase/messaging';
+import { useRouter } from 'next/navigation';
 
 function setAuthCookie(token: string) {
   const expires = new Date(Date.now() + 60 * 60 * 1000).toUTCString();
@@ -26,6 +27,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
@@ -42,11 +44,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // Listen to Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(
+    // Listen to Firebase auth state changes (including token refresh)
+    const unsubscribe = onIdTokenChanged(
       auth,
       async (firebaseUser) => {
-        console.log('onAuthStateChanged fired. firebaseUser:', firebaseUser ? firebaseUser.uid : 'null');
+        console.log('onIdTokenChanged fired. firebaseUser:', firebaseUser ? firebaseUser.uid : 'null');
         if (firebaseUser) {
           setUser(firebaseUser);
           
@@ -111,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       clearAuthCookie();
       setStatus('unauthenticated');
       console.log('Firebase signOut successful. Setting unauthenticated.');
-      window.location.href = "/";
+      router.push('/');
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('Sign out failed');
       setError(errorObj);
