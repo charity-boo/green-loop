@@ -20,7 +20,7 @@ export async function registerUser(data: { email: string; password?: string; nam
   });
 
   // Set default role as USER in custom claims
-  await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'USER' });
+  await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'USER' }); // already uppercase
 
   // Create user document in Firestore
   const userDoc = {
