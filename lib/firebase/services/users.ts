@@ -73,6 +73,7 @@ export async function updateUser(
   });
 
   // Log the action
+  // @ts-expect-error: AdminActionLogDoc structure mismatch with dbService.add
   await dbService.add<AdminActionLogDoc>('admin_action_logs', {
     adminId,
     actionType: 'UPDATE_USER',

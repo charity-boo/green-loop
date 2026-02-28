@@ -1,4 +1,5 @@
 import { getSession, AuthSession, Role } from '@/lib/auth';
+import { adminAuth, adminDb } from '@/lib/firebase/admin';
 
 export { type AuthSession };
 

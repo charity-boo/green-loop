@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "mkdir -p .firebase-emulator-data && firebase emulators:exec --ui --import=.firebase-emulator-data --export-on-exit=.firebase-emulator-data \"next dev\"",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint . --fix",
     "server": "nodemon server/index.js"
