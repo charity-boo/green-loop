@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { dbService } from './db';
+import { adminAuth } from '@/lib/firebase/admin';
 import { UserDoc, Role, AdminActionLogDoc } from '@/lib/types/firestore';
 
 export interface UserFilters {
@@ -71,6 +72,12 @@ export async function updateUser(
     ...updates,
     updatedAt: new Date().toISOString(),
   });
+
+  // Sync role to Firebase custom claims so the JWT token reflects the change
+  if (updates.role) {
+    await adminAuth.setCustomUserClaims(userId, { role: updates.role.toUpperCase() });
+    console.log(`[updateUser] Custom claim updated for ${userId}: role=${updates.role}`);
+  }
 
   // Log the action
   // @ts-expect-error: AdminActionLogDoc structure mismatch with dbService.add
