@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
     "/api/admin",
     "/admin",
     "/api/collector",
-  ].some((route) => pathname.startsWith(route));
+  ].some((route) => pathname === route || pathname.startsWith(route + "/"));
 
   if (!isProtectedRoute) return NextResponse.next();
 
@@ -47,7 +47,7 @@ export function middleware(request: NextRequest) {
   console.log('[Middleware] Decoded role from token:', role, 'for path:', pathname);
 
   // Admin routes: require ADMIN
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+  if (pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
     if (role !== 'ADMIN') {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -57,7 +57,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Collector API routes: require COLLECTOR or ADMIN
-  if (pathname.startsWith("/api/collector")) {
+  if (pathname === "/api/collector" || pathname.startsWith("/api/collector/")) {
     if (role !== 'COLLECTOR' && role !== 'ADMIN') {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
