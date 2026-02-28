@@ -18,7 +18,7 @@ export function ChartErrorState({ title, onRetry }: ChartErrorStateProps) {
                 <div>
                     <h3 className="text-slate-900 font-semibold">{title} Unavailable</h3>
                     <p className="text-slate-500 text-sm max-w-[250px] mx-auto mt-1">
-                        We couldn't load this data. This might be a temporary connection issue.
+                        We couldn&apos;t load this data. This might be a temporary connection issue.
                     </p>
                 </div>
                 {onRetry && (

@@ -35,8 +35,8 @@ export async function getSession(): Promise<AuthSession | null> {
       console.log('Token lookup in cookie. Found:', !!token);
     }
 
-    if (!token) {
-      console.log('No Firebase token found in headers or cookies.');
+    if (!token || token === 'undefined' || token === 'null') {
+      console.log('No valid Firebase token found in headers or cookies (found:', token, ')');
       return null;
     }
 
@@ -74,7 +74,22 @@ export async function getSession(): Promise<AuthSession | null> {
       expires: new Date(decodedToken.exp * 1000).toISOString(),
     };
   } catch (error) {
-    console.error('Error verifying Firebase token in getSession():', error);
+    const message = error instanceof Error ? error.message : String(error);
+    const code = (error as { code?: string })?.code;
+    const stack = error instanceof Error ? error.stack : undefined;
+
+    console.error('Error verifying Firebase token in getSession():', {
+      message,
+      code,
+      stack,
+      fullError: error
+    });
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Authentication emulator status:', {
+        FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+        NEXT_PUBLIC_USE_FIREBASE_EMULATORS: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS
+      });
+    }
     return null;
   }
 }

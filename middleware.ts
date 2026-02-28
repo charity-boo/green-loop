@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
   const protectedRoutes = [
     "/dashboard",
     "/dashboard/collector",
+    "/schedule-pickup",
     "/api/waste",
     "/api/admin",
     "/admin",
@@ -40,6 +41,8 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/schedule-pickup/:path*",
+    "/schedule-pickup",
     "/api/waste/:path*",
     "/api/admin/:path*",
     "/admin/:path*",

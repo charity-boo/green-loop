@@ -10,7 +10,6 @@ import {
     ArrowRight,
     CheckCircle2,
     ShoppingBag,
-    Leaf,
     Globe,
     TrendingUp,
     Heart
@@ -100,7 +99,7 @@ export default function CircularEconomyPage() {
                             </div>
                             <h3 className="text-3xl font-black text-gray-900">Regenerate Nature</h3>
                             <p className="text-gray-600 text-lg leading-relaxed font-medium">
-                                Move beyond "doing less harm" to actually improving the environment. We return nutrients to the soil through compost and organic waste recovery.
+                                Move beyond &quot;doing less harm&quot; to actually improving the environment. We return nutrients to the soil through compost and organic waste recovery.
                             </p>
                         </div>
 

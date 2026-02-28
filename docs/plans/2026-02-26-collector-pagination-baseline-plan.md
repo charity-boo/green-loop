@@ -19,7 +19,7 @@
 Create a new file at `app/(admin)/dashboard/collectors/page.tsx` with async `searchParams` handling and meta mapping.
 
 ```tsx
-import { getCollectorPerformance } from "@/lib/admin/analytics";
+import { getCollectorPerformance } from "@/lib/firebase/services/analytics";
 import CollectorTable from "./collector-table";
 
 interface PageProps {

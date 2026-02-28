@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createUserWithEmailAndPassword, updateProfile, FirebaseError as _FirebaseError } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { FirebaseError } from "firebase/app";
 import { auth, db } from "@/lib/firebase/config";
 
 // Import Shadcn UI Components
@@ -70,18 +71,22 @@ export default function RegisterPage() {
 
       // Redirect to home page on success
       router.push("/");
-    } catch (err: _FirebaseError) {
+    } catch (err: unknown) {
       console.error("Registration Error:", err);
       
-      // Handle Firebase specific errors
-      if (err.code === 'auth/email-already-in-use') {
-        setError("This email is already registered.");
-      } else if (err.code === 'auth/invalid-email') {
-        setError("Invalid email address.");
-      } else if (err.code === 'auth/weak-password') {
-        setError("The password is too weak.");
+      if (err instanceof FirebaseError) {
+        // Handle Firebase specific errors
+        if (err.code === 'auth/email-already-in-use') {
+          setError("This email is already registered.");
+        } else if (err.code === 'auth/invalid-email') {
+          setError("Invalid email address.");
+        } else if (err.code === 'auth/weak-password') {
+          setError("The password is too weak.");
+        } else {
+          setError(err.message || "Registration failed. Please try again.");
+        }
       } else {
-        setError(err.message || "Registration failed. Please try again.");
+        setError("An unexpected error occurred. Please try again.");
       }
     }
 

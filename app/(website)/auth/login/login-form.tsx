@@ -83,9 +83,27 @@ export function LoginForm() {
             setLoading(false);
             console.log('setLoading(false) after handleSubmit success.');
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Invalid credentials. Please try again.");
+            let errorMessage = "Invalid credentials. Please try again.";
+            let isExpectedAuthError = false;
+
+            if (typeof err === 'object' && err !== null && 'code' in err) {
+                const code = (err as { code: string }).code;
+                isExpectedAuthError = code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential';
+                if (isExpectedAuthError) {
+                    errorMessage = "Invalid email or password.";
+                }
+            }
+
+            if (!isExpectedAuthError && err instanceof Error) {
+                errorMessage = err.message;
+            }
+
+            setError(errorMessage);
             setLoading(false);
-            console.error('handleSubmit error:', err);
+
+            if (!isExpectedAuthError) {
+                console.error('handleSubmit error:', err);
+            }
         }
     };
 

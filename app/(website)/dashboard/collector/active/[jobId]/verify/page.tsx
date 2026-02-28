@@ -30,9 +30,9 @@ export default function VerificationPage() {
                 weight,
                 beforeImageUrl: beforeUrl,
                 afterImageUrl: afterUrl,
-                status: 'COMPLETED',
+                status: 'completed',
                 completedAt: new Date().toISOString(),
-            } as any);
+            } as Record<string, unknown>);
 
             // Navigate to performance/success view
             router.push('/dashboard/collector?success=true');

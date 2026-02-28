@@ -11,18 +11,21 @@ import {
     Settings,
     LogOut,
     Leaf,
-    Calendar
+    Calendar,
+    Activity,
+    ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const menuItems = [
-    { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
-    { icon: Truck, label: 'Pickups', href: '/dashboard/pickups' },
-    { icon: Users, label: 'Users', href: '/dashboard/users' },
-    { icon: BarChart3, label: 'Analytics', href: '/dashboard/analytics' },
-    { icon: Calendar, label: 'Schedules', href: '/dashboard/schedules' },
-    { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+    { icon: LayoutDashboard, label: 'Overview', href: '/admin/dashboard' },
+    { icon: Truck, label: 'Pickups', href: '/admin/dashboard/pickups' },
+    { icon: Users, label: 'Users', href: '/admin/dashboard/users' },
+    { icon: ShieldCheck, label: 'Moderation', href: '/admin/dashboard/moderation' },
+    { icon: BarChart3, label: 'Analytics', href: '/admin/dashboard/analytics' },
+    { icon: Calendar, label: 'Schedules', href: '/admin/dashboard/schedules' },
+    { icon: Activity, label: 'Audit Logs', href: '/admin/dashboard/audit' },
 ];
 
 export function Sidebar() {

@@ -12,6 +12,7 @@ import {
     ChevronLeft,
     Layers
 } from 'lucide-react';
+import { CollectorTask } from '@/types';
 import { useActiveJob } from '@/hooks/use-active-job';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,12 +61,13 @@ export default function ActiveJobPage() {
     }
 
     // Formatting coordinates for Map deep link
-    const coordinates = job.coordinates as { latitude: number; longitude: number } | undefined;
+    const extJob = job as CollectorTask & { coordinates?: { latitude: number; longitude: number }; location?: string };
+    const coordinates = extJob.coordinates;
     const mapLink = coordinates
         ? `https://www.google.com/maps/search/?api=1&query=${coordinates.latitude},${coordinates.longitude}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location || 'Springfield Estate')}`;
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(extJob.location || 'Springfield Estate')}`;
 
-    const isActive = job.status === 'ACTIVE';
+    const isActive = job.status === 'active';
 
     return (
         <div className="min-h-screen pb-28 bg-[#f8fafc] dark:bg-[#022c22] transition-colors duration-500 font-outfit">

@@ -1,10 +1,9 @@
-
 import { NextResponse } from 'next/server';
-import { getCollectorPerformance } from '@/lib/admin/analytics';
+import { getCollectorPerformance } from '@/lib/firebase/services/analytics';
 import { subDays } from 'date-fns';
 
 export async function GET() {
-    const results: any = {};
+    const results: Record<string, unknown> = {};
 
     try {
         // Case 1: Default Window
@@ -34,11 +33,13 @@ export async function GET() {
         });
 
         return NextResponse.json({ success: true, results });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        const stack = error instanceof Error ? error.stack : undefined;
         return NextResponse.json({
             success: false,
-            error: error.message,
-            stack: error.stack
+            error: message,
+            stack: stack
         }, { status: 500 });
     }
 }

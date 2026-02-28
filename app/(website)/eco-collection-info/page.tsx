@@ -6,8 +6,6 @@ import {
     Truck,
     MapPin,
     Zap,
-    Leaf,
-    CheckCircle2,
     ArrowRight,
     Route,
     Timer,
@@ -125,7 +123,7 @@ export default function EcoCollectionInfoPage() {
                             </div>
                             <h3 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-white transition-colors">On-Demand Pickups</h3>
                             <p className="text-gray-600 text-lg leading-relaxed group-hover:text-green-50 transition-colors">
-                                No more waiting for "trash day". Request a pickup through the mobile app when your bin is full. Smart sensors can even trigger this automatically.
+                                No more waiting for &quot;trash day&quot;. Request a pickup through the mobile app when your bin is full. Smart sensors can even trigger this automatically.
                             </p>
                         </div>
 

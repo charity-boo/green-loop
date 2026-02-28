@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { dbService } from '@/lib/firebase/services/db';
 
 /**
  * Creates a new in-app notification for a user.
@@ -18,15 +18,14 @@ export async function createNotification(data: {
   relatedScheduleId?: string;
 }) {
   try {
-    const notification = await prisma.notification.create({
-      data: {
-        userId: data.userId,
-        type: data.type,
-        message: data.message,
-        relatedScheduleId: data.relatedScheduleId,
-      },
+    const id = await dbService.add('notifications', {
+      userId: data.userId,
+      type: data.type,
+      message: data.message,
+      relatedScheduleId: data.relatedScheduleId || null,
+      isRead: false,
     });
-    return notification;
+    return { id, ...data };
   } catch (error) {
     console.error('Error creating notification:', error);
     throw new Error('Failed to create notification. Please check the provided data and database connection.');

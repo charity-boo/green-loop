@@ -3,10 +3,10 @@
  */
 
 import { auth as firebaseAuth } from '@/lib/firebase/config';
-import { 
-  signInWithEmailAndPassword, 
-  signOut, 
-  GoogleAuthProvider, 
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  GoogleAuthProvider,
   signInWithPopup,
   User
 } from 'firebase/auth';
@@ -32,7 +32,14 @@ export async function signInFirebase(
       password
     );
     return userCredential.user;
-  } catch (error) {
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+        const code = (error as { code: string }).code;
+        if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+            // Expected auth errors; throw without logging to prevent dev error overlay
+            throw error;
+        }
+    }
     console.error('Error signing in with Firebase:', error);
     throw error;
   }

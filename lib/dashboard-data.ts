@@ -5,8 +5,11 @@ import {
   CollectorTask,
   AdminDashboardData,
   Waste,
+  RewardsData,
+  SocialMetrics,
 } from '@/types';
 import { WasteStatus } from '@/lib/types/waste-status';
+import { calculateCarbonSavings } from './utils/carbon';
 
 interface FirestoreWaste extends Omit<Waste, 'createdAt' | 'updatedAt'> {
   createdAt: string | { _seconds: number; _nanoseconds: number };
@@ -29,6 +32,17 @@ export async function getUserDashboardData(
         lastPickup: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         nextPickup: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         skippedPickups: 1,
+        materialBreakdown: [
+          { type: 'Plastic', weight: 15.2, percentage: 33 },
+          { type: 'Paper', weight: 12.1, percentage: 27 },
+          { type: 'Glass', weight: 8.5, percentage: 19 },
+          { type: 'Metal', weight: 5.4, percentage: 12 },
+          { type: 'Organic', weight: 4.3, percentage: 9 },
+        ],
+        carbonImpact: {
+          totalCo2Saved: 68.4,
+          treesEquivalent: 3,
+        }
       },
       pickupHistory: [
         { id: '1', date: '2024-02-20', status: WasteStatus.Completed, weight: 5.2, wasteType: 'Plastic', location: '123 Main St', points: 150 },
@@ -46,6 +60,12 @@ export async function getUserDashboardData(
           { id: 'r2', title: '$5 Amazon Gift Card', pointsCost: 1000, description: 'Redeem your points for a digital gift card.' },
           { id: 'r3', title: 'Plant a Tree', pointsCost: 2000, description: 'We will plant a tree in your name in a reforestation project.' },
         ]
+      },
+      social: {
+        rank: 42,
+        totalNeighbors: 150,
+        percentile: 72,
+        streak: 5,
       }
     };
   }
@@ -70,14 +90,16 @@ export async function getUserDashboardData(
       }
     }
 
+    const rawItem = item as unknown as Record<string, unknown>;
+
     return {
       id: item.id.toString(),
       date,
       status: item.status as WasteStatus,
-      weight: (item as any).weight || 0,
+      weight: rawItem.weight as number || 0,
       wasteType: item.type || 'Unknown',
-      location: (item as any).location || 'Unknown',
-      points: (item as any).points || 0,
+      location: rawItem.location as string || 'Unknown',
+      points: rawItem.points as number || 0,
     };
   });
 
@@ -135,14 +157,36 @@ export async function getUserDashboardData(
 
   const milestoneProgress = Math.min(100, (rewardPoints / nextMilestone) * 100);
 
+  // Calculate material breakdown
+  const materialMap: Record<string, number> = {};
+  completedPickups.forEach(item => {
+    const type = item.type || 'Unknown';
+    const weight = (item as FirestoreWaste & { weight?: number }).weight || 0;
+    materialMap[type] = (materialMap[type] || 0) + weight;
+  });
+
+  const totalWeight = Object.values(materialMap).reduce((a, b) => a + b, 0);
+  const materialBreakdown = Object.entries(materialMap).map(([type, weight]) => ({
+    type,
+    weight,
+    percentage: totalWeight > 0 ? Math.round((weight / totalWeight) * 100) : 0
+  }));
+
+  // Calculate carbon impact
+  const carbonImpact = calculateCarbonSavings(
+    Object.entries(materialMap).map(([type, weight]) => ({ type, weight }))
+  );
+
   const metrics = {
     totalPickups: completedPickups.length,
-    totalWeight: completedPickups.reduce((acc, curr) => acc + ((curr as any).weight || 0), 0),
+    totalWeight,
     recyclingRate: completedPickups.length > 0 ? 85 : 0, // Mock rate for now
     rewardPoints,
     lastPickup: lastPickupDateStr,
     nextPickup: nextPickupDateStr,
     skippedPickups: skippedPickupsCount,
+    materialBreakdown,
+    carbonImpact,
   };
 
   const rewards: RewardsData = {
@@ -157,10 +201,18 @@ export async function getUserDashboardData(
     ]
   };
 
+  const social: SocialMetrics = {
+    rank: 12, // Mock data
+    totalNeighbors: 100, // Mock data
+    percentile: 88, // Mock data
+    streak: completedPickups.length > 0 ? 3 : 0, // Mock streak
+  };
+
   return {
     metrics,
     pickupHistory,
     rewards,
+    social,
   };
 }
 

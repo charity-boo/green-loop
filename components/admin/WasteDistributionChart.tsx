@@ -9,7 +9,10 @@ import {
     ResponsiveContainer,
     Legend,
 } from 'recharts';
-import { WasteDistributionData } from '@/lib/admin/analytics';
+interface WasteDistributionData {
+  wasteType: string;
+  count: number;
+}
 
 interface WasteDistributionChartProps {
     data: WasteDistributionData[];

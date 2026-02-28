@@ -11,9 +11,18 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    function isAdmin() {
+    function hasRole(role) {
       return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'USER') == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('ADMIN');
+    }
+    
+    function isCollector() {
+      return hasRole('COLLECTOR');
     }
 
     // Users collection rules
@@ -26,7 +35,10 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.role == 'USER';
       
       // Allow users to update their own profile, but NOT their role
-      allow update: if isOwner(userId) && request.resource.data.role == resource.data.role;
+      allow update: if isOwner(userId) && (
+        !('role' in request.resource.data) || 
+        request.resource.data.role == resource.data.role
+      );
       
       // Only admins can delete users or change roles
       allow delete: if isAdmin();
@@ -37,14 +49,58 @@ service cloud.firestore {
     match /waste/{wasteId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated(); // More granular rules should be added based on status/role
+      allow update: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+    
+    // Schedules collection rules
+    match /schedules/{scheduleId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Waste Schedules collection rules (Alternative name used in some hooks)
+    match /waste_schedules/{scheduleId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
       allow delete: if isAdmin();
     }
     
     // Notifications collection rules
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow write: if isAdmin();
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.userId == request.auth.uid || 
+        (resource.data.role == 'COLLECTOR' && isCollector()) ||
+        (resource.data.role == 'USER' && !('userId' in resource.data))
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
     }
 
     // Default rule for other collections

@@ -13,7 +13,7 @@ interface JobHistoryProps {
 
 export function JobHistory({ tasks }: JobHistoryProps) {
     const completedTasks = tasks
-        .filter(t => t.status === 'COMPLETED')
+        .filter(t => t.status === 'completed')
         .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
 
     if (completedTasks.length === 0) {

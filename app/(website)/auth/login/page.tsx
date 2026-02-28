@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { LoginForm } from "./login-form";
 import { Suspense } from "react";
+export const dynamic = 'force-dynamic';
 
 // Loading Fallback for Suspense
 function LoginFormFallback() {
@@ -31,7 +32,7 @@ export default async function LoginPage() {
     } else if (role === 'COLLECTOR') {
       redirect("/dashboard/collector");
     } else {
-      redirect("/dashboard");
+      redirect("/dashboard/user");
     }
   }
 

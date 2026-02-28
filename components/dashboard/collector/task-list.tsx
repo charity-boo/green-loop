@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCollectorTasks } from '@/hooks/use-collector-tasks';
+import { CollectorTask } from '@/types';
 import { TaskCard } from './task-card';
 import {
     WifiOff,
@@ -14,9 +15,31 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '@/lib/firebase/config';
 
-export const TaskList: React.FC = () => {
+interface TaskListProps {
+    tasks?: CollectorTask[];
+    loading?: boolean;
+    error?: string | null;
+    isOffline?: boolean;
+}
+
+export const TaskList: React.FC<TaskListProps> = ({
+    tasks: initialTasks,
+    loading: initialLoading,
+    error: initialError,
+    isOffline: initialIsOffline
+}) => {
     const [uid, setUid] = useState<string | undefined>(auth.currentUser?.uid);
-    const { tasks, loading, error, isOffline: isFirestoreOffline } = useCollectorTasks(uid);
+    const {
+        tasks: fetchedTasks,
+        loading: fetchedLoading,
+        error: fetchedError,
+        isOffline: fetchedIsOffline
+    } = useCollectorTasks(uid);
+
+    const tasks = initialTasks ?? fetchedTasks;
+    const loading = initialLoading ?? fetchedLoading;
+    const error = initialError ?? fetchedError;
+    const isOffline: boolean = initialIsOffline ?? fetchedIsOffline ?? false;
     const [isBrowserOffline, setIsBrowserOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
 
     useEffect(() => {
@@ -35,7 +58,7 @@ export const TaskList: React.FC = () => {
         };
     }, []);
 
-    const showOfflineBanner = isBrowserOffline || isFirestoreOffline;
+    const showOfflineBanner = isBrowserOffline || isOffline;
 
     if (loading) {
         return (

@@ -67,7 +67,7 @@ export function useActiveJob(jobId: string | undefined) {
         if (!jobId || !db) return;
         const docRef = doc(db, 'waste_schedules', jobId);
         return updateDoc(docRef, {
-            status: 'ACTIVE',
+            status: 'active',
             startedAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         });

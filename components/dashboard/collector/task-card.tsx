@@ -10,6 +10,7 @@ import {
     ChevronRight,
     RefreshCw
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ const priorityConfig = {
 };
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+    const router = useRouter();
     // Map task type to priority config, default to Recyclable
     const typeKey = (task.type || 'Recyclable') as keyof typeof priorityConfig;
     const config = priorityConfig[typeKey] || priorityConfig.Recyclable;
@@ -50,8 +52,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.01 }}
+            onClick={() => router.push(`/dashboard/collector/active/${task.id}`)}
             className={cn(
-                "relative overflow-hidden p-5 rounded-3xl mb-4 transition-all duration-300",
+                "relative overflow-hidden p-5 rounded-3xl mb-4 transition-all duration-300 cursor-pointer",
                 "bg-white/80 dark:bg-[#022c22]/40 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-xl",
                 "hover:shadow-2xl hover:border-[#10b981]/30"
             )}

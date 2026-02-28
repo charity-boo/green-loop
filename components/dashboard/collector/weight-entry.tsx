@@ -27,7 +27,6 @@ export function WeightEntry({ onConfirm, isSubmitting }: WeightEntryProps) {
         setWeight(prev => prev + num);
     };
 
-    const clearWeight = () => setWeight('');
     const backspace = () => setWeight(prev => prev.slice(0, -1));
 
     return (

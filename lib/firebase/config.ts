@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, Firestore, connectFirestoreEmulator, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, Firestore, connectFirestoreEmulator, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getAuth, Auth, connectAuthEmulator } from 'firebase/auth';
 import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
@@ -16,28 +16,24 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+// Track whether this is a fresh app init (vs HMR re-evaluation)
+const existingApps = getApps();
+const isNewApp = existingApps.length === 0;
+
 // Initialize Firebase
 const app: FirebaseApp = firebaseConfig.apiKey
-  ? (getApps().length > 0 ? getApp() : initializeApp(firebaseConfig))
+  ? (isNewApp ? initializeApp(firebaseConfig) : getApp())
   : (null as unknown as FirebaseApp);
 
-// Get Firestore instance
+// Get Firestore instance — use initializeFirestore with persistent cache on first init,
+// getFirestore on subsequent module evaluations (HMR) to avoid "already started" error.
 export const db: Firestore = (app && firebaseConfig.apiKey)
-  ? getFirestore(app)
+  ? (isNewApp && typeof window !== 'undefined'
+      ? initializeFirestore(app, {
+          localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+        })
+      : getFirestore(app))
   : (null as unknown as Firestore);
-
-// Initialize multi-tab persistence for offline support
-if (typeof window !== 'undefined' && db && firebaseConfig.apiKey) {
-  enableMultiTabIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      // Multiple tabs open, persistence can only be enabled in one tab at a time.
-      console.warn('Firestore persistence failed: multiple tabs open');
-    } else if (err.code === 'unimplemented') {
-      // The current browser does not support all of the features required to enable persistence
-      console.warn('Firestore persistence is not supported by this browser');
-    }
-  });
-}
 
 // Get Auth instance
 export const auth: Auth = (app && firebaseConfig.apiKey)

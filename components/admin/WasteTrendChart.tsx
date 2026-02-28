@@ -68,7 +68,7 @@ const WasteTrendChart = ({ data }: WasteTrendChartProps) => {
                             tickFormatter={(str) => {
                                 try {
                                     return format(parseISO(str), 'MMM d');
-                                } catch (e) {
+                                } catch (_e) {
                                     return str;
                                 }
                             }}
@@ -93,7 +93,7 @@ const WasteTrendChart = ({ data }: WasteTrendChartProps) => {
                             labelFormatter={(label) => {
                                 try {
                                     return format(parseISO(label), 'EEEE, MMMM d, yyyy');
-                                } catch (e) {
+                                } catch (_e) {
                                     return label;
                                 }
                             }}

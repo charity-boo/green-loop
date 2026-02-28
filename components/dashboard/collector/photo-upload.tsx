@@ -3,9 +3,7 @@
 import { useState, useRef } from 'react';
 import { storage } from '@/lib/firebase/config';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Camera, Image as ImageIcon, CheckCircle2, Loader2, X, RefreshCcw } from 'lucide-react';
+import { Camera, CheckCircle2, Loader2, RefreshCcw } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 

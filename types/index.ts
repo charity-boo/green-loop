@@ -37,6 +37,13 @@ export interface Waste {
  * Represents a waste collection task assigned to a collector.
  */
 export interface CollectorTask extends Waste {
+  location?: string | null;
+  coordinates?: { latitude: number; longitude: number } | null;
+  weight?: number | null;
+  aiCategory?: string | null;
+  beforeImageUrl?: string | null;
+  afterImageUrl?: string | null;
+  collectorId?: string | null;
   user?: {
     name: string | null;
     email: string;
@@ -72,6 +79,7 @@ export interface UserDashboardData {
   metrics: UserMetrics;
   pickupHistory: PickupHistoryItem[];
   rewards: RewardsData;
+  social: SocialMetrics;
 }
 
 /**
@@ -99,6 +107,18 @@ export interface UserMetrics {
   lastPickup: string; // ISO date string
   nextPickup?: string;
   skippedPickups?: number;
+  materialBreakdown: Array<{ type: string; weight: number; percentage: number }>;
+  carbonImpact: { totalCo2Saved: number; treesEquivalent: number };
+}
+
+/**
+ * Social and gamification metrics for the user.
+ */
+export interface SocialMetrics {
+  rank: number;
+  totalNeighbors: number;
+  percentile: number;
+  streak: number;
 }
 
 /**

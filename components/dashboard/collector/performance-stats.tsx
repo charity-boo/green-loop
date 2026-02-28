@@ -4,14 +4,13 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { CollectorTask } from '@/types';
 import { Scale, Trophy, CheckCircle2, TrendingUp } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
 
 interface PerformanceStatsProps {
     tasks: CollectorTask[];
 }
 
 export function PerformanceStats({ tasks }: PerformanceStatsProps) {
-    const completedTasks = tasks.filter(t => t.status === 'COMPLETED');
+    const completedTasks = tasks.filter(t => t.status === 'completed');
 
     const totalWeight = completedTasks.reduce((acc, t) => acc + (t.weight || 0), 0);
     const totalPoints = completedTasks.length * 50 + Math.floor(totalWeight * 2);
