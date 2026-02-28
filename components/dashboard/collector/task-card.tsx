@@ -52,7 +52,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.01 }}
-            onClick={() => router.push(`/dashboard/collector/active/${task.id}`)}
+            onClick={() => router.push(`/dashboard/active/${task.id}`)}
             className={cn(
                 "relative overflow-hidden p-5 rounded-3xl mb-4 transition-all duration-300 cursor-pointer",
                 "bg-white/80 dark:bg-[#022c22]/40 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-xl",

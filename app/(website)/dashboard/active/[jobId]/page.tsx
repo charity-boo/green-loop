@@ -52,7 +52,7 @@ export default function ActiveJobPage() {
                 <Button
                     variant="outline"
                     className="rounded-2xl px-10 border-slate-200"
-                    onClick={() => router.push('/dashboard/collector')}
+                    onClick={() => router.push('/dashboard')}
                 >
                     Back to Dashboard
                 </Button>
@@ -183,7 +183,7 @@ export default function ActiveJobPage() {
                         ) : (
                             <Button
                                 className="w-full h-20 text-xl font-black bg-[#10b981] hover:bg-emerald-600 text-white rounded-[1.5rem] shadow-2xl shadow-emerald-500/40 transition-all active:scale-[0.98]"
-                                onClick={() => router.push(`/dashboard/collector/active/${jobId}/verify`)}
+                                onClick={() => router.push(`/dashboard/active/${jobId}/verify`)}
                             >
                                 LOG COLLECTION
                             </Button>

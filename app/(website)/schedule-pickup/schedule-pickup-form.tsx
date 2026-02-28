@@ -194,7 +194,7 @@ export default function SchedulePickupForm({ userName }: SchedulePickupFormProps
           </DialogHeader>
           <div className="flex justify-end gap-4 mt-6">
             <Link
-              href="/dashboard/user"
+              href="/dashboard"
               className="px-6 py-2 border rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition"
             >
               Go to Dashboard

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard/user" },
+    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Schedule Pickup", icon: CalendarPlus, href: "/schedule-pickup" },
     { label: "AI Sorting", icon: Scan, href: "/learning-hub" },
     { label: "Green Points", icon: Star, href: "/rewards-program" },

@@ -35,7 +35,7 @@ export default function VerificationPage() {
             } as Record<string, unknown>);
 
             // Navigate to performance/success view
-            router.push('/dashboard/collector?success=true');
+            router.push('/dashboard?success=true');
         } catch (err) {
             console.error('Failed to complete job:', err);
             setIsSubmitting(false);
@@ -60,7 +60,7 @@ export default function VerificationPage() {
             <div className="p-6 text-center bg-slate-50 dark:bg-[#022c22] min-h-screen flex flex-col items-center justify-center font-outfit">
                 <p className="text-red-500 mb-6 font-black uppercase tracking-widest">{error || 'Job not found'}</p>
                 <Button asChild variant="outline" className="rounded-2xl border-slate-200">
-                    <Link href="/dashboard/collector">Return Queue</Link>
+                    <Link href="/dashboard">Return Queue</Link>
                 </Button>
             </div>
         );
@@ -75,7 +75,7 @@ export default function VerificationPage() {
                 <div className="flex items-center justify-between py-4">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" asChild className="text-slate-700 dark:text-emerald-100 hover:bg-emerald-500/10 rounded-full">
-                            <Link href={`/dashboard/collector/active/${jobId}`}>
+                            <Link href={`/dashboard/active/${jobId}`}>
                                 <ArrowLeft className="w-6 h-6" />
                             </Link>
                         </Button>

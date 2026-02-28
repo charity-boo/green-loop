@@ -367,7 +367,7 @@ export default function CollectorDashboard() {
                                 <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium mt-0.5">Confirm identity &amp; log pickup</p>
                             </div>
                             <button
-                                onClick={() => activeJob && router.push(`/dashboard/collector/active/${activeJob.id}/verify`)}
+                                onClick={() => activeJob && router.push(`/dashboard/active/${activeJob.id}/verify`)}
                                 disabled={!activeJob}
                                 className={cn(
                                     'w-full py-2.5 rounded-xl text-sm font-black transition-all active:scale-[0.98]',

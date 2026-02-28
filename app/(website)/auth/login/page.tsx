@@ -30,9 +30,9 @@ export default async function LoginPage() {
     if (role === 'ADMIN') {
       redirect("/admin");
     } else if (role === 'COLLECTOR') {
-      redirect("/dashboard/collector");
+      redirect("/dashboard");
     } else {
-      redirect("/dashboard/user");
+      redirect("/dashboard");
     }
   }
 

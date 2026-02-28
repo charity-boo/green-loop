@@ -39,11 +39,11 @@ export function LoginForm() {
             console.log('Redirecting ADMIN to /admin');
             router.push("/admin");
         } else if (userRole === "COLLECTOR") {
-            console.log('Redirecting COLLECTOR to /dashboard/collector');
-            router.push("/dashboard/collector");
+            console.log('Redirecting COLLECTOR to /dashboard');
+            router.push("/dashboard");
         } else {
-            console.log('Redirecting USER (or default) to /dashboard/user');
-            router.push("/dashboard/user");
+            console.log('Redirecting USER (or default) to /dashboard');
+            router.push("/dashboard");
         }
     }, [router]);
 

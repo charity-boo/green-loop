@@ -46,7 +46,7 @@ function StatusButton({ task }: { task: CollectorTask }) {
     if (task.status === WasteStatus.Active || task.status === WasteStatus.Collected) {
         return (
             <button
-                onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/collector/active/${task.id}/verify`); }}
+                onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/active/${task.id}/verify`); }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-blue-500/20"
             >
                 <ScanLine size={12} />
@@ -57,7 +57,7 @@ function StatusButton({ task }: { task: CollectorTask }) {
 
     return (
         <button
-            onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/collector/active/${task.id}`); }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/active/${task.id}`); }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/20"
         >
             <Play size={12} />
@@ -104,7 +104,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
                             initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.04 }}
-                            onClick={() => router.push(`/dashboard/collector/active/${task.id}`)}
+                            onClick={() => router.push(`/dashboard/active/${task.id}`)}
                             className="group cursor-pointer bg-slate-50/80 dark:bg-emerald-950/10 hover:bg-white dark:hover:bg-[#064e3b]/30 border border-slate-100 dark:border-emerald-800/10 rounded-2xl p-3 transition-all duration-200 hover:shadow-md hover:shadow-emerald-500/5 hover:border-emerald-200 dark:hover:border-emerald-700/20"
                         >
                             {/* ── Mobile layout ── */}
