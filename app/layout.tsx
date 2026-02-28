@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-provider";
 import DynamicNavbar from "@/components/layout/dynamic-navbar";
-import AuthStatusWrapper from "@/components/layout/auth-status-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,9 +31,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <DynamicNavbar />
-          <AuthStatusWrapper>
-            {children}
-          </AuthStatusWrapper>
+          {children}
         </AuthProvider>
       </body>
     </html>
