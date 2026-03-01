@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { getUserDashboardData } from "@/lib/dashboard-data";
 import { redirect } from "next/navigation";
+import { adminDb } from "@/lib/firebase/admin";
 import UserDashboardClient from "./user-dashboard-client";
 import CollectorDashboard from "./collector-dashboard-client";
 
@@ -22,13 +23,22 @@ export default async function DashboardPage() {
     }
 
     // USER
-    const dashboardData = await getUserDashboardData(session.user.id);
+    const [dashboardData, userDoc] = await Promise.all([
+        getUserDashboardData(session.user.id),
+        adminDb.collection("users").doc(session.user.id).get(),
+    ]);
+
+    const userData = userDoc.data();
+    const userCounty: string | null = userData?.county ?? null;
+    const userRegion: string | null = userData?.region ?? null;
 
     return (
         <div className="min-h-screen">
             <UserDashboardClient
                 data={dashboardData}
                 userName={session.user.name || ""}
+                userCounty={userCounty}
+                userRegion={userRegion}
             />
         </div>
     );
