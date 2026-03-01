@@ -23,12 +23,16 @@ export default async function DashboardPage() {
     }
 
     // USER
+    const isFirebaseAvailable = typeof adminDb.collection === 'function';
+
     const [dashboardData, userDoc] = await Promise.all([
         getUserDashboardData(session.user.id),
-        adminDb.collection("users").doc(session.user.id).get(),
+        isFirebaseAvailable
+            ? adminDb.collection("users").doc(session.user.id).get()
+            : Promise.resolve(null),
     ]);
 
-    const userData = userDoc.data();
+    const userData = userDoc?.data?.();
     const userCounty: string | null = userData?.county ?? null;
     const userRegion: string | null = userData?.region ?? null;
 
