@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { KENYA_COUNTIES } from "@/lib/constants/regions";
@@ -16,6 +16,13 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    };
+  }, []);
 
   const selectedCounty = KENYA_COUNTIES.find((c) => c.value === county);
   const subRegions = selectedCounty?.subRegions ?? [];
@@ -51,7 +58,8 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
       });
       if (!res.ok) throw new Error();
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setSaved(false), 3000);
     } catch {
       setError("Failed to save location. Please try again.");
     } finally {
@@ -141,7 +149,7 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
         {/* Save button */}
         <button
           onClick={handleSave}
-          disabled={saving || !county || !region}
+          disabled={saving || !county || !region || !selectedSubRegion}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-black text-white transition-colors"
         >
           {saving ? (
