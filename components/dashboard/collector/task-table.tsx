@@ -1,7 +1,7 @@
 "use client";
 
 import Image from 'next/image';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { CollectorTask } from '@/types';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -11,6 +11,7 @@ import {
     Image as ImageIcon, User, SkipForward
 } from 'lucide-react';
 import { WasteStatus } from '@/lib/types/waste-status';
+import ClassificationBadge from '@/components/user/classification-badge';
 
 interface TaskTableProps {
     tasks: CollectorTask[];
@@ -69,6 +70,20 @@ function StatusButton({ task }: { task: CollectorTask }) {
 
 export function TaskTable({ tasks }: TaskTableProps) {
     const router = useRouter();
+    const [reclassifyingIds, setReclassifyingIds] = useState<Set<string>>(new Set());
+
+    const handleReclassify = useCallback(async (wasteId: string) => {
+        setReclassifyingIds((prev) => new Set(prev).add(wasteId));
+        try {
+            await fetch(`/api/waste/${wasteId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ classificationStatus: 'pending' }),
+            });
+        } finally {
+            // Cloud Function updates the doc; keep spinner until next refresh
+        }
+    }, []);
 
     if (tasks.length === 0) {
         return (
@@ -131,6 +146,17 @@ export function TaskTable({ tasks }: TaskTableProps) {
                                         <Icon size={10} />
                                         {config.label}
                                     </div>
+                                    <div className="mt-1" onClick={e => e.stopPropagation()}>
+                                        <ClassificationBadge
+                                            scheduleId={task.id}
+                                            aiWasteType={task.aiWasteType}
+                                            disposalTips={task.disposalTips}
+                                            classificationStatus={task.classificationStatus}
+                                            canReclassify
+                                            onReclassify={handleReclassify}
+                                            reclassifying={reclassifyingIds.has(task.id)}
+                                        />
+                                    </div>
                                 </div>
                                 <div onClick={e => e.stopPropagation()}>
                                     <StatusButton task={task} />
@@ -167,16 +193,22 @@ export function TaskTable({ tasks }: TaskTableProps) {
                                 </div>
 
                                 {/* Waste Category */}
-                                <div>
+                                <div onClick={e => e.stopPropagation()}>
                                     <div className={cn('inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider', config.bg, config.text)}>
                                         <Icon size={11} />
                                         {config.label}
                                     </div>
-                                    {task.confidence && (
-                                        <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 mt-1 font-bold pl-1">
-                                            {Math.round(task.confidence * 100)}% AI match
-                                        </p>
-                                    )}
+                                    <div className="mt-1">
+                                        <ClassificationBadge
+                                            scheduleId={task.id}
+                                            aiWasteType={task.aiWasteType}
+                                            disposalTips={task.disposalTips}
+                                            classificationStatus={task.classificationStatus}
+                                            canReclassify
+                                            onReclassify={handleReclassify}
+                                            reclassifying={reclassifyingIds.has(task.id)}
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Status Action */}

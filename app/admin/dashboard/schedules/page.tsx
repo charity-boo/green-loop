@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Calendar,
   Search,
   CheckCircle2,
   Clock,
@@ -12,8 +11,11 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ClassificationBadge from '@/components/user/classification-badge';
+import { ClassificationStatus } from '@/types';
 
 interface Schedule {
   id: string;
@@ -26,6 +28,9 @@ interface Schedule {
   status: string;
   createdAt: string;
   instructions?: string;
+  aiWasteType?: string | null;
+  disposalTips?: string | null;
+  classificationStatus?: ClassificationStatus;
 }
 
 interface Meta {
@@ -57,6 +62,7 @@ export default function AdminSchedulesPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [reclassifyingIds, setReclassifyingIds] = useState<Set<string>>(new Set());
 
   const fetchSchedules = useCallback(async (page = 1) => {
     setLoading(true);
@@ -98,6 +104,22 @@ export default function AdminSchedulesPage() {
     }
   };
 
+  const handleReclassify = useCallback(async (scheduleId: string) => {
+    setReclassifyingIds((prev) => new Set(prev).add(scheduleId));
+    try {
+      await fetch('/api/schedule-pickup/reclassify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduleId }),
+      });
+      setSchedules((prev) =>
+        prev.map((s) => (s.id === scheduleId ? { ...s, classificationStatus: 'pending' } : s))
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   const filtered = search.trim()
     ? schedules.filter(
         (s) =>
@@ -113,15 +135,15 @@ export default function AdminSchedulesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-emerald-600" />
-            Pickup Schedules
+            <Truck className="w-8 h-8 text-emerald-600" />
+            Pickups
           </h1>
           <p className="text-slate-500 mt-1">
             View and manage all waste pickup requests across all users.
           </p>
         </div>
         <div className="text-sm text-slate-500 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200 font-medium">
-          {meta.total} total schedules
+          {meta.total} total pickups
         </div>
       </div>
 
@@ -182,6 +204,7 @@ export default function AdminSchedulesPage() {
                 <tr className="text-left border-b bg-slate-50 text-slate-500 font-semibold text-xs uppercase tracking-wide">
                   <th className="py-3 px-5">User</th>
                   <th className="py-3 px-5">Waste Type</th>
+                  <th className="py-3 px-5">AI Classification</th>
                   <th className="py-3 px-5">Address</th>
                   <th className="py-3 px-5">Pickup Date</th>
                   <th className="py-3 px-5">Slot</th>
@@ -194,6 +217,17 @@ export default function AdminSchedulesPage() {
                   <tr key={s.id} className="border-b last:border-0 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-5 font-medium text-slate-900">{s.userName || '—'}</td>
                     <td className="py-4 px-5 text-slate-600">{s.wasteType}</td>
+                    <td className="py-4 px-5">
+                      <ClassificationBadge
+                        scheduleId={s.id}
+                        aiWasteType={s.aiWasteType}
+                        disposalTips={s.disposalTips}
+                        classificationStatus={s.classificationStatus}
+                        canReclassify
+                        onReclassify={handleReclassify}
+                        reclassifying={reclassifyingIds.has(s.id)}
+                      />
+                    </td>
                     <td className="py-4 px-5 text-slate-600 max-w-[180px] truncate">{s.address}</td>
                     <td className="py-4 px-5 text-slate-600">{s.pickupDate || '—'}</td>
                     <td className="py-4 px-5 text-slate-600">{s.timeSlot}</td>
