@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CameraIcon, UploadIcon, Cross1Icon, CheckIcon, ResetIcon } from "@radix-ui/react-icons";
@@ -11,7 +11,7 @@ import { CameraIcon, UploadIcon, Cross1Icon, CheckIcon, ResetIcon } from "@radix
 interface AIClassificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAccept: (wasteType: string, aiSuggestedType: string, aiConfidence: number, aiPhotoUsed: boolean) => void;
+  onAccept: (wasteType: string, aiSuggestedType: string, aiConfidence: number, aiPhotoUsed: boolean, disposalTips: string) => void;
   onOverride: () => void;
 }
 
@@ -23,7 +23,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [aiSuggestion, setAiSuggestion] = useState<{ suggestedType: string; confidence: number } | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<{ suggestedType: string; confidence: number; disposalTips: string } | null>(null);
   const [mode, setMode] = useState<"choice" | "camera" | "preview" | "result">("choice");
 
   const stopCamera = useCallback(() => {
@@ -87,22 +87,26 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
   };
 
   const handleClassify = async () => {
+    if (!photoTaken) return;
     setLoading(true);
     setError(null);
 
     try {
-      // Simulate sending blob to Firebase Function /classifyWaste
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Upload the image to Firebase Storage first to get a URL, or use base64 data URL directly
+      // We call the classify API with the data URL — the server fetches and converts it
+      const response = await fetch("/api/waste/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: photoTaken }),
+      });
 
-      const simulatedResponses = [
-        { suggestedType: "plastic", confidence: 0.95 },
-        { suggestedType: "organic", confidence: 0.88 },
-        { suggestedType: "general", confidence: 0.65 },
-        { suggestedType: "metal", confidence: 0.70 },
-      ];
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || "Classification failed");
+      }
 
-      const randomResponse = simulatedResponses[Math.floor(Math.random() * simulatedResponses.length)];
-      setAiSuggestion(randomResponse);
+      const { wasteType, disposalTips } = await response.json() as { wasteType: string; disposalTips: string };
+      setAiSuggestion({ suggestedType: wasteType, confidence: 1, disposalTips });
       setMode("result");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to classify waste.");
@@ -113,7 +117,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
 
   const handleAccept = () => {
     if (aiSuggestion) {
-      onAccept(aiSuggestion.suggestedType, aiSuggestion.suggestedType, aiSuggestion.confidence, selectedFile === null);
+      onAccept(aiSuggestion.suggestedType, aiSuggestion.suggestedType, aiSuggestion.confidence, selectedFile === null, aiSuggestion.disposalTips);
       handleCloseModal();
     }
   };
@@ -131,6 +135,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden bg-black border-none sm:rounded-3xl">
+        <DialogTitle className="sr-only">AI Waste Classifier</DialogTitle>
         <div className="relative h-[600px] w-full flex flex-col">
           {/* Header Overlay */}
           <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/60 to-transparent flex justify-between items-center">
@@ -219,11 +224,10 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
                         <p className="text-gray-400 text-xs uppercase tracking-wider font-bold">AI Suggestion</p>
                         <h4 className="text-white text-2xl font-black capitalize">{aiSuggestion.suggestedType}</h4>
                       </div>
-                      <div className="ml-auto text-right">
-                        <p className="text-green-400 text-lg font-bold">{Math.round(aiSuggestion.confidence * 100)}%</p>
-                        <p className="text-gray-500 text-[10px]">CONFIDENCE</p>
-                      </div>
                     </div>
+                    {aiSuggestion.disposalTips && (
+                      <p className="text-gray-300 text-xs mb-4 leading-relaxed border-t border-white/10 pt-3">{aiSuggestion.disposalTips}</p>
+                    )}
                     <div className="flex gap-3">
                       <Button onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold h-12 rounded-xl">
                         Accept & Continue
