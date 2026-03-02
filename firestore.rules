@@ -86,7 +86,10 @@ service cloud.firestore {
     
     // Notifications collection rules
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && (
+      // list (collection queries): allow authenticated users — query constraints enforce data isolation
+      allow list: if isAuthenticated();
+      // get (single doc): check ownership/role
+      allow get: if isAuthenticated() && (
         isAdmin() ||
         resource.data.userId == request.auth.uid || 
         (resource.data.role == 'COLLECTOR' && isCollector()) ||

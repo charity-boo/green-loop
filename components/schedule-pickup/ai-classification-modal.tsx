@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CameraIcon, UploadIcon, Cross1Icon, CheckIcon, ResetIcon } from "@radix-ui/react-icons";
@@ -136,6 +136,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
     <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden bg-black border-none sm:rounded-3xl">
         <DialogTitle className="sr-only">AI Waste Classifier</DialogTitle>
+        <DialogDescription className="sr-only">Upload or take a photo of your waste to get an AI-powered classification and disposal tips.</DialogDescription>
         <div className="relative h-[600px] w-full flex flex-col">
           {/* Header Overlay */}
           <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/60 to-transparent flex justify-between items-center">

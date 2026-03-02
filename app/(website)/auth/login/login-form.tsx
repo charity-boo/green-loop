@@ -16,7 +16,6 @@ export function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { role, status } = useAuth();
-    console.log('LoginForm mounted. Current status:', status, 'role:', role);
 
     const redirectPath = searchParams.get('redirect') || searchParams.get('callbackUrl');
     const registered = searchParams.get('registered');
@@ -28,21 +27,16 @@ export function LoginForm() {
     const [success, setSuccess] = useState<string | null>(null);
 
     const handleRoleRedirect = useCallback((userRole: string, customPath?: string) => {
-        console.log('handleRoleRedirect called. userRole:', userRole, 'customPath:', customPath);
         if (customPath && customPath !== '/dashboard') {
-            console.log('Redirecting to custom path:', customPath);
             router.push(customPath);
             return;
         }
 
         if (userRole === "ADMIN") {
-            console.log('Redirecting ADMIN to /admin');
             router.push("/admin");
         } else if (userRole === "COLLECTOR") {
-            console.log('Redirecting COLLECTOR to /dashboard');
             router.push("/dashboard");
         } else {
-            console.log('Redirecting USER (or default) to /dashboard');
             router.push("/dashboard");
         }
     }, [router]);
@@ -50,29 +44,23 @@ export function LoginForm() {
     useEffect(() => {
         if (registered) {
             setSuccess("Registration successful! Please sign in.");
-            console.log('Registration successful message set.');
         }
     }, [registered]);
 
     useEffect(() => {
-        console.log('LoginForm useEffect for status/role change. Current status:', status, 'role:', role);
         if (status === 'authenticated' && role) {
-            console.log('User is authenticated and role is available. Initiating role-based redirection.');
             handleRoleRedirect(role, redirectPath || undefined);
         }
     }, [status, role, handleRoleRedirect, redirectPath]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('handleSubmit called for email/password login.');
         setLoading(true);
         setError(null);
 
         try {
             await signInFirebase(email, password);
-            console.log('signInFirebase successful.');
             setLoading(false);
-            console.log('setLoading(false) after handleSubmit success.');
         } catch (err: unknown) {
             let errorMessage = "Invalid credentials. Please try again.";
             let isExpectedAuthError = false;
@@ -99,14 +87,11 @@ export function LoginForm() {
     };
 
     const handleGoogleSignIn = async () => {
-        console.log('handleGoogleSignIn called.');
         setLoading(true);
         setError(null);
         try {
             await signInWithGoogle();
-            console.log('signInWithGoogle successful.');
             setLoading(false);
-            console.log('setLoading(false) after handleGoogleSignIn success.');
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Google sign-in failed.");
             setLoading(false);
