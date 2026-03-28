@@ -1,5 +1,5 @@
 import { dbService } from './db';
-import { Status, UserDoc, ScheduleDoc, AdminActionLogDoc } from '@/lib/types/firestore';
+import { Status, UserDoc, ScheduleDoc, AdminActionLogDoc } from '@/types/firestore';
 import { startOfDay, subDays, format } from 'date-fns';
 import { GOVERNANCE_LIMITS } from '@/lib/constants/governance';
 
@@ -38,6 +38,7 @@ export interface CollectorPerformanceFilters {
   sortOrder?: 'asc' | 'desc';
   startDate?: Date;
   endDate?: Date;
+  search?: string;
 }
 
 export interface PaginatedCollectorPerformance {
@@ -141,12 +142,20 @@ export async function getCollectorPerformance(
   const startDate = filters.startDate ?? subDays(now, 30);
   const endDate = filters.endDate ?? now;
 
-  const collectors = await dbService.query<UserDoc>('users', {
+  let collectors = await dbService.query<UserDoc>('users', {
     where: [
       ['role', '==', 'COLLECTOR'],
       ['active', '==', true],
     ],
   });
+
+  if (filters.search) {
+    const s = filters.search.toLowerCase();
+    collectors = collectors.filter(c => 
+      (c.name || '').toLowerCase().includes(s) || 
+      (c.email || '').toLowerCase().includes(s)
+    );
+  }
 
   const allSchedules = await dbService.query<ScheduleDoc>('schedules', {
     where: [

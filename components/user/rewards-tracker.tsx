@@ -1,72 +1,144 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { Zap, Award, Star, ChevronRight } from "lucide-react";
+import React from 'react';
+import { Award, Zap, Gift, TreePine, CreditCard, ShoppingBag } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface RewardsTrackerProps {
     points: number;
     nextMilestone: number;
     progress: number;
-    tier: "Bronze" | "Silver" | "Gold" | "Platinum";
+    canRedeem: boolean;
+    className?: string;
 }
 
-const tierConfig = {
-    Bronze: { color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20" },
-    Silver: { color: "text-slate-300", bg: "bg-slate-500/10", border: "border-slate-500/20" },
-    Gold: { color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-    Platinum: { color: "text-indigo-300", bg: "bg-indigo-500/10", border: "border-indigo-500/20" }
-};
+const REWARDS = [
+    {
+        id: 'free_pickup',
+        label: 'Free Collection',
+        cost: 500,
+        icon: CreditCard,
+        description: 'Waive your next collection fee'
+    },
+    {
+        id: 'partner_voucher',
+        label: 'Eco-Voucher',
+        cost: 1000,
+        icon: ShoppingBag,
+        description: 'Ksh 200 off at partner eco-shops'
+    },
+    {
+        id: 'plant_tree',
+        label: 'Plant 1 Tree',
+        cost: 250,
+        icon: TreePine,
+        description: 'Support local reforestation'
+    }
+];
 
-export default function RewardsTracker({ points, nextMilestone, progress, tier }: RewardsTrackerProps) {
-    const config = tierConfig[tier];
+/**
+ * Integrated Green Points & Redemption Center
+ * Directly actionable on the dashboard.
+ */
+export default function RewardsTracker({ points, progress, className }: RewardsTrackerProps) {
+    const handleClaim = (reward: string, cost: number) => {
+        // In a real app, this would trigger a mutation.
+        alert(`Claiming ${reward} for ${cost} points...`);
+    };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="flex flex-col h-full rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden"
-        >
-            <div className="p-8 flex-1">
-                <div className="flex items-center justify-between mb-8">
-                    <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full ${config.bg} ${config.border} border ${config.color} text-xs font-black uppercase tracking-widest`}>
-                        <Award className="w-3.5 h-3.5" />
-                        {tier} Tier
+        <div className={cn(
+            "p-6 bg-white rounded-xl border border-slate-100 shadow-sm transition-all hover:border-emerald-200",
+            className
+        )}>
+            {/* Points Summary Section */}
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                        <Award className="w-4 h-4" />
                     </div>
-                    <div className="flex items-center gap-1 text-emerald-600 font-bold">
-                        <Zap className="w-4 h-4 fill-current" />
-                        Live Points
-                    </div>
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Rewards Center</p>
                 </div>
-
-                <div className="mb-8">
-                    <p className="text-slate-500 font-medium mb-1 uppercase tracking-tight text-xs">Total Balance</p>
-                    <h3 className="text-5xl font-black text-slate-900 leading-none">{points.toLocaleString()}</h3>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                        <span className="text-sm font-bold text-slate-400">Next Milestone: {nextMilestone.toLocaleString()}</span>
-                        <span className="text-sm font-black text-emerald-600">{Math.round(progress)}%</span>
-                    </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progress}%` }}
-                            transition={{ duration: 1, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full shadow-lg shadow-emerald-500/20"
-                        />
-                    </div>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                    <Zap className="w-2.5 h-2.5 fill-current" />
+                    Live Points
                 </div>
             </div>
 
-            <button className="w-full py-6 px-8 bg-slate-900 text-white font-bold flex items-center justify-between group hover:bg-slate-800 transition-colors">
-                <div className="flex items-center gap-3">
-                    <Star className="w-5 h-5 text-amber-400" />
-                    <span>Redeem Vouchers</span>
+            <div className="mb-8">
+                <h3 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-1">
+                    {points.toLocaleString()}
+                </h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Available Balance</p>
+            </div>
+
+            <div className="space-y-2 mb-8">
+                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                    <span className="text-slate-400">Next Milestone</span>
+                    <span className="text-emerald-600">{Math.round(progress)}%</span>
                 </div>
-                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-        </motion.div>
+                <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            </div>
+
+            {/* Redemption List: Directly actionable here */}
+            <div className="pt-6 border-t border-slate-50">
+                <div className="flex items-center gap-2 mb-6">
+                    <Gift className="w-3.5 h-3.5 text-slate-300" />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Redeem Your Points</span>
+                </div>
+
+                <div className="space-y-4">
+                    {REWARDS.map((reward) => {
+                        const isClaimable = points >= reward.cost;
+                        return (
+                            <div 
+                                key={reward.id} 
+                                className="group/reward p-3 rounded-xl border border-slate-50 bg-slate-50/30 hover:bg-white hover:border-emerald-100 hover:shadow-sm transition-all"
+                            >
+                                <div className="flex items-start gap-3 justify-between mb-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className={cn(
+                                            "p-2 rounded-lg shrink-0 transition-colors",
+                                            isClaimable ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"
+                                        )}>
+                                            <reward.icon className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <p className="text-[11px] font-bold text-slate-900 leading-none">{reward.label}</p>
+                                            <p className="text-[10px] font-medium text-slate-400 leading-tight">{reward.description}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className={cn(
+                                            "text-[10px] font-black tracking-widest",
+                                            isClaimable ? "text-emerald-600" : "text-slate-400"
+                                        )}>
+                                            {reward.cost} pts
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleClaim(reward.label, reward.cost)}
+                                    disabled={!isClaimable}
+                                    className={cn(
+                                        "w-full py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all",
+                                        isClaimable 
+                                            ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-100 active:scale-95" 
+                                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    )}
+                                >
+                                    {isClaimable ? 'Claim Now' : `${reward.cost - points} more pts needed`}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
     );
 }

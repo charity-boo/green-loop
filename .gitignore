@@ -55,3 +55,9 @@ firebase-export-*/
 
 /lib/generated/prisma
 .worktrees/
+
+# logs
+/logs/
+
+# gemini
+.gemini/

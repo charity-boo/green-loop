@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CameraIcon, UploadIcon, Cross1Icon, CheckIcon, ResetIcon } from "@radix-ui/react-icons";
+import type { ClassificationResult } from "@/lib/ai/gemini";
 
 interface AIClassificationModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [aiSuggestion, setAiSuggestion] = useState<{ suggestedType: string; confidence: number; disposalTips: string } | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<ClassificationResult | null>(null);
   const [mode, setMode] = useState<"choice" | "camera" | "preview" | "result">("choice");
 
   const stopCamera = useCallback(() => {
@@ -92,21 +93,17 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
     setError(null);
 
     try {
-      // Upload the image to Firebase Storage first to get a URL, or use base64 data URL directly
-      // We call the classify API with the data URL — the server fetches and converts it
-      const response = await fetch("/api/waste/classify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/waste/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageUrl: photoTaken }),
       });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || "Classification failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { message?: string }).message || 'Classification failed');
       }
-
-      const { wasteType, disposalTips } = await response.json() as { wasteType: string; disposalTips: string };
-      setAiSuggestion({ suggestedType: wasteType, confidence: 1, disposalTips });
+      const result: ClassificationResult = await res.json();
+      setAiSuggestion(result);
       setMode("result");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to classify waste.");
@@ -117,7 +114,13 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
 
   const handleAccept = () => {
     if (aiSuggestion) {
-      onAccept(aiSuggestion.suggestedType, aiSuggestion.suggestedType, aiSuggestion.confidence, selectedFile === null, aiSuggestion.disposalTips);
+      onAccept(
+        aiSuggestion.formValue,
+        aiSuggestion.wasteCategory,
+        aiSuggestion.probability,
+        selectedFile === null,
+        aiSuggestion.disposalTips
+      );
       handleCloseModal();
     }
   };
@@ -216,26 +219,41 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
                 )}
 
                 {mode === "result" && aiSuggestion && !loading && (
-                  <div className="absolute bottom-32 left-4 right-4 bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 animate-in slide-in-from-bottom-8 duration-500">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="h-12 w-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/40">
-                        <CheckIcon className="h-6 w-6 text-white" />
+                  <div className="absolute inset-x-0 bottom-0 bg-black/90 backdrop-blur-md border-t border-white/10 rounded-b-3xl overflow-y-auto max-h-[70%] animate-in slide-in-from-bottom-8 duration-500">
+                    <div className="p-5 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 shrink-0 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/40">
+                          <CheckIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-green-400 text-[10px] uppercase tracking-widest font-bold">AI Identified</p>
+                          <h4 className="text-white text-xl font-black leading-tight">{aiSuggestion.wasteCategory}</h4>
+                          <p className="text-gray-400 text-xs mt-0.5">Detected: <span className="text-gray-300 capitalize">{aiSuggestion.detectedItem}</span> &middot; {Math.round(aiSuggestion.probability * 100)}% confidence</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-gray-400 text-xs uppercase tracking-wider font-bold">AI Suggestion</p>
-                        <h4 className="text-white text-2xl font-black capitalize">{aiSuggestion.suggestedType}</h4>
+
+                      {/* Disposal Tips */}
+                      <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                        <p className="text-green-400 text-[10px] uppercase tracking-widest font-bold mb-2">♻️ How to Dispose</p>
+                        <p className="text-gray-200 text-xs leading-relaxed">{aiSuggestion.disposalTips}</p>
                       </div>
-                    </div>
-                    {aiSuggestion.disposalTips && (
-                      <p className="text-gray-300 text-xs mb-4 leading-relaxed border-t border-white/10 pt-3">{aiSuggestion.disposalTips}</p>
-                    )}
-                    <div className="flex gap-3">
-                      <Button onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold h-12 rounded-xl">
-                        Accept & Continue
-                      </Button>
-                      <Button onClick={onOverride} variant="outline" className="bg-transparent border-gray-700 text-gray-300 hover:bg-white/10 h-12 rounded-xl">
-                        Manual
-                      </Button>
+
+                      {/* Did You Know */}
+                      <div className="bg-green-900/30 rounded-xl p-4 border border-green-700/30">
+                        <p className="text-green-400 text-[10px] uppercase tracking-widest font-bold mb-2">💡 Did You Know?</p>
+                        <p className="text-green-100 text-xs leading-relaxed">{aiSuggestion.didYouKnow}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-3 pt-1">
+                        <Button onClick={handleAccept} className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold h-12 rounded-xl">
+                          Accept & Continue
+                        </Button>
+                        <Button onClick={onOverride} variant="outline" className="bg-transparent border-gray-700 text-gray-300 hover:bg-white/10 h-12 rounded-xl">
+                          Manual
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -264,7 +282,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
             </div>
           )}
 
-          {/* Footer controls for Result mode */}
+          {/* Footer controls for Result mode — actions are inside the result card */}
           {mode === "result" && !loading && (
             <div className="p-4 bg-gray-900 border-t border-gray-800 flex justify-center">
               <Button
@@ -278,9 +296,30 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
           )}
 
           {error && (
-            <div className="absolute top-20 left-4 right-4 bg-red-500/90 backdrop-blur-sm text-white p-3 rounded-xl text-sm font-medium flex items-center gap-2 animate-in slide-in-from-top-4 duration-300 z-30">
-              <Cross1Icon className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
+            <div className="absolute top-20 left-4 right-4 bg-red-500/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl border border-red-400/50 animate-in slide-in-from-top-4 duration-300 z-30 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-full">
+                  <Cross1Icon className="h-4 w-4 shrink-0 text-white" />
+                </div>
+                <span className="font-semibold">{error}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={() => setError(null)}
+                  className="bg-white/10 hover:bg-white/20 border-white/20 text-white text-xs h-8 flex-1"
+                >
+                  Dismiss
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={onOverride}
+                  className="bg-white text-red-600 hover:bg-gray-100 border-none text-xs font-bold h-8 flex-1"
+                >
+                  Choose Manually
+                </Button>
+              </div>
             </div>
           )}
         </div>

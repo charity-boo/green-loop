@@ -8,12 +8,48 @@ import {
   RewardsData,
   SocialMetrics,
 } from '@/types';
-import { WasteStatus } from '@/lib/types/waste-status';
+import { WasteStatus } from '@/types/waste-status';
 import { calculateCarbonSavings } from './utils/carbon';
 
 interface FirestoreWaste extends Omit<Waste, 'createdAt' | 'updatedAt'> {
   createdAt: string | { _seconds: number; _nanoseconds: number };
   updatedAt: string | { _seconds: number; _nanoseconds: number };
+}
+
+interface FirestoreSchedule {
+  id: string;
+  userId: string;
+  wasteType: string;
+  address: string;
+  pickupDate: string | null;
+  timeSlot: string;
+  status: string;
+  price?: number;
+  paymentStatus?: string;
+  weight?: number;
+  points?: number;
+  aiWasteType?: string | null;
+  disposalTips?: string | null;
+  classificationStatus?: string;
+  createdAt: string | { _seconds: number; _nanoseconds: number };
+}
+
+function parseFirestoreDate(
+  value: string | { _seconds: number; _nanoseconds: number } | undefined
+): string {
+  if (!value) return 'N/A';
+  if (typeof value === 'string') return value.split('T')[0];
+  if ('_seconds' in value) return new Date(value._seconds * 1000).toISOString().split('T')[0];
+  return 'N/A';
+}
+
+function scheduleStatusToWaste(status: string): WasteStatus {
+  switch (status) {
+    case 'completed': return WasteStatus.Completed;
+    case 'assigned': return WasteStatus.Active;
+    case 'cancelled': return WasteStatus.Skipped;
+    default: return WasteStatus.Pending;
+  }
 }
 
 
@@ -23,6 +59,16 @@ export async function getUserDashboardData(
   // Development Bypass
   if (!adminDb.collection && process.env.NODE_ENV === 'development') {
     console.log('Generating mock user dashboard data for development...');
+    
+    const mockPickupHistory: PickupHistoryItem[] = [
+      { id: '1', date: '2024-02-20', status: WasteStatus.Completed, weight: 5.2, wasteType: 'Plastic', location: '123 Main St', points: 150, paymentStatus: 'Paid' },
+      { id: '2', date: '2024-02-18', status: WasteStatus.Completed, weight: 3.1, wasteType: 'Paper', location: '456 Oak Ave', points: 90, paymentStatus: 'Paid' },
+      { id: '3', date: '2024-02-15', status: WasteStatus.Skipped, weight: 0, wasteType: 'Organic', location: '789 Pine Rd', points: 0, paymentStatus: 'N/A' },
+      { id: '4', date: '2024-02-10', status: WasteStatus.Pending, weight: 0, wasteType: 'Glass', location: '321 Elm St', points: 0, paymentStatus: 'Unpaid' },
+    ];
+
+    const hasUnpaid = mockPickupHistory.some(item => item.paymentStatus === 'Unpaid');
+
     return {
       metrics: {
         totalPickups: 12,
@@ -44,17 +90,13 @@ export async function getUserDashboardData(
           treesEquivalent: 3,
         }
       },
-      pickupHistory: [
-        { id: '1', date: '2024-02-20', status: WasteStatus.Completed, weight: 5.2, wasteType: 'Plastic', location: '123 Main St', points: 150 },
-        { id: '2', date: '2024-02-18', status: WasteStatus.Completed, weight: 3.1, wasteType: 'Paper', location: '456 Oak Ave', points: 90 },
-        { id: '3', date: '2024-02-15', status: WasteStatus.Skipped, weight: 0, wasteType: 'Organic', location: '789 Pine Rd', points: 0 },
-        { id: '4', date: '2024-02-10', status: WasteStatus.Pending, weight: 0, wasteType: 'Glass', location: '321 Elm St', points: 0 },
-      ],
+      pickupHistory: mockPickupHistory,
       rewards: {
         currentPoints: 1250,
         nextMilestone: 2000,
         milestoneProgress: 62.5,
         tier: 'Silver',
+        canRedeem: !hasUnpaid,
         availableRewards: [
           { id: 'r1', title: 'Free Pickup Upgrade', pointsCost: 500, description: 'Get a priority pickup for your next collection.' },
           { id: 'r2', title: '$5 Amazon Gift Card', pointsCost: 1000, description: 'Redeem your points for a digital gift card.' },
@@ -70,150 +112,161 @@ export async function getUserDashboardData(
     };
   }
 
-  const wasteSnapshot = await adminDb.collection('waste')
-    .where('userId', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .get();
+  try {
+    // Parallelize Firestore calls: schedules, unpaid check, and user doc
+    const [schedulesSnapshot, unpaidSchedulesSnapshot, userDoc] = await Promise.all([
+      adminDb.collection('schedules')
+        .where('userId', '==', userId)
+        .get(),
+      adminDb.collection('schedules')
+        .where('userId', '==', userId)
+        .where('paymentStatus', '==', 'Unpaid')
+        .limit(1)
+        .get(),
+      adminDb.collection('users').doc(userId).get()
+    ]);
 
-  const wasteItems = wasteSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as unknown as FirestoreWaste[];
+    const canRedeem = unpaidSchedulesSnapshot.empty;
 
-  const pickupHistory: PickupHistoryItem[] = wasteItems.map((item) => {
-    let date = 'N/A';
-    if (item.createdAt) {
-      if (typeof item.createdAt === 'string') {
-        date = item.createdAt.split('T')[0];
-      } else if ('_seconds' in item.createdAt) {
-        date = new Date(item.createdAt._seconds * 1000).toISOString().split('T')[0];
-      }
+    const scheduleItems = (schedulesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as unknown as FirestoreSchedule[]).sort((a, b) => {
+      const aTime = typeof a.createdAt === 'string' ? a.createdAt : (a.createdAt && '_seconds' in a.createdAt ? new Date(a.createdAt._seconds * 1000).toISOString() : '');
+      const bTime = typeof b.createdAt === 'string' ? b.createdAt : (b.createdAt && '_seconds' in b.createdAt ? new Date(b.createdAt._seconds * 1000).toISOString() : '');
+      return bTime.localeCompare(aTime);
+    });
+
+    const pickupHistory: PickupHistoryItem[] = scheduleItems.map((item) => ({
+      id: item.id,
+      date: item.pickupDate || parseFirestoreDate(item.createdAt),
+      status: scheduleStatusToWaste(item.status),
+      weight: item.weight || 0,
+      wasteType: item.wasteType || 'Unknown',
+      location: item.address || 'Unknown',
+      points: item.points || 0,
+      price: item.price || 0,
+      paymentStatus: item.paymentStatus || 'Unpaid',
+      aiWasteType: item.aiWasteType ?? null,
+      disposalTips: item.disposalTips ?? null,
+      classificationStatus: (item.classificationStatus as PickupHistoryItem['classificationStatus']) ?? 'none',
+    }));
+
+    const completedPickups = scheduleItems.filter((item) => item.status === 'completed');
+    const pendingPickups = scheduleItems
+      .filter((item) => item.status === 'pending')
+      .sort((a, b) => {
+        const aDate = a.pickupDate || parseFirestoreDate(a.createdAt);
+        const bDate = b.pickupDate || parseFirestoreDate(b.createdAt);
+        return aDate.localeCompare(bDate);
+      });
+
+    let lastPickupDateStr = 'N/A';
+    if (completedPickups.length > 0) {
+      lastPickupDateStr = parseFirestoreDate(completedPickups[0].createdAt);
     }
 
-    const rawItem = item as unknown as Record<string, unknown>;
+    let nextPickupDateStr = 'N/A';
+    if (pendingPickups.length > 0) {
+      const nextItem = pendingPickups[0];
+      nextPickupDateStr = nextItem.pickupDate || parseFirestoreDate(nextItem.createdAt);
+    }
+
+    // Fetch user rewards data
+    const userData = userDoc.data();
+    const rewardPoints = userData?.rewardPoints || 0;
+
+    // Simple tier logic
+    let tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' = 'Bronze';
+    let nextMilestone = 500;
+    if (rewardPoints >= 2000) {
+      tier = 'Platinum';
+      nextMilestone = 5000;
+    } else if (rewardPoints >= 1000) {
+      tier = 'Gold';
+      nextMilestone = 2000;
+    } else if (rewardPoints >= 500) {
+      tier = 'Silver';
+      nextMilestone = 1000;
+    }
+
+    const milestoneProgress = Math.min(100, (rewardPoints / nextMilestone) * 100);
+
+    // Calculate material breakdown from completed schedules
+    const materialMap: Record<string, number> = {};
+    completedPickups.forEach(item => {
+      const type = item.wasteType || 'Unknown';
+      const weight = item.weight || 0;
+      materialMap[type] = (materialMap[type] || 0) + weight;
+    });
+
+    const skippedPickupsCount = scheduleItems.filter((item) => item.status === 'cancelled').length;
+
+    const totalWeight = Object.values(materialMap).reduce((a, b) => a + b, 0);
+    const materialBreakdown = Object.entries(materialMap).map(([type, weight]) => ({
+      type,
+      weight,
+      percentage: totalWeight > 0 ? Math.round((weight / totalWeight) * 100) : 0
+    }));
+
+    // Calculate carbon impact
+    const carbonImpact = calculateCarbonSavings(
+      Object.entries(materialMap).map(([type, weight]) => ({ type, weight }))
+    );
+
+    const metrics = {
+      totalPickups: completedPickups.length,
+      totalWeight,
+      recyclingRate: completedPickups.length > 0 ? 85 : 0, // Mock rate for now
+      rewardPoints,
+      lastPickup: lastPickupDateStr,
+      nextPickup: nextPickupDateStr,
+      skippedPickups: skippedPickupsCount,
+      materialBreakdown,
+      carbonImpact,
+    };
+
+    const rewards: RewardsData = {
+      currentPoints: rewardPoints,
+      nextMilestone,
+      milestoneProgress,
+      tier,
+      canRedeem,
+      availableRewards: [
+        { id: 'r1', title: 'Free Pickup Upgrade', pointsCost: 500, description: 'Get a priority pickup for your next collection.' },
+        { id: 'r2', title: '$5 Amazon Gift Card', pointsCost: 1000, description: 'Redeem your points for a digital gift card.' },
+        { id: 'r3', title: 'Plant a Tree', pointsCost: 2000, description: 'We will plant a tree in your name in a reforestation project.' },
+      ]
+    };
+
+    const social: SocialMetrics = {
+      rank: 12, // Mock data
+      totalNeighbors: 100, // Mock data
+      percentile: 88, // Mock data
+      streak: completedPickups.length > 0 ? 3 : 0, // Mock streak
+    };
+
+    const recentAiTips = pickupHistory
+      .filter(item => item.classificationStatus === 'classified' && item.aiWasteType && item.disposalTips)
+      .slice(0, 3)
+      .map(item => ({
+        id: item.id,
+        wasteType: item.aiWasteType!,
+        tips: item.disposalTips!,
+        date: item.date,
+      }));
 
     return {
-      id: item.id.toString(),
-      date,
-      status: item.status as WasteStatus,
-      weight: rawItem.weight as number || 0,
-      wasteType: item.type || 'Unknown',
-      location: rawItem.location as string || 'Unknown',
-      points: rawItem.points as number || 0,
+      metrics,
+      pickupHistory,
+      rewards,
+      social,
+      recentAiTips,
     };
-  });
-
-  const completedPickups = wasteItems.filter(
-    (item) => item.status === WasteStatus.Completed
-  );
-
-  const pendingPickups = wasteItems.filter(
-    (item) => item.status === WasteStatus.Pending
-  );
-
-  const skippedPickupsCount = wasteItems.filter(
-    (item) => item.status === WasteStatus.Skipped
-  ).length;
-
-  let lastPickupDateStr = 'N/A';
-  if (completedPickups.length > 0) {
-    const lastItem = completedPickups[0];
-    if (typeof lastItem.createdAt === 'string') {
-      lastPickupDateStr = lastItem.createdAt.split('T')[0];
-    } else if (lastItem.createdAt && '_seconds' in lastItem.createdAt) {
-      lastPickupDateStr = new Date(lastItem.createdAt._seconds * 1000).toISOString().split('T')[0];
-    }
+  } catch (error) {
+    console.error('Error in getUserDashboardData:', error);
+    throw error;
   }
-
-  let nextPickupDateStr = 'N/A';
-  if (pendingPickups.length > 0) {
-    // Assuming the oldest pending is the next one
-    const nextItem = pendingPickups[pendingPickups.length - 1];
-    if (typeof nextItem.createdAt === 'string') {
-      nextPickupDateStr = nextItem.createdAt.split('T')[0];
-    } else if (nextItem.createdAt && '_seconds' in nextItem.createdAt) {
-      nextPickupDateStr = new Date(nextItem.createdAt._seconds * 1000).toISOString().split('T')[0];
-    }
-  }
-
-  // Fetch user rewards data
-  const userDoc = await adminDb.collection('users').doc(userId).get();
-  const userData = userDoc.data();
-  const rewardPoints = userData?.rewardPoints || 0;
-
-  // Simple tier logic
-  let tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' = 'Bronze';
-  let nextMilestone = 500;
-  if (rewardPoints >= 2000) {
-    tier = 'Platinum';
-    nextMilestone = 5000;
-  } else if (rewardPoints >= 1000) {
-    tier = 'Gold';
-    nextMilestone = 2000;
-  } else if (rewardPoints >= 500) {
-    tier = 'Silver';
-    nextMilestone = 1000;
-  }
-
-  const milestoneProgress = Math.min(100, (rewardPoints / nextMilestone) * 100);
-
-  // Calculate material breakdown
-  const materialMap: Record<string, number> = {};
-  completedPickups.forEach(item => {
-    const type = item.type || 'Unknown';
-    const weight = (item as FirestoreWaste & { weight?: number }).weight || 0;
-    materialMap[type] = (materialMap[type] || 0) + weight;
-  });
-
-  const totalWeight = Object.values(materialMap).reduce((a, b) => a + b, 0);
-  const materialBreakdown = Object.entries(materialMap).map(([type, weight]) => ({
-    type,
-    weight,
-    percentage: totalWeight > 0 ? Math.round((weight / totalWeight) * 100) : 0
-  }));
-
-  // Calculate carbon impact
-  const carbonImpact = calculateCarbonSavings(
-    Object.entries(materialMap).map(([type, weight]) => ({ type, weight }))
-  );
-
-  const metrics = {
-    totalPickups: completedPickups.length,
-    totalWeight,
-    recyclingRate: completedPickups.length > 0 ? 85 : 0, // Mock rate for now
-    rewardPoints,
-    lastPickup: lastPickupDateStr,
-    nextPickup: nextPickupDateStr,
-    skippedPickups: skippedPickupsCount,
-    materialBreakdown,
-    carbonImpact,
-  };
-
-  const rewards: RewardsData = {
-    currentPoints: rewardPoints,
-    nextMilestone,
-    milestoneProgress,
-    tier,
-    availableRewards: [
-      { id: 'r1', title: 'Free Pickup Upgrade', pointsCost: 500, description: 'Get a priority pickup for your next collection.' },
-      { id: 'r2', title: '$5 Amazon Gift Card', pointsCost: 1000, description: 'Redeem your points for a digital gift card.' },
-      { id: 'r3', title: 'Plant a Tree', pointsCost: 2000, description: 'We will plant a tree in your name in a reforestation project.' },
-    ]
-  };
-
-  const social: SocialMetrics = {
-    rank: 12, // Mock data
-    totalNeighbors: 100, // Mock data
-    percentile: 88, // Mock data
-    streak: completedPickups.length > 0 ? 3 : 0, // Mock streak
-  };
-
-  return {
-    metrics,
-    pickupHistory,
-    rewards,
-    social,
-  };
 }
 
 export async function getCollectorDashboardData(): Promise<CollectorTask[]> {
@@ -226,17 +279,22 @@ export async function getCollectorDashboardData(): Promise<CollectorTask[]> {
     ] as unknown as CollectorTask[];
   }
 
-  const tasksSnapshot = await adminDb.collection('waste')
-    .where('status', '==', WasteStatus.Pending)
-    .orderBy('createdAt', 'asc')
-    .get();
+  try {
+    const tasksSnapshot = await adminDb.collection('waste')
+      .where('status', '==', WasteStatus.Pending)
+      .orderBy('createdAt', 'asc')
+      .get();
 
-  const tasks = tasksSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as unknown as CollectorTask[];
+    const tasks = tasksSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as unknown as CollectorTask[];
 
-  return tasks;
+    return tasks;
+  } catch (error) {
+    console.error('Error in getCollectorDashboardData:', error);
+    throw error;
+  }
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
@@ -257,42 +315,41 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     };
   }
 
-  const totalUsersSnapshot = await adminDb.collection('users').count().get();
-  const totalUsers = totalUsersSnapshot.data().count;
+  try {
+    // Parallelize all admin dashboard Firestore calls
+    const [totalUsersSnapshot, activeCollectorsSnapshot, openRequestsSnapshot, wasteSnapshot] = await Promise.all([
+      adminDb.collection('users').count().get(),
+      adminDb.collection('users').where('role', '==', 'COLLECTOR').count().get(),
+      adminDb.collection('waste').where('status', '==', WasteStatus.Pending).count().get(),
+      adminDb.collection('waste').select('type').get()
+    ]);
 
-  const activeCollectorsSnapshot = await adminDb.collection('users')
-    .where('role', '==', 'COLLECTOR')
-    .count()
-    .get();
-  const activeCollectors = activeCollectorsSnapshot.data().count;
+    const totalUsers = totalUsersSnapshot.data().count;
+    const activeCollectors = activeCollectorsSnapshot.data().count;
+    const openRequests = openRequestsSnapshot.data().count;
 
-  const openRequestsSnapshot = await adminDb.collection('waste')
-    .where('status', '==', WasteStatus.Pending)
-    .count()
-    .get();
-  const openRequests = openRequestsSnapshot.data().count;
+    // Aggregate waste type counts
+    const wasteTypeCountsMap: Record<string, number> = {};
+    wasteSnapshot.docs.forEach(doc => {
+      const type = doc.data().type || 'Unknown';
+      wasteTypeCountsMap[type] = (wasteTypeCountsMap[type] || 0) + 1;
+    });
 
-  // Firestore doesn't have groupBy, we need to fetch and aggregate manually or use a different approach
-  // For now, let's fetch all waste items and aggregate (might be slow for many items)
-  const wasteSnapshot = await adminDb.collection('waste').select('type').get();
-  const wasteTypeCountsMap: Record<string, number> = {};
+    const wasteTypeCounts = Object.entries(wasteTypeCountsMap).map(([type, count]) => ({
+      type,
+      count,
+    }));
 
-  wasteSnapshot.docs.forEach(doc => {
-    const type = doc.data().type || 'Unknown';
-    wasteTypeCountsMap[type] = (wasteTypeCountsMap[type] || 0) + 1;
-  });
-
-  const wasteTypeCounts = Object.entries(wasteTypeCountsMap).map(([type, count]) => ({
-    type,
-    count,
-  }));
-
-  return {
-    totalUsers,
-    activeCollectors,
-    openRequests,
-    systemLoad: 'Unknown',
-    recentActivity: [],
-    wasteTypeCounts,
-  };
+    return {
+      totalUsers,
+      activeCollectors,
+      openRequests,
+      systemLoad: 'Low', // Standardizing on 'Low' for now as mock logic
+      recentActivity: [],
+      wasteTypeCounts,
+    };
+  } catch (error) {
+    console.error('Error in getAdminDashboardData:', error);
+    throw error;
+  }
 }

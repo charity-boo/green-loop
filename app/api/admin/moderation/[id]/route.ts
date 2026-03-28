@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateIssueReport, updateWasteReport } from '@/lib/firebase/services/moderation';
+import { updateIssueReport, updateWasteReport, updateContactMessage } from '@/lib/firebase/services/moderation';
 import { notifyModerationAction } from '@/lib/firebase/services/notifications';
 import { getSession } from '@/lib/auth';
 
@@ -19,6 +19,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (userId) {
         await notifyModerationAction(userId, id, 'WasteReport', status, comment);
       }
+    } else if (type === 'message') {
+      await updateContactMessage(session.user.id, id, status);
     } else {
       await updateIssueReport(session.user.id, id, status, comment);
     }

@@ -39,7 +39,7 @@ const residentialCards: CardType[] = [
   },
   {
     title: "Private Homes",
-    imageSrc: "/images/private homes.png",
+    imageSrc: "/images/private-homes.png",
     description:
     "Standard residential service for single-family homes. Includes scheduled and on-demand options tailored to your household's needs.",
     learnMoreLink: "/waste/residential/private-homes",
@@ -73,7 +73,7 @@ const commercialSmeCards: CardType[] = [
 const industrialCards: CardType[] = [
   {
     title: "Heavy Manufacturing Plants",
-    imageSrc: "/images/factory.png", 
+    imageSrc: "/images/industrial.png", 
     description:
       "High-volume, complex waste solutions tailored for large-scale production facilities, including scrap metal and chemical waste compliance.",
     learnMoreLink: "/waste/industrial/heavy-manufacturing",
@@ -98,7 +98,7 @@ const industrialCards: CardType[] = [
 // --- HeaderComponent ---
 const HeaderComponent = () => {
   return (
-    <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 p-6 md:p-12 lg:p-16 overflow-hidden">
+    <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950 dark:via-emerald-950 dark:to-green-900 p-6 md:p-12 lg:p-16 overflow-hidden transition-colors">
       <div className="absolute inset-0 z-0 opacity-20">
         <svg
           className="w-full h-full"
@@ -118,7 +118,8 @@ const HeaderComponent = () => {
             >
               <path
                 d="M40 10 C25 30, 55 50, 40 70 M10 40 C30 25, 50 55, 70 40"
-                stroke="#16a34a"
+                stroke="currentColor"
+                className="text-green-600 dark:text-green-400"
                 strokeWidth="1"
                 fill="none"
                 opacity="0.5"
@@ -131,20 +132,20 @@ const HeaderComponent = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between">
         <div className="lg:w-1/2 mb-6 lg:mb-0">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-green-900 leading-tight drop-shadow-sm">
+          <h1 className="text-4xl md:text-6xl font-extrabold text-green-900 dark:text-green-400 leading-tight drop-shadow-sm transition-colors">
             Apply for Waste Management
           </h1>
         </div>
 
         <div className="lg:w-1/2 lg:pl-12">
-          <p className="text-sm md:text-base text-gray-700 max-w-xl">
+          <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 max-w-xl transition-colors">
             Applying for waste management services has never been easier. 
             Green Loop connects residents, businesses, and institutions with 
             efficient waste collection and recycling programs. Register today 
             to join our mission for a cleaner, greener, and more sustainable Ndagani.
           </p>
 
-          <p className="text-sm md:text-base text-gray-700 max-w-xl mt-3">
+          <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 max-w-xl mt-3 transition-colors">
             For each category, you can specify your requirements, schedule routine or on-demand pickups, 
             and access tailored waste management solutions.
           </p>
@@ -159,18 +160,7 @@ const WasteCardsGrid = ({ cards }: { cards: CardType[] }) => {
   const router = useRouter();
 
   const handleLearnMore = (link: string) => {
-      // NEW LOGIC: ALWAYS navigate directly to the link. 
-      // The AuthCTA banner on the destination page will handle the login prompt.
-      router.push(link);
-      
-      // We removed the old conditional redirect:
-      /*
-      if (!isLoggedIn && link.includes("/waste/residential")) {
-          router.push(`/auth/login?redirect=${link}`);
-      } else {
-          router.push(link);
-      }
-      */
+    router.push(link);
   };
 
   return (
@@ -178,9 +168,9 @@ const WasteCardsGrid = ({ cards }: { cards: CardType[] }) => {
       {cards.map((card) => (
         <div
           key={card.title}
-          className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition duration-300"
+          className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden flex flex-col hover:shadow-xl transition duration-300 border border-transparent dark:border-border"
         >
-          <div className="relative h-40 md:h-44 bg-green-50 flex items-center justify-center">
+          <div className="relative h-40 md:h-44 bg-green-50 dark:bg-green-900/20 flex items-center justify-center transition-colors">
             <Image
               src={card.imageSrc}
               alt={card.title}
@@ -189,16 +179,16 @@ const WasteCardsGrid = ({ cards }: { cards: CardType[] }) => {
               suppressHydrationWarning
             />
             <div className="absolute inset-0 bg-gradient-to-t from-green-700/40 to-transparent"></div>
-            <span className="relative z-10 text-green-900 text-sm font-medium bg-white/70 px-3 py-1 rounded">
+            <span className="relative z-10 text-green-900 dark:text-green-100 text-sm font-medium bg-white/70 dark:bg-black/50 px-3 py-1 rounded backdrop-blur-sm transition-colors">
               {card.title}
             </span>
           </div>
           <div className="p-4 md:p-6 flex flex-col flex-grow">
-            <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-grow">{card.description}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4 flex-grow transition-colors">{card.description}</p>
             
             <button
               onClick={() => handleLearnMore(card.learnMoreLink)}
-              className="flex items-center justify-center px-3 py-2 mt-auto border border-transparent text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 transition"
+              className="flex items-center justify-center px-3 py-2 mt-auto border border-transparent text-sm font-medium rounded-md text-white bg-green-700 hover:bg-green-800 transition shadow-md"
             >
               Learn More
               <svg className="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" suppressHydrationWarning>
@@ -237,9 +227,9 @@ const WasteManagementSection = () => {
 
 
   return (
-    <section className="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-20">
+    <section className="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-20 transition-colors">
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-8 md:mb-10">
+      <div className="border-b border-gray-200 dark:border-border mb-8 md:mb-10 transition-colors">
         <nav className="-mb-px flex flex-wrap gap-4 sm:space-x-6 justify-center" aria-label="Segments">
           {serviceSegments.map((segment) => (
             <button
@@ -247,8 +237,8 @@ const WasteManagementSection = () => {
               onClick={() => setActiveSegment(segment.id)}
               className={`flex items-center whitespace-nowrap py-2 md:py-3 px-3 md:px-4 border-b-2 text-lg font-semibold transition duration-200 ${
                 activeSegment === segment.id
-                  ? "border-green-700 text-green-800"
-                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  ? "border-green-700 text-green-800 dark:text-green-400"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-slate-700 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               {segment.icon} {segment.name}

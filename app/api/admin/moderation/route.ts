@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = req.nextUrl;
-  const type = searchParams.get('type') as 'issues' | 'waste' | null;
+  const type = searchParams.get('type') as 'issues' | 'waste' | 'messages' | null;
   const filters: ModerationFilters = {};
   const status = searchParams.get('status');
   if (status) filters.status = status;
@@ -17,6 +17,9 @@ export async function GET(req: NextRequest) {
   try {
     if (type === 'waste') {
       const data = await getWasteReports(filters);
+      return NextResponse.json(data);
+    } else if (type === 'messages') {
+      const data = await getContactMessages(filters);
       return NextResponse.json(data);
     } else {
       const data = await getIssueReports(filters);

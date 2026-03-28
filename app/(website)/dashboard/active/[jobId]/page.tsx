@@ -52,7 +52,7 @@ export default function ActiveJobPage() {
                 <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-xs">{error || "This job may have been re-assigned or completed."}</p>
                 <Button
                     variant="outline"
-                    className="rounded-2xl px-10 border-slate-200"
+                    className="rounded-2xl px-10 border-border"
                     onClick={() => router.push('/dashboard')}
                 >
                     Back to Dashboard

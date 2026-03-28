@@ -11,10 +11,12 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 export const uploadImageAndGetURL = async (
   image: Blob,
   userId: string,
-  progressCallback?: (progress: number) => void
+  progressCallback?: (progress: number) => void,
+  customPath?: string
 ): Promise<string> => {
   const storage = getStorage();
-  const storageRef = ref(storage, `waste-images/${userId}/${new Date().toISOString()}`);
+  const storagePath = customPath || `waste-images/${userId}/${new Date().toISOString()}`;
+  const storageRef = ref(storage, storagePath);
 
   try {
     // Note: Using uploadBytes for simplicity. For a detailed progress bar,

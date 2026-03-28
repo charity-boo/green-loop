@@ -71,7 +71,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                         className="absolute inset-0 bg-[#10b981] blur-xl rounded-full"
                     />
                 </div>
-                <p className="text-slate-500 font-bold mt-6 tracking-wide italic">INITIALIZING FIELD OPS...</p>
+                <p className="text-muted-foreground font-bold mt-6 tracking-wide italic">INITIALIZING FIELD OPS...</p>
             </div>
         );
     }

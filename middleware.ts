@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? '';
+const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? process.env.FIREBASE_PROJECT_ID ?? '';
 const JWKS_URL =
   'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 
@@ -56,7 +56,6 @@ async function verifyFirebaseToken(token: string): Promise<TokenClaims | null> {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
-    const header = JSON.parse(b64urlDecode(parts[0])) as { kid?: string };
     const payload = JSON.parse(b64urlDecode(parts[1])) as {
       exp?: number;
       iss?: string;
@@ -67,15 +66,23 @@ async function verifyFirebaseToken(token: string): Promise<TokenClaims | null> {
     // Standard claim checks (always enforced)
     const nowSec = Math.floor(Date.now() / 1000);
     if (!payload.exp || payload.exp < nowSec) return null;
-    if (payload.iss !== `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) return null;
-    if (payload.aud !== FIREBASE_PROJECT_ID) return null;
+
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // In production, strictly enforce iss/aud. 
+    // In development (emulators), these might differ based on how the emulator is called.
+    if (isProduction) {
+      if (payload.iss !== `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) return null;
+      if (payload.aud !== FIREBASE_PROJECT_ID) return null;
+    }
 
     // Skip signature check in development — emulator tokens are signed with a test key
-    if (process.env.NODE_ENV !== 'production') {
+    if (!isProduction) {
       return { role: payload.role?.toUpperCase() ?? 'USER' };
     }
 
     // Production: verify RS256 signature against Google's public JWKS
+    const header = JSON.parse(b64urlDecode(parts[0])) as { kid?: string };
     if (!header.kid) return null;
     const keys = await getPublicKeys();
     const key = keys[header.kid];
@@ -93,8 +100,19 @@ async function verifyFirebaseToken(token: string): Promise<TokenClaims | null> {
 }
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("firebase-token")?.value;
+  let token = request.cookies.get("firebase-token")?.value;
   const { pathname } = request.nextUrl;
+
+  // Clean token
+  if (token) {
+    token = token.trim();
+    if (token.startsWith('"') && token.endsWith('"')) {
+      token = token.substring(1, token.length - 1).trim();
+    }
+    if (token === 'undefined' || token === 'null' || token === '') {
+      token = undefined;
+    }
+  }
 
   console.log('[Middleware] Request:', pathname, '| Has token:', !!token);
 
@@ -141,7 +159,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
@@ -157,6 +175,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/dashboard",
     "/dashboard/:path*",
     "/schedule-pickup/:path*",
     "/schedule-pickup",

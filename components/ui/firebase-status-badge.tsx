@@ -1,5 +1,5 @@
 import React from 'react';
-import { FirebaseStatusDisplay } from '@/lib/types/firebase-status-display';
+import { FirebaseStatusDisplay } from '@/types/firebase-status-display';
 
 interface FirebaseStatusBadgeProps {
     status: string; // The backend status string (e.g., 'CLASSIFIED', 'AI_REVIEW')

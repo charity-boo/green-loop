@@ -10,7 +10,7 @@ import {
     Leaf, Recycle, Box, MapPin, Play, CheckCircle2,
     Image as ImageIcon, User, SkipForward
 } from 'lucide-react';
-import { WasteStatus } from '@/lib/types/waste-status';
+import { WasteStatus } from '@/types/waste-status';
 import ClassificationBadge from '@/components/user/classification-badge';
 
 interface TaskTableProps {
@@ -38,7 +38,7 @@ function StatusButton({ task }: { task: CollectorTask }) {
 
     if (task.status === WasteStatus.Skipped) {
         return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/30 text-slate-500 text-[11px] font-black uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/30 text-muted-foreground text-[11px] font-black uppercase tracking-wider">
                 <SkipForward size={12} />
                 Skipped
             </span>

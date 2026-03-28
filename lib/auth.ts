@@ -1,6 +1,8 @@
 import { adminAuth } from "@/lib/firebase/admin";
 import { cookies, headers } from "next/headers";
-export type { Role } from '@/lib/types/firestore';
+import type { Role } from '@/types/firestore';
+
+export type { Role };
 
 export interface SessionUser {
   id: string;
@@ -31,15 +33,27 @@ export async function getSession(): Promise<AuthSession | null> {
       // Fallback to cookie (if set by client)
       const firebaseCookie = (await cookies()).get('firebase-token');
       token = firebaseCookie?.value;
-      console.log('Token lookup in cookie. Found:', !!token);
     }
 
-    if (!token || token === 'undefined' || token === 'null') {
-      console.log('No valid Firebase token found in headers or cookies (found:', token, ')');
+    if (!token || typeof token !== 'string') return null;
+
+    // Clean token: remove quotes and whitespace
+    token = token.trim();
+    if (token.startsWith('"') && token.endsWith('"')) {
+      token = token.substring(1, token.length - 1).trim();
+    }
+
+    if (token === 'undefined' || token === 'null' || token === '') {
+      // No token found. This is normal for unauthenticated requests.
       return null;
     }
 
-    console.log('Verifying Firebase ID token with admin SDK...');
+    console.log('[getSession] Verifying token:', { 
+      length: token.length, 
+      preview: token.substring(0, 20) + '...',
+      isAuthHeader: !!authHeader?.startsWith('Bearer ') 
+    });
+
     if (typeof adminAuth.verifyIdToken !== 'function') {
       // Firebase Admin SDK failed to initialize (missing credentials).
       // Only allow a dev fallback when running with the Auth emulator — never in production.
@@ -61,7 +75,46 @@ export async function getSession(): Promise<AuthSession | null> {
       }
       return null;
     }
-    const decodedToken = await adminAuth.verifyIdToken(token);
+
+    // For emulators, skip revocation check
+    const useEmulator = process.env.FIREBASE_AUTH_EMULATOR_HOST !== undefined;
+    let decodedToken: admin.auth.DecodedIdToken;
+    
+    try {
+      decodedToken = await adminAuth.verifyIdToken(token, !useEmulator);
+    } catch (error: any) {
+      // In development with emulators, if verification fails with argument-error (often due to alg: none),
+      // we can try to manually decode the payload if it looks like an emulator token.
+      if (useEmulator && (error.code === 'auth/argument-error' || token.startsWith('eyJhbGciOiJub25l'))) {
+        console.warn('[getSession] Admin SDK verification failed for emulator token. Attempting manual decode.');
+        try {
+          const parts = token.split('.');
+          if (parts.length >= 2) {
+            const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+            // Map the minimal fields needed for the Session object
+            decodedToken = {
+              ...payload,
+              uid: payload.user_id || payload.sub,
+              role: payload.role || 'USER',
+              exp: payload.exp || Math.floor(Date.now() / 1000) + 3600,
+              iat: payload.iat || Math.floor(Date.now() / 1000),
+              iss: payload.iss,
+              aud: payload.aud,
+              sub: payload.sub,
+            } as admin.auth.DecodedIdToken;
+            console.log('[getSession] Manual decode successful for UID:', decodedToken.uid);
+          } else {
+            throw error; // Re-throw if parts are missing
+          }
+        } catch (decodeErr) {
+          console.error('[getSession] Manual decode failed:', decodeErr);
+          throw error; // Throw the original verification error
+        }
+      } else {
+        throw error;
+      }
+    }
+
     const resolvedRole = (decodedToken.role?.toUpperCase() as Role) || 'USER';
     console.log('[getSession] Token verified:', {
       uid: decodedToken.uid,
@@ -88,6 +141,21 @@ export async function getSession(): Promise<AuthSession | null> {
     const code = (error as { code?: string })?.code;
     const stack = error instanceof Error ? error.stack : undefined;
 
+    // Expected errors (expired/invalid tokens) - don't log as errors
+    const expectedCodes = [
+      'auth/id-token-expired',
+      'auth/argument-error',
+      'auth/invalid-id-token',
+      'auth/user-token-expired'
+    ];
+
+    if (code && expectedCodes.includes(code)) {
+      // This is normal for unauthenticated/expired sessions - just return null
+      console.log('[getSession] Token invalid or expired (expected):', code);
+      return null;
+    }
+
+    // Unexpected errors - log them for debugging
     console.error('Error verifying Firebase token in getSession():', {
       message,
       code,

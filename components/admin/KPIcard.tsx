@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface KPICardProps {
@@ -23,42 +22,42 @@ export function KPICard({
     icon: Icon,
     trend,
     className,
-    iconColor = "bg-emerald-500"
 }: KPICardProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+        <div
             className={cn(
-                "p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200",
+                "p-6 bg-card rounded-xl border border-border shadow-sm transition-all hover:border-emerald-200 group",
                 className
             )}
         >
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{label}</p>
-                    <h3 className="text-2xl font-bold text-slate-900 mt-2">{value}</h3>
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        {label}
+                    </p>
+                    <h3 className="text-2xl font-bold text-foreground tracking-tight">
+                        {value}
+                    </h3>
 
                     {trend && (
-                        <div className="flex items-center gap-1.5 mt-2">
+                        <div className="flex items-center gap-1.5 mt-3">
                             <span className={cn(
-                                "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-                                trend.isUp ? "text-emerald-700 bg-emerald-50" : "text-amber-700 bg-amber-50"
+                                "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider",
+                                trend.isUp 
+                                    ? "text-emerald-700 bg-emerald-50" 
+                                    : "text-rose-700 bg-rose-50"
                             )}>
-                                {trend.isUp ? '+' : '-'}{Math.abs(trend.value)}%
+                                {trend.isUp ? '↑' : '↓'} {Math.abs(trend.value)}%
                             </span>
-                            <span className="text-xs text-slate-400">vs last month</span>
+                            <span className="text-[10px] text-slate-400 font-medium">vs last month</span>
                         </div>
                     )}
                 </div>
 
-                <div className={cn(
-                    "p-3 rounded-xl text-white",
-                    iconColor
-                )}>
-                    <Icon className="w-6 h-6" />
+                <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                    <Icon className="w-5 h-5" />
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }

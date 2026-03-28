@@ -5,30 +5,39 @@ import WasteTrendChart from '@/components/admin/WasteTrendChart';
 import WasteDistributionChart from '@/components/admin/WasteDistributionChart';
 import { KPISkeleton, ChartSkeleton } from '@/components/admin/Skeletons';
 import { KPIErrorState, ChartErrorState } from '@/components/admin/ErrorStates';
+import AdminHero from '@/components/admin/admin-hero';
 
 /**
  * Admin Dashboard Page
- * Orchestrates server-side data fetching with granular Suspense and Error boundaries.
+ * Minimal and simple layout using White & Green theme.
  */
 export default async function AdminDashboardPage() {
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
-                <p className="text-slate-500">Welcome back. Here&apos;s what&apos;s happening today in GreenLoop.</p>
-            </div>
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-[1400px] mx-auto py-6">
+
+            <AdminHero />
 
             <Suspense fallback={<KPISkeleton />}>
                 <KPISection />
             </Suspense>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Suspense fallback={<ChartSkeleton />}>
-                    <WasteTrendSection />
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm transition-colors">
+                        <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Weekly Collection Trends</h3>
+                        </div>
+                        <WasteTrendSection />
+                    </div>
                 </Suspense>
 
                 <Suspense fallback={<ChartSkeleton />}>
-                    <WasteDistributionSection />
+                    <div className="bg-card p-6 rounded-xl border border-border shadow-sm transition-colors">
+                        <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Waste Type Distribution</h3>
+                        </div>
+                        <WasteDistributionSection />
+                    </div>
                 </Suspense>
             </div>
         </div>

@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.role == 'ADMIN';
+    }
+    
+    function isValidImageUpload() {
+      return request.resource.size < 10 * 1024 * 1024 // 10MB max
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    // User profile images: users can upload their own, admins can read all
+    match /users/{userId}/profile/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isValidImageUpload();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // Waste images: authenticated users can upload, owner + collector + admin can read
+    match /waste/{userId}/{scheduleId}/{fileName} {
+      allow read: if isAuthenticated(); // Allow collectors and admins to view
+      allow write: if isOwner(userId) && isValidImageUpload();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // Waste report images: same rules as waste images
+    match /waste-reports/{userId}/{reportId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isValidImageUpload();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // Admin uploads: only admins can upload/delete, anyone authenticated can read
+    match /admin/{category}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write, delete: if isAdmin();
+    }
+    
+    // Default: deny all access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

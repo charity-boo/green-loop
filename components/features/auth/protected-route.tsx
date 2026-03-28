@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-provider';
 
 interface ProtectedRouteProps {
-  allowedRole: string;
+  allowedRole?: string;
   children: React.ReactNode;
 }
 
-export default function ProtectedRoute({ allowedRole, children }: ProtectedRouteProps) {
+export function ProtectedRoute({ allowedRole, children }: ProtectedRouteProps) {
   const { user, role, status } = useAuth();
   const router = useRouter();
 
@@ -23,21 +23,21 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
       return;
     }
 
-    // If authenticated user's role does not match, redirect to their dashboard
-    if (user && role !== allowedRole) {
-      router.replace(`/dashboard/${role?.toLowerCase()}`);
+    // If authenticated user's role does not match (and allowedRole is provided), redirect to their dashboard
+    if (allowedRole && user && role !== allowedRole) {
+      router.replace('/dashboard');
     }
 
   }, [user, role, status, allowedRole, router]);
 
-  if (status === 'loading' || (status === 'authenticated' && user && role !== allowedRole)) {
+  if (status === 'loading' || (allowedRole && status === 'authenticated' && user && role !== allowedRole)) {
     // Show a loading spinner or a null component while we determine the user's auth status
     // and role. This prevents a flash of the protected content.
     return <div>Loading...</div>;
   }
 
-  // If authenticated and role matches, render the children
-  if (status === 'authenticated' && user && role === allowedRole) {
+  // If authenticated and (role matches or no role required), render the children
+  if (status === 'authenticated' && user && (!allowedRole || role === allowedRole)) {
     return <>{children}</>;
   }
 

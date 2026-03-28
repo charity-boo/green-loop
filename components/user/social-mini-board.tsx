@@ -12,7 +12,7 @@ interface SocialMiniBoardProps {
 
 export default function SocialMiniBoard({ rank, totalNeighbors, percentile, streak }: SocialMiniBoardProps) {
     return (
-        <Card className="rounded-[2.5rem] border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/50 h-full">
+        <Card className="rounded-[2.5rem] border-slate-100 bg-white p-8 shadow-xl shadow-slate-200/50">
             <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-black text-slate-900">Community Standing</h3>
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500">

@@ -47,7 +47,7 @@ export default function StatCards({ points, totalWeight, rank, totalNeighbors, t
     };
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {cards.map(({ key, label, icon: Icon, iconBg }, i) => (
                 <motion.div
                     key={key}

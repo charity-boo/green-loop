@@ -35,6 +35,17 @@ interface WasteReportDoc {
   createdAt: string;
   updatedAt?: string;
 }
+
+interface ContactMessageDoc {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'NEW' | 'READ' | 'REPLIED' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt?: string;
+}
 import Image from 'next/image';
 import { 
   AlertTriangle, 
@@ -87,11 +98,11 @@ export function IssueModerationCard({ report, onUpdate }: IssueCardProps) {
     PENDING: 'bg-amber-50 text-amber-700 border-amber-100',
     IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-100',
     RESOLVED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    DISMISSED: 'bg-slate-50 text-slate-700 border-slate-100',
+    DISMISSED: 'bg-muted/50 text-slate-700 border-border',
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-all group overflow-hidden relative">
+    <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-md transition-all group overflow-hidden relative">
       <div className={cn(
         "absolute top-0 right-0 px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-xl border-l border-b",
         statusColors[report.status]
@@ -105,8 +116,8 @@ export function IssueModerationCard({ report, onUpdate }: IssueCardProps) {
             <AlertTriangle className="w-6 h-6 text-amber-600" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-slate-900 line-clamp-1">{report.issueType}</h3>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+            <h3 className="font-bold text-foreground line-clamp-1">{report.issueType}</h3>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
               <Calendar className="w-3.5 h-3.5" />
               {format(new Date(report.createdAt), 'MMM d, h:mm a')}
             </div>
@@ -122,25 +133,25 @@ export function IssueModerationCard({ report, onUpdate }: IssueCardProps) {
             <User className="w-4 h-4 text-slate-400" />
             <span className="font-medium">{report.fullName}</span>
           </div>
-          <div className="flex items-center gap-2.5 text-sm text-slate-500">
+          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
             <Mail className="w-4 h-4 text-slate-400" />
             <span>{report.email}</span>
           </div>
           {report.location && (
-            <div className="flex items-center gap-2.5 text-sm text-slate-500">
+            <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4 text-slate-400" />
               <span className="truncate">{report.location}</span>
             </div>
           )}
         </div>
 
-        <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="pt-6 border-t border-border flex items-center justify-between gap-3">
           {showCommentInput ? (
             <div className="flex-1 flex gap-2">
               <input 
                 type="text" 
                 placeholder="Add a comment..." 
-                className="flex-1 text-sm border-b border-slate-200 focus:border-emerald-500 outline-none pb-1"
+                className="flex-1 text-sm border-b border-border focus:border-emerald-500 outline-none pb-1"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
@@ -228,7 +239,7 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
   const isLowConfidence = confidenceScore < 0.7;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all group flex flex-col">
+    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all group flex flex-col">
       <div className="relative h-48 bg-slate-100 overflow-hidden">
         <Image 
           src={report.imageUrl} 
@@ -243,7 +254,7 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
           )}>
             AI: {report.classification?.wasteType || 'Unknown'}
           </div>
-          <div className="px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold text-slate-900 shadow-sm border border-slate-200">
+          <div className="px-2.5 py-1 bg-card/90 backdrop-blur-sm rounded-lg text-[10px] font-bold text-foreground shadow-sm border border-border">
             {(confidenceScore * 100).toFixed(0)}% Conf.
           </div>
         </div>
@@ -263,8 +274,8 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
             {report.userName?.[0]?.toUpperCase() || 'U'}
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-900">{report.userName}</div>
-            <div className="text-[10px] text-slate-500 flex items-center gap-1 uppercase tracking-widest font-semibold">
+            <div className="text-sm font-bold text-foreground">{report.userName}</div>
+            <div className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-widest font-semibold">
               <Clock className="w-3 h-3" /> {format(new Date(report.createdAt), 'MMM d, p')}
             </div>
           </div>
@@ -274,7 +285,7 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
           <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Detected Labels</div>
           <div className="flex flex-wrap gap-1.5">
             {report.classification?.labels.map((label, idx) => (
-              <span key={idx} className="px-2 py-0.5 bg-slate-50 text-slate-600 text-[10px] rounded-md border border-slate-100 font-medium">
+              <span key={idx} className="px-2 py-0.5 bg-muted/50 text-slate-600 text-[10px] rounded-md border border-border font-medium">
                 {label}
               </span>
             ))}
@@ -284,7 +295,7 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
         <div className="space-y-4 pt-4 border-t border-slate-50">
           <textarea 
             placeholder="Add moderation notes..."
-            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none h-16"
+            className="w-full p-3 bg-muted/50 border border-border rounded-xl text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all resize-none h-16"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
@@ -293,7 +304,7 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
             <button 
               onClick={() => handleModerate('MODERATED')}
               disabled={updating}
-              className="flex items-center justify-center gap-2 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 text-xs font-bold transition-all disabled:opacity-50"
+              className="flex items-center justify-center gap-2 py-2 bg-card border border-border text-slate-600 rounded-xl hover:bg-muted/50 text-xs font-bold transition-all disabled:opacity-50"
             >
               <CheckCircle2 className="w-4 h-4" /> Confirm AI
             </button>
@@ -305,6 +316,99 @@ export function WasteModerationCard({ report, onUpdate }: WasteCardProps) {
               <ShieldCheck className="w-4 h-4" /> Override
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MessageCardProps {
+  message: ContactMessageDoc;
+  onUpdate: () => void;
+}
+
+export function ContactMessageCard({ message, onUpdate }: MessageCardProps) {
+  const [updating, setUpdating] = useState(false);
+
+  const handleStatusUpdate = async (newStatus: ContactMessageDoc['status']) => {
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/moderation/${message.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'message', status: newStatus }),
+      });
+      if (!res.ok) throw new Error('Failed to update message status');
+      onUpdate();
+    } catch (error) {
+      console.error('Failed to update message status:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const statusColors: Record<string, string> = {
+    NEW: 'bg-blue-50 text-blue-700 border-blue-100',
+    READ: 'bg-muted/50 text-slate-700 border-border',
+    REPLIED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    ARCHIVED: 'bg-muted/50 text-gray-500 border-gray-100',
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-md transition-all group overflow-hidden relative">
+      <div className={cn(
+        "absolute top-0 right-0 px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-bl-xl border-l border-b",
+        statusColors[message.status] || 'bg-muted/50 text-slate-700 border-border'
+      )}>
+        {message.status}
+      </div>
+
+      <div className="flex flex-col h-full">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="p-3 bg-blue-50 rounded-xl shrink-0 group-hover:scale-110 transition-transform">
+            <MessageSquare className="w-6 h-6 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-foreground line-clamp-1">{message.subject}</h3>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+              <Calendar className="w-3.5 h-3.5" />
+              {message.createdAt ? format(new Date(message.createdAt), 'MMM d, h:mm a') : 'Recently'}
+            </div>
+          </div>
+        </div>
+
+        <p className="text-sm text-slate-600 mb-6 flex-1 italic whitespace-pre-wrap">
+          &quot;{message.message}&quot;
+        </p>
+
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2.5 text-sm text-slate-600">
+            <User className="w-4 h-4 text-slate-400" />
+            <span className="font-medium">{message.name}</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+            <Mail className="w-4 h-4 text-slate-400" />
+            <a href={`mailto:${message.email}`} className="hover:text-blue-600 transition-colors">{message.email}</a>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-border flex items-center justify-end gap-3">
+          {message.status === 'NEW' && (
+            <button 
+              onClick={() => handleStatusUpdate('READ')}
+              disabled={updating}
+              className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 text-xs font-bold transition-all disabled:opacity-50"
+            >
+              Mark as Read
+            </button>
+          )}
+          <a 
+            href={`mailto:${message.email}?subject=Re: ${message.subject}`}
+            onClick={() => handleStatusUpdate('REPLIED')}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-xs font-bold transition-all shadow-sm shadow-emerald-200"
+          >
+            Reply via Email
+          </a>
         </div>
       </div>
     </div>

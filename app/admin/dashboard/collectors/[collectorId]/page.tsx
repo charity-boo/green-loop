@@ -41,12 +41,12 @@ export default async function CollectorDetailPage({ params, searchParams }: Page
                 <div className="space-y-1">
                     <Link
                         href="/dashboard/collectors"
-                        className="text-sm text-slate-500 hover:text-emerald-600 flex items-center gap-1 transition-colors"
+                        className="text-sm text-muted-foreground hover:text-emerald-600 flex items-center gap-1 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" /> Back to Performance
                     </Link>
-                    <h1 className="text-3xl font-bold text-slate-900">{detail.name}</h1>
-                    <p className="text-slate-500">{detail.email}</p>
+                    <h1 className="text-3xl font-bold text-foreground">{detail.name}</h1>
+                    <p className="text-muted-foreground">{detail.email}</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -59,45 +59,45 @@ export default async function CollectorDetailPage({ params, searchParams }: Page
 
             {/* Performance Snapshot Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
                             <CalendarDays className="w-5 h-5" />
                         </div>
-                        <span className="text-sm font-medium text-slate-500">Assigned</span>
+                        <span className="text-sm font-medium text-muted-foreground">Assigned</span>
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">{detail.assigned}</div>
+                    <div className="text-2xl font-bold text-foreground">{detail.assigned}</div>
                     <p className="text-xs text-slate-400 mt-1">Last 30 days</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                             <CheckCircle2 className="w-5 h-5" />
                         </div>
-                        <span className="text-sm font-medium text-slate-500">Completed</span>
+                        <span className="text-sm font-medium text-muted-foreground">Completed</span>
                     </div>
                     <div className="text-2xl font-bold text-emerald-600">{detail.completed}</div>
                     <p className="text-xs text-slate-400 mt-1">Confirmed pickups</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-rose-50 rounded-lg text-rose-600">
                             <XCircle className="w-5 h-5" />
                         </div>
-                        <span className="text-sm font-medium text-slate-500">Missed</span>
+                        <span className="text-sm font-medium text-muted-foreground">Missed</span>
                     </div>
                     <div className="text-2xl font-bold text-rose-600">{detail.missed}</div>
                     <p className="text-xs text-slate-400 mt-1">Operational gaps</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
                             <AlertTriangle className="w-5 h-5" />
                         </div>
-                        <span className="text-sm font-medium text-slate-500">Overrides</span>
+                        <span className="text-sm font-medium text-muted-foreground">Overrides</span>
                     </div>
                     <div className="text-2xl font-bold text-amber-600">{detail.totalOverrides}</div>
                     <p className="text-xs text-slate-400 mt-1">{detail.overrideRatio}% impact ratio</p>
@@ -105,10 +105,10 @@ export default async function CollectorDetailPage({ params, searchParams }: Page
             </div>
 
             {/* Schedule History Section */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-50">
-                    <h2 className="text-lg font-bold text-slate-900">Task History</h2>
-                    <p className="text-sm text-slate-500 mt-1">Granular log of all collection activities for this period.</p>
+                    <h2 className="text-lg font-bold text-foreground">Task History</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Granular log of all collection activities for this period.</p>
                 </div>
                 <ScheduleTable data={scheduleResult.data} meta={meta} />
             </div>

@@ -19,15 +19,21 @@ export function useFCMToken(userId: string | null) {
     if (!userId || !messaging || !VAPID_KEY) return;
 
     async function registerToken() {
+      if (!messaging) {
+        console.warn('[FCM] Cannot register token: messaging is not initialized.');
+        return;
+      }
       try {
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') return;
 
+        const swRegistration =
+          (await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')) ??
+          (await navigator.serviceWorker.register('/firebase-messaging-sw.js'));
+
         const token = await getToken(messaging!, {
           vapidKey: VAPID_KEY,
-          serviceWorkerRegistration: await navigator.serviceWorker.register(
-            '/firebase-messaging-sw.js'
-          ),
+          serviceWorkerRegistration: swRegistration,
         });
 
         if (token) {

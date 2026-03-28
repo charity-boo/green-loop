@@ -1,45 +1,87 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getDashboardKPIs, getWasteTrendData } from '../analytics';
+import { getCollectorPerformance } from '../analytics';
 import { dbService } from '../db';
 
 vi.mock('../db', () => ({
   dbService: {
-    count: vi.fn(),
     query: vi.fn(),
   },
 }));
 
-describe('Analytics Service', () => {
+vi.mock('@/lib/constants/governance', () => ({
+  GOVERNANCE_LIMITS: {
+    underReviewCriteria: {
+      minAssigned: 5,
+      maxCompletionRate: 70,
+    },
+  },
+}));
+
+describe('getCollectorPerformance()', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should calculate dashboard KPIs correctly', async () => {
-    vi.mocked(dbService.count).mockImplementation(async (collection) => {
-      if (collection === 'users') return 10;
-      if (collection === 'schedules') return 5;
-      if (collection === 'ai_analyses') return 100;
-      return 0;
+  it('filters collectors by search term (case-insensitive)', async () => {
+    const mockCollectors = [
+      { id: 'c1', name: 'Alice Smith', email: 'alice@test.com', role: 'COLLECTOR', active: true },
+      { id: 'c2', name: 'Bob Jones', email: 'bob@test.com', role: 'COLLECTOR', active: true },
+    ];
+
+    const mockSchedules = [
+      { id: 's1', collectorId: 'c1', status: 'COMPLETED', date: new Date().toISOString() },
+    ];
+
+    (dbService.query as any).mockImplementation((collection: string) => {
+      if (collection === 'users') return Promise.resolve(mockCollectors);
+      if (collection === 'schedules') return Promise.resolve(mockSchedules);
+      return Promise.resolve([]);
     });
 
-    const kpis = await getDashboardKPIs();
-
-    expect(kpis.totalUsers).toBe(10);
-    expect(kpis.pickupsToday).toBe(5);
-    expect(kpis.aiAccuracy).toBeGreaterThan(0);
+    // Search for "alice"
+    const result = await getCollectorPerformance({ search: 'alice' });
+    
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].name).toBe('Alice Smith');
+    expect(result.total).toBe(1);
   });
 
-  it('should aggregate waste trend data', async () => {
-    const mockSchedules = [
-      { id: '1', date: new Date().toISOString(), wasteVolume: 10, wasteType: 'ORGANIC' },
-      { id: '2', date: new Date().toISOString(), wasteVolume: 5, wasteType: 'PLASTIC' },
+  it('searches by email as well', async () => {
+    const mockCollectors = [
+      { id: 'c1', name: 'Alice Smith', email: 'alice@test.com', role: 'COLLECTOR', active: true },
+      { id: 'c2', name: 'Bob Jones', email: 'bob@test.com', role: 'COLLECTOR', active: true },
     ];
-    vi.mocked(dbService.query).mockResolvedValue(mockSchedules);
 
-    const trend = await getWasteTrendData();
+    (dbService.query as any).mockImplementation((collection: string) => {
+      if (collection === 'users') return Promise.resolve(mockCollectors);
+      if (collection === 'schedules') return Promise.resolve([]);
+      return Promise.resolve([]);
+    });
 
-    expect(trend).toHaveLength(31); // 30 days + today
-    const todayTrend = trend[30];
-    expect(todayTrend.totalWaste).toBe(15);
+    const result = await getCollectorPerformance({ search: 'bob@test.com' });
+    
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0].name).toBe('Bob Jones');
+  });
+
+  it('returns paginated results', async () => {
+    const mockCollectors = Array.from({ length: 15 }, (_, i) => ({
+      id: `c${i}`,
+      name: `Collector ${i}`,
+      email: `c${i}@test.com`,
+      role: 'COLLECTOR',
+      active: true
+    }));
+
+    (dbService.query as any).mockImplementation((collection: string) => {
+      if (collection === 'users') return Promise.resolve(mockCollectors);
+      return Promise.resolve([]);
+    });
+
+    const result = await getCollectorPerformance({ page: 2, limit: 10 });
+    
+    expect(result.data).toHaveLength(5);
+    expect(result.page).toBe(2);
+    expect(result.totalPages).toBe(2);
   });
 });

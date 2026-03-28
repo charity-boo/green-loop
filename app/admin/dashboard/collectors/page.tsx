@@ -8,6 +8,7 @@ interface PageProps {
         sortBy?: string;
         sortOrder?: string;
         window?: string;
+        search?: string;
     }>;
 }
 
@@ -20,7 +21,8 @@ export default async function CollectorPerformancePage({ searchParams }: PagePro
         page: pageStr,
         sortBy: sortByStr,
         sortOrder: sortOrderStr,
-        window: windowStr
+        window: windowStr,
+        search
     } = await searchParams;
 
     // Window Sanitization
@@ -50,10 +52,11 @@ export default async function CollectorPerformancePage({ searchParams }: PagePro
 
     const result = await getCollectorPerformance({
         page,
-        limit: 2, // Small limit for pagination testing
+        limit: 10,
         sortBy,
         sortOrder,
         startDate,
+        search,
     });
 
     // Explicit meta mapping for architectural hygiene
@@ -73,6 +76,7 @@ export default async function CollectorPerformancePage({ searchParams }: PagePro
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 window={window}
+                search={search}
             />
         </div>
     );

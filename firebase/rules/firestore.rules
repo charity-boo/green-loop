@@ -1,0 +1,199 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'USER') == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('ADMIN');
+    }
+    
+    function isCollector() {
+      return hasRole('COLLECTOR');
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allow a user to create their own document during registration
+      // Ensure they can't set their own role to anything other than 'USER'
+      allow create: if isOwner(userId) && 
+        request.resource.data.role == 'USER' &&
+        request.resource.data.keys().hasAll(['email', 'role', 'createdAt']);
+      
+      // Allow users to update their own profile, but NOT their role or email
+      allow update: if isOwner(userId) && 
+        !('role' in request.resource.data.diff(resource.data).affectedKeys()) &&
+        !('email' in request.resource.data.diff(resource.data).affectedKeys());
+      
+      // Users can update their own subscribedCategories
+      allow update: if isOwner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subscribedCategories', 'updatedAt']);
+      
+      // Only admins can delete users or update roles/status
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Waste collection rules
+    match /waste/{wasteId} {
+      // Users can read their own waste, collectors can read assigned waste, admins read all
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      // Only the owner can create waste reports
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Owner can update their own waste (before collection), collectors can update status
+      allow update: if isAuthenticated() && (
+        (resource.data.userId == request.auth.uid && resource.data.status == 'pending') ||
+        (resource.data.collectorId == request.auth.uid && isCollector()) ||
+        isAdmin()
+      );
+      
+      allow delete: if isAdmin();
+    }
+    
+    // Schedules collection rules
+    match /schedules/{scheduleId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Waste Schedules collection rules (Alternative name used in some hooks)
+    match /waste_schedules/{scheduleId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.collectorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Notifications collection rules
+    match /notifications/{notificationId} {
+      // Users can only list their own notifications
+      allow list: if isAuthenticated() && 
+        request.query.limit <= 100 && // Prevent large queries
+        (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Users can read their own notifications, admins can read all
+      allow get: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      
+      // System/admins create notifications
+      allow create: if isAdmin();
+      
+      // Users can mark their own notifications as read
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      
+      allow delete: if isAdmin();
+    }
+
+    // Challenges collection
+    match /challenges/{challengeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Events collection
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Green Tips collection
+    match /greenTips/{tipId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Stories collection
+    match /stories/{storyId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin() || resource.data.userId == request.auth.uid;
+    }
+
+    // Broadcasts collection
+    match /broadcasts/{broadcastId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Admin action logs - admin only
+    match /adminActionLog/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Moderation items
+    match /moderationItems/{itemId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Collectors collection
+    match /collectors/{collectorId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // Hostels collection
+    match /hostels/{hostelId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Pickup Schedules collection - Admin-created recurring schedules
+    match /pickupSchedules/{scheduleId} {
+      // All authenticated users can read active schedules
+      allow read: if isAuthenticated();
+      
+      // Only admins can create, update, or delete pickup schedules
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Default rule for other collections
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { dbService } from './db';
-import { NotificationDoc } from '@/lib/types/firestore';
+import { NotificationDoc } from '@/types/firestore';
 
 /**
  * Send notification to a user

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUsers, UserFilters } from '@/lib/firebase/services/users';
 import { getSession } from '@/lib/auth';
-import { Role } from '@/lib/types/firestore';
+import { Role } from '@/types/firestore';
 
 export async function GET(req: NextRequest) {
   const session = await getSession();

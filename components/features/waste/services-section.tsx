@@ -44,14 +44,14 @@ export default function ServicesSection() {
   };
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 bg-background transition-colors">
       <div className="max-w-7xl mx-auto px-6">
         {/* Heading and Explanation */}
         <div className="mb-16 text-center">
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-6">
+          <h2 className="text-4xl font-extrabold text-foreground mb-6 transition-colors">
             Our Core Pillars
           </h2>
-          <p className="text-gray-600 text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed transition-colors">
             Green Loop is built on the intersection of technology and sustainability. We simplify waste management so you can focus on building a cleaner future.
           </p>
         </div>
@@ -74,16 +74,16 @@ export default function ServicesSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-8">
                   <button
                     onClick={() => handleServiceClick(service)}
-                    className="bg-white text-green-700 px-6 py-2 rounded-full font-bold shadow-lg"
+                    className="bg-card text-green-700 px-6 py-2 rounded-full font-bold shadow-lg"
                   >
                     Learn More
                   </button>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              <h3 className="text-2xl font-bold text-foreground mb-3 transition-colors">
                 {service.title}
               </h3>
-              <p className="text-gray-600 text-lg leading-relaxed">{service.description}</p>
+              <p className="text-muted-foreground text-lg leading-relaxed transition-colors">{service.description}</p>
             </div>
           ))}
         </div>

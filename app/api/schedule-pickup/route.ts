@@ -11,10 +11,17 @@ const schedulePickupSchema = z.object({
   aiConfidence: z.number().nullable().optional(),
   classificationSource: z.enum(['manual', 'ai-assisted']),
   aiPhotoUsed: z.boolean().optional(),
+  // Gemini classification fields
+  aiWasteType: z.string().nullable().optional(),
+  disposalTips: z.string().nullable().optional(),
+  classificationStatus: z.enum(['none', 'pending', 'classified', 'failed']).optional(),
   address: z.string().min(1, 'Address is required'),
+  region: z.string().min(1, 'Region is required'),
   pickupDate: z.string().nullable().optional(),
   timeSlot: z.string().min(1, 'Time slot is required'),
   instructions: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
 });
 
 export async function POST(req: Request) {
@@ -43,11 +50,20 @@ export async function POST(req: Request) {
       aiConfidence: data.aiConfidence ?? null,
       classificationSource: data.classificationSource,
       aiPhotoUsed: data.aiPhotoUsed ?? false,
+      aiWasteType: data.aiWasteType ?? null,
+      disposalTips: data.disposalTips ?? null,
+      classificationStatus: data.classificationStatus ?? (data.aiWasteType ? 'classified' : 'none'),
+      classifiedAt: data.aiWasteType ? new Date().toISOString() : null,
       address: data.address,
+      region: data.region,
       pickupDate: data.pickupDate ?? null,
       timeSlot: data.timeSlot,
       instructions: data.instructions ?? '',
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
       status: 'pending',
+      price: 5.00,
+      paymentStatus: 'Unpaid',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });

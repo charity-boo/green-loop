@@ -5,7 +5,7 @@ import { getAuthSession } from "@/lib/firebase/services/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { revalidatePath } from "next/cache";
 import { GOVERNANCE_LIMITS } from "@/lib/constants/governance";
-import { UserDoc, ScheduleDoc } from "@/lib/types/firestore";
+import { UserDoc, ScheduleDoc } from "@/types/firestore";
 
 export async function toggleCollectorStatus(collectorId: string, currentStatus: boolean, reason: string) {
     const session = await getAuthSession();

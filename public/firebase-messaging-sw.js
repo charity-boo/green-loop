@@ -1,15 +1,15 @@
 // Firebase Messaging Service Worker
 // Must be at the root of the public directory so Firebase can register it at /firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.9.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyCimi6k6bDYZRuqmnxlvFAVBxBWhWe4_S4',
-  authDomain: 'green-loop-c9b5f.firebaseapp.com',
-  projectId: 'green-loop-c9b5f',
-  storageBucket: 'green-loop-c9b5f.firebasestorage.app',
-  messagingSenderId: '851316096891',
-  appId: '1:851316096891:web:8b351476a180c8d860c7de',
+  apiKey: 'AIzaSyCX0pySK-IZfxCRU_J2Ag5bTrEjBcoGprU',
+  authDomain: 'green-loop-26.firebaseapp.com',
+  projectId: 'green-loop-26',
+  storageBucket: 'green-loop-26.firebasestorage.app',
+  messagingSenderId: '873673636223',
+  appId: '1:873673636223:web:b1231e431242c1bf77c24a',
 });
 
 const messaging = firebase.messaging();

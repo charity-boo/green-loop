@@ -159,7 +159,7 @@ export default function RegisterForm({ onSuccess }: { onSuccess?: () => void }) 
         </div>
 
         {/* Already have account */}
-        <div className="col-span-12 text-center text-sm text-gray-600 mt-2">
+        <div className="col-span-12 text-center text-sm text-muted-foreground mt-2">
           Already have an account? <a href="/login" className="text-green-700 font-semibold">Sign in here</a>
         </div>
 

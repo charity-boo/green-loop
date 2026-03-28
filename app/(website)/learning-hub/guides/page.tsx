@@ -57,28 +57,28 @@ export default function RecyclingGuidesPage() {
         <section className="py-24 max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                 <GuideCard 
-                    title="Residential Sorting Manual"
-                    description="Our core manual for households. Learn exactly which items go into each bin to ensure 100% recycling success at home."
+                    title="Household Waste Separation Guide"
+                    description="Our core manual for households in Ndagani. Learn exactly how to separate organic waste, plastics, glass, and general waste to maximize your Green Points."
                     icon={<Recycle className="w-8 h-8" />}
-                    link="#manual-pdf"
+                    link="/docs/household-separation-guide.pdf"
                 />
                 <GuideCard 
-                    title="Commercial Best Practices"
-                    description="High-volume waste management strategies for businesses, offices, and restaurants in Ndagani."
+                    title="Enterprise Waste Management Protocol"
+                    description="High-volume waste strategies tailored for Ndagani businesses, hostels, and restaurants. Ensure compliance and build a sustainable green brand."
                     icon={<Building className="w-8 h-8" />}
-                    link="#commercial-guide"
+                    link="/docs/enterprise-waste-protocol.pdf"
                 />
                 <GuideCard 
-                    title="Composting at Home"
-                    description="Turn your kitchen scraps into gold. A simple guide to starting and maintaining a home compost bin."
+                    title="Organic Composting & Agriculture"
+                    description="Turn your kitchen scraps into gold. A step-by-step guide for rural and semi-urban households on creating organic compost for farming."
                     icon={<Lightbulb className="w-8 h-8" />}
-                    link="#compost-guide"
+                    link="/docs/organic-composting-agriculture.pdf"
                 />
                 <GuideCard 
-                    title="Electronic Waste Safety"
-                    description="Safe handling and disposal instructions for old batteries, phones, and hazardous household chemicals."
+                    title="Hazardous & E-Waste Safety Manual"
+                    description="Crucial instructions for the safe handling and hand-over of old batteries, broken electronics, and medical waste before Green Loop collection."
                     icon={<BookOpen className="w-8 h-8" />}
-                    link="#ewaste-guide"
+                    link="/docs/hazardous-ewaste-manual.pdf"
                 />
             </div>
 

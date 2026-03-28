@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { WasteStatus } from "../types/waste-status";
+import { WasteStatus } from "@/types/waste-status";
 
 /**
  * Zod schema for validating WasteStatus enum values.

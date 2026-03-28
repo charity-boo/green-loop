@@ -20,12 +20,12 @@ const categories: WasteCategory[] = [
         id: 'recyclables',
         name: 'Recyclables (Blue Bin)',
         icon: <Package className="w-8 h-8" />,
-        description: "Items that can be processed and reused to create new products. These must be clean and empty.",
+        description: "Clean recyclables are processed into new products. In Ndagani, ensuring these items are empty and rinsed is critical to prevent contamination that ruins entire batches.",
         examples: [
-            "Plastic bottles (PET/HDPE)", 
-            "Aluminum/Tin Cans", 
-            "Cardboard & Paper", 
-            "Glass bottles & Jars"
+            "PET/HDPE Plastic bottles (Rinsed)", 
+            "Aluminum & Tin Cans", 
+            "Clean Cardboard & Paper", 
+            "Rinsed Glass bottles & Jars"
         ],
         color: 'bg-green-100 text-green-900 border-green-200',
         accent: 'bg-green-600'
@@ -34,12 +34,12 @@ const categories: WasteCategory[] = [
         id: 'organics',
         name: 'Organic Waste (Green Bin)',
         icon: <Leaf className="w-8 h-8" />,
-        description: "Materials derived from plants or animals, intended for composting and turning into soil amendments.",
+        description: "Organic waste accounts for nearly 60% of household waste in Chuka. When properly collected, it becomes high-quality compost for our local agricultural partners.",
         examples: [
-            "Food scraps & Peels", 
-            "Coffee grounds & Filters", 
+            "Fruit & Vegetable Scraps", 
+            "Coffee grounds & filters", 
             "Yard trimmings & Grass", 
-            "Compostable paper towels"
+            "Eggshells & Leftover food"
         ],
         color: 'bg-green-50 text-green-800 border-green-100',
         accent: 'bg-green-500'
@@ -48,12 +48,12 @@ const categories: WasteCategory[] = [
         id: 'landfill',
         name: 'General Waste (Black Bin)',
         icon: <Trash2 className="w-8 h-8" />,
-        description: "Items that cannot be recycled or composted and must be safely disposed of in a landfill.",
+        description: "Items that cannot currently be recycled or composted in our Ndagani facility. We aim to minimize this bin as much as possible through better sorting.",
         examples: [
-            "Diapers & Hygiene products", 
-            "Plastic bags & Film (Non-recyclable)", 
-            "Contaminated paper/cardboard", 
-            "Broken ceramics & Non-recyclable glass"
+            "Sanitary & Hygiene products", 
+            "Heavily soiled food wrappers", 
+            "Greasy pizza boxes", 
+            "Broken ceramics & mirrors"
         ],
         color: 'bg-green-900 text-green-50 border-green-800',
         accent: 'bg-green-700'
@@ -62,11 +62,11 @@ const categories: WasteCategory[] = [
         id: 'hazardous',
         name: 'Special/Hazardous Waste',
         icon: <Zap className="w-8 h-8" />,
-        description: "Items that require special handling due to hazardous or toxic properties, and cannot go in regular bins.",
+        description: "Items containing toxic heavy metals or chemicals that leach into soil and water if disposed of incorrectly. These require specialized Green Loop handling.",
         examples: [
             "Batteries (All types)", 
             "Electronics (E-waste)", 
-            "Fluorescent bulbs", 
+            "Fluorescent bulbs & Sharps", 
             "Paints, chemicals, or oils"
         ],
         color: 'bg-green-800 text-green-100 border-green-700',

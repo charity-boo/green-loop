@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, MapPinIcon, ClockIcon, InfoIcon, CheckCircle2 } from "lucide-react";
+import { getSubRegionLabel, getCountyForRegion } from "@/lib/constants/regions";
 
 interface ConfirmationStepProps {
   wasteDetails: {
@@ -15,6 +16,7 @@ interface ConfirmationStepProps {
   };
   pickupDetails: {
     address: string;
+    region: string;
     date: Date | undefined;
     timeSlot: string;
     instructions: string;
@@ -46,6 +48,8 @@ const formatTimeSlot = (slot: string) => {
 
 export default function ConfirmationStep({ wasteDetails, pickupDetails, onConfirm, onPrev, loading }: ConfirmationStepProps) {
   const wasteInfo = formatWasteType(wasteDetails.type);
+  const regionLabel = getSubRegionLabel(pickupDetails.region);
+  const countyLabel = getCountyForRegion(pickupDetails.region)?.label ?? "";
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -100,6 +104,16 @@ export default function ConfirmationStep({ wasteDetails, pickupDetails, onConfir
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time Window</p>
                 <p className="text-sm font-bold text-gray-900">{formatTimeSlot(pickupDetails.timeSlot)}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-1 bg-green-100 p-1.5 rounded-lg">
+                <MapPinIcon className="h-4 w-4 text-green-700" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Region</p>
+                <p className="text-sm font-bold text-gray-900">{regionLabel ? `${countyLabel} — ${regionLabel}` : "Not selected"}</p>
               </div>
             </div>
 

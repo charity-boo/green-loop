@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { UserDoc, Role } from '@/lib/types/firestore';
+import { UserDoc, Role } from '@/types/firestore';
 import { UserTable } from '@/components/admin/UserTable';
 import { 
   Search, 
@@ -77,11 +77,11 @@ export default function UserManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">User Management</h1>
-          <p className="text-slate-500">Manage account permissions, roles, and status for all platform members.</p>
+          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+          <p className="text-muted-foreground">Manage account permissions, roles, and status for all platform members.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors font-medium">
+          <button className="flex items-center gap-2 px-4 py-2 text-slate-600 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors font-medium">
             <Download className="w-4 h-4" /> Export
           </button>
           <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium shadow-sm shadow-emerald-200">
@@ -97,7 +97,7 @@ export default function UserManagementPage() {
           <input 
             type="text"
             placeholder="Search users by name or email..."
-            className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+            className="w-full pl-11 pr-4 py-2.5 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
             value={filters.search}
             onChange={handleSearch}
           />
@@ -127,7 +127,7 @@ export default function UserManagementPage() {
                  (item.value === 'ALL' && !filters.role && !filters.status) ||
                  (item.value !== 'PENDING' && item.value !== 'ALL' && filters.role === item.value))
                   ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  : "bg-card text-slate-600 border-border hover:border-slate-300 hover:bg-muted/50"
               )}
             >
               {item.label}
@@ -138,31 +138,31 @@ export default function UserManagementPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-emerald-50 rounded-xl">
               <Users className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-slate-900">{total}</div>
-              <div className="text-sm text-slate-500">Total Registered Users</div>
+              <div className="text-2xl font-bold text-foreground">{total}</div>
+              <div className="text-sm text-muted-foreground">Total Registered Users</div>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-indigo-50 rounded-xl">
               <Loader2 className="w-6 h-6 text-indigo-600" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-slate-900">
+              <div className="text-2xl font-bold text-foreground">
                 {users.filter(u => u.active).length}
               </div>
-              <div className="text-sm text-slate-500">Active Accounts</div>
+              <div className="text-sm text-muted-foreground">Active Accounts</div>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-slate-400">
+        <div className="bg-card p-6 rounded-2xl border border-border shadow-sm text-slate-400">
            <div className="flex items-center justify-center h-full text-xs font-medium uppercase tracking-widest">
              More stats coming soon
            </div>
@@ -171,24 +171,24 @@ export default function UserManagementPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white border border-slate-200 rounded-2xl shadow-sm">
+        <div className="flex flex-col items-center justify-center py-24 bg-card border border-border rounded-2xl shadow-sm">
           <Loader2 className="w-10 h-10 text-emerald-500 animate-spin mb-4" />
-          <p className="text-slate-500 font-medium">Loading user data...</p>
+          <p className="text-muted-foreground font-medium">Loading user data...</p>
         </div>
       ) : (
         <>
           <UserTable users={users} onUpdate={fetchUsers} />
           
           {/* Pagination */}
-          <div className="flex items-center justify-between bg-white px-6 py-4 border border-slate-200 rounded-2xl shadow-sm">
-            <div className="text-sm text-slate-500">
-              Showing <span className="font-semibold text-slate-900">{(filters.page! - 1) * filters.limit! + 1}</span> to <span className="font-semibold text-slate-900">{Math.min(filters.page! * filters.limit!, total)}</span> of <span className="font-semibold text-slate-900">{total}</span> users
+          <div className="flex items-center justify-between bg-card px-6 py-4 border border-border rounded-2xl shadow-sm">
+            <div className="text-sm text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">{(filters.page! - 1) * filters.limit! + 1}</span> to <span className="font-semibold text-foreground">{Math.min(filters.page! * filters.limit!, total)}</span> of <span className="font-semibold text-foreground">{total}</span> users
             </div>
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setFilters(prev => ({ ...prev, page: Math.max(1, prev.page! - 1) }))}
                 disabled={filters.page === 1}
-                className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-slate-600 hover:bg-muted/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -201,7 +201,7 @@ export default function UserManagementPage() {
                       "w-9 h-9 rounded-lg text-sm font-medium transition-all",
                       filters.page === i + 1
                         ? "bg-emerald-600 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50"
+                        : "text-slate-600 hover:bg-muted/50"
                     )}
                   >
                     {i + 1}
@@ -211,7 +211,7 @@ export default function UserManagementPage() {
               <button 
                 onClick={() => setFilters(prev => ({ ...prev, page: Math.min(totalPages, prev.page! + 1) }))}
                 disabled={filters.page === totalPages}
-                className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-slate-600 hover:bg-muted/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>

@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const SafetyAndCompliance = () => {
   return (
-    <section className="space-y-24 p-8 bg-gray-50">
+    <section className="space-y-24 p-8 bg-muted/50">
       {/* 1️⃣ Safety Overview */}
       <div className="grid md:grid-cols-2 gap-10 items-center">
         {/* Image on the left */}
@@ -70,21 +70,21 @@ const SafetyAndCompliance = () => {
 
       {/* 3️⃣ Summary Cards */}
       <div className="grid md:grid-cols-3 gap-6 mt-16 max-w-7xl mx-auto">
-        <div className="bg-white shadow-lg rounded-xl p-6 text-center">
+        <div className="bg-card shadow-lg rounded-xl p-6 text-center">
           <h3 className="text-green-700 font-semibold mb-2">Safety</h3>
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             Strict safety protocols for employees and communities ensure risk-free operations.
           </p>
         </div>
-        <div className="bg-white shadow-lg rounded-xl p-6 text-center">
+        <div className="bg-card shadow-lg rounded-xl p-6 text-center">
           <h3 className="text-green-700 font-semibold mb-2">Compliance</h3>
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             Adherence to Kenyan environmental regulations and international best practices.
           </p>
         </div>
-        <div className="bg-white shadow-lg rounded-xl p-6 text-center">
+        <div className="bg-card shadow-lg rounded-xl p-6 text-center">
           <h3 className="text-green-700 font-semibold mb-2">Monitoring</h3>
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             Continuous audits and oversight maintain high standards and ensure accountability.
           </p>
         </div>

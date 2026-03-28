@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
-import { adminAuth } from '@/lib/firebase/admin';
+import { adminAuth, adminDb } from '@/lib/firebase/admin';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -40,7 +40,48 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // 5. Sync Firebase custom claims so JWT reflects new role immediately
     await adminAuth.setCustomUserClaims(id, { role: 'COLLECTOR' });
 
-    return NextResponse.json({ success: true, message: 'Collector approved successfully' });
+    // 6. Auto-allocate pending schedules in the collector's region
+    let allocatedCount = 0;
+    if (userData.region) {
+      const pendingSchedules = await adminDb
+        .collection('schedules')
+        .where('region', '==', userData.region)
+        .where('status', '==', 'pending')
+        .where('collectorId', '==', null)
+        .get();
+
+      // Also catch schedules where collectorId field is missing entirely
+      const unassignedSchedules = await adminDb
+        .collection('schedules')
+        .where('region', '==', userData.region)
+        .where('status', '==', 'pending')
+        .get();
+
+      const toAssign = new Map<string, FirebaseFirestore.DocumentSnapshot>();
+      pendingSchedules.docs.forEach(d => toAssign.set(d.id, d));
+      unassignedSchedules.docs
+        .filter(d => !d.data().collectorId)
+        .forEach(d => toAssign.set(d.id, d));
+
+      const batch = adminDb.batch();
+      for (const scheduleDoc of toAssign.values()) {
+        batch.update(scheduleDoc.ref, {
+          collectorId: id,
+          status: 'assigned',
+          updatedAt: new Date().toISOString(),
+        });
+        allocatedCount++;
+      }
+      if (allocatedCount > 0) {
+        await batch.commit();
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Collector approved successfully',
+      allocatedSchedules: allocatedCount,
+    });
   } catch (error) {
     console.error('Approve collector error:', error);
     return NextResponse.json({ error: 'Failed to approve collector' }, { status: 500 });

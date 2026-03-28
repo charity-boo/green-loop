@@ -9,18 +9,30 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, MapPinIcon, ClockIcon } from "lucide-react"; // Assuming Lucide Icons
+import { CalendarIcon, MapPin, ClockIcon, Navigation } from "lucide-react"; // Assuming Lucide Icons
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth"; // To potentially auto-fill address
+import { KENYA_COUNTIES, getSubRegionLabel } from "@/lib/constants/regions";
 
 interface PickupDetailsFormProps {
   initialPickupDetails: {
     address: string;
+    region: string;
     date: Date | undefined;
     timeSlot: string;
     instructions: string;
+    latitude?: number;
+    longitude?: number;
   };
-  onSubmit: (details: { address: string; date: Date | undefined; timeSlot: string; instructions: string }) => void;
+  onSubmit: (details: { 
+    address: string; 
+    region: string; 
+    date: Date | undefined; 
+    timeSlot: string; 
+    instructions: string;
+    latitude?: number;
+    longitude?: number;
+  }) => void;
   onPrev: () => void;
 }
 
@@ -33,9 +45,18 @@ const timeSlots = [
 export default function PickupDetailsForm({ initialPickupDetails, onSubmit, onPrev }: PickupDetailsFormProps) {
   const { user, status } = useAuth();
   const [address, setAddress] = useState(initialPickupDetails.address);
+  const [county, setCounty] = useState(() => {
+    // Derive the county from the initial region value if set
+    if (!initialPickupDetails.region) return "";
+    return KENYA_COUNTIES.find(c => c.subRegions.some(sr => sr.value === initialPickupDetails.region))?.value ?? "";
+  });
+  const [region, setRegion] = useState(initialPickupDetails.region);
   const [date, setDate] = useState<Date | undefined>(initialPickupDetails.date);
   const [timeSlot, setTimeSlot] = useState(initialPickupDetails.timeSlot);
   const [instructions, setInstructions] = useState(initialPickupDetails.instructions);
+  const [latitude, setLatitude] = useState<number | undefined>(initialPickupDetails.latitude);
+  const [longitude, setLongitude] = useState<number | undefined>(initialPickupDetails.longitude);
+  const [isLocating, setIsLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,14 +65,67 @@ export default function PickupDetailsForm({ initialPickupDetails, onSubmit, onPr
     }
   }, [user, status, address]);
 
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setIsLocating(true);
+    setError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude: lat, longitude: lng } = position.coords;
+        setLatitude(lat);
+        setLongitude(lng);
+
+        try {
+          // Reverse geocoding using Nominatim (OpenStreetMap)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'Accept-Language': 'en',
+                'User-Agent': 'GreenLoop-App'
+              }
+            }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.display_name) {
+              setAddress(data.display_name);
+            } else {
+              setAddress(`Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            }
+          } else {
+            setAddress(`Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          }
+        } catch (err) {
+          console.error("Reverse geocoding error:", err);
+          setAddress(`Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        console.error("Geolocation error:", err);
+        setError("Unable to retrieve your location. Please enter it manually.");
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!address || !date || !timeSlot) {
-      setError("Please fill in all pickup details.");
+    if (!address || !date || !timeSlot || !region) {
+      setError("Please fill in all pickup details including region.");
       return;
     }
     setError(null);
-    onSubmit({ address, date, timeSlot, instructions });
+    onSubmit({ address, region, date, timeSlot, instructions, latitude, longitude });
   };
 
   return (
@@ -59,12 +133,32 @@ export default function PickupDetailsForm({ initialPickupDetails, onSubmit, onPr
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="address" className="text-sm font-bold text-gray-700 ml-1 uppercase tracking-wider">
-              Pickup Address
-            </Label>
+            <div className="flex items-center justify-between ml-1">
+              <Label htmlFor="address" className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                Pickup Address
+              </Label>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={isLocating}
+                className="flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700 disabled:opacity-50 transition-colors uppercase tracking-tight"
+              >
+                {isLocating ? (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-600 rounded-full animate-ping" />
+                    Locating...
+                  </span>
+                ) : (
+                  <>
+                    <Navigation className="w-3.5 h-3.5" />
+                    Use Current Location
+                  </>
+                )}
+              </button>
+            </div>
             <div className="group relative">
               <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none transition-colors group-focus-within:text-green-600 text-gray-400">
-                <MapPinIcon className="h-5 w-5" />
+                <MapPin className="h-5 w-5" />
               </div>
               <Input
                 id="address"
@@ -75,8 +169,72 @@ export default function PickupDetailsForm({ initialPickupDetails, onSubmit, onPr
                 className="pl-12 pr-4 py-6 bg-white border-2 border-gray-100 rounded-2xl focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-gray-900 font-medium placeholder:text-gray-400"
               />
             </div>
+            {latitude && longitude && !isLocating && (
+              <p className="text-[10px] text-green-600 ml-4 font-bold flex items-center gap-1">
+                <div className="w-1 h-1 bg-green-600 rounded-full" />
+                GPS Coordinates Locked: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+              </p>
+            )}
             <p className="text-[10px] text-gray-400 ml-4 font-medium italic">Auto-filled from your profile</p>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="county" className="text-sm font-bold text-gray-700 ml-1 uppercase tracking-wider">
+              County
+            </Label>
+            <Select onValueChange={(val) => { setCounty(val); setRegion(""); }} value={county} name="county">
+              <SelectTrigger className={cn(
+                "w-full pl-4 pr-4 py-6 border-2 border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-medium text-left",
+                county ? "text-gray-900 border-green-500/20 bg-green-50/20" : "text-gray-400"
+              )}>
+                <div className="flex items-center gap-3">
+                  <MapPin className={cn("h-5 w-5", county ? "text-green-600" : "text-gray-400")} />
+                  <SelectValue placeholder="Select county" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-none shadow-2xl p-2 max-h-64 overflow-y-auto">
+                {KENYA_COUNTIES.map((c) => (
+                  <SelectItem
+                    key={c.value}
+                    value={c.value}
+                    className="rounded-xl py-3 focus:bg-green-50 focus:text-green-700 font-medium"
+                  >
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {county && (
+            <div className="space-y-2">
+              <Label htmlFor="region" className="text-sm font-bold text-gray-700 ml-1 uppercase tracking-wider">
+                Area / Sub-County
+              </Label>
+              <Select onValueChange={setRegion} value={region} name="region">
+                <SelectTrigger className={cn(
+                  "w-full pl-4 pr-4 py-6 border-2 border-gray-100 rounded-2xl hover:bg-gray-50 transition-all font-medium text-left",
+                  region ? "text-gray-900 border-green-500/20 bg-green-50/20" : "text-gray-400"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <MapPin className={cn("h-5 w-5", region ? "text-green-600" : "text-gray-400")} />
+                    <SelectValue placeholder="Select area" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 max-h-64 overflow-y-auto">
+                  {KENYA_COUNTIES.find(c => c.value === county)?.subRegions.map((sr) => (
+                    <SelectItem
+                      key={sr.value}
+                      value={sr.value}
+                      className="rounded-xl py-3 focus:bg-green-50 focus:text-green-700 font-medium"
+                    >
+                      {sr.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="pickup-date" className="text-sm font-bold text-gray-700 ml-1 uppercase tracking-wider">
@@ -122,7 +280,7 @@ export default function PickupDetailsForm({ initialPickupDetails, onSubmit, onPr
                   <SelectValue placeholder="Preferred time window" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+              <SelectContent className="rounded-2xl border-none shadow-2xl p-2 max-h-64 overflow-y-auto">
                 {timeSlots.map((slot) => (
                   <SelectItem
                     key={slot.value}

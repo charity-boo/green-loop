@@ -24,6 +24,8 @@ export default function ContactPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
+        setSuccess(false);
 
         if (!formData.name || !formData.email || !formData.message) {
             setError("Please fill in all required fields.");
@@ -31,15 +33,28 @@ export default function ContactPage() {
             return;
         }
 
-        // --- Replace with actual form submission logic (e.g., API endpoint or Firebase Firestore) ---
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log("Contact form submitted:", formData);
-        
-        setSuccess(true);
-        setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
-        setLoading(false);
-        // --- End Submission Logic ---
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Something went wrong');
+            }
+
+            setSuccess(true);
+            setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to send message');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

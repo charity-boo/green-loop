@@ -138,7 +138,7 @@ export function PhotoUpload({ jobId, type, onUploadComplete, label }: PhotoUploa
                                             className="absolute inset-0 bg-[#10b981] blur-2xl rounded-full"
                                         />
                                     </div>
-                                    <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden mb-3">
+                                    <div className="w-full bg-card/10 h-2 rounded-full overflow-hidden mb-3">
                                         <motion.div
                                             className="h-full bg-[#10b981]"
                                             initial={{ width: 0 }}

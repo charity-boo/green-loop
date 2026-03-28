@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { authorize } from '@/lib/middleware/authorize';
 import { adminDb } from '@/lib/firebase/admin';
-import { WasteStatus } from '@/lib/types/waste-status';
+import { WasteStatus } from '@/types/waste-status';
 import { createErrorResponse } from '@/lib/api-response';
 import { handleApiError } from '@/lib/api-handler';
 

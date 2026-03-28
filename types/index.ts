@@ -1,4 +1,4 @@
-import { WasteStatus } from '@/lib/types/waste-status';
+import { WasteStatus } from '@/types/waste-status';
 import type { Role } from '@/lib/auth';
 
 /**
@@ -11,9 +11,12 @@ export interface AppUser {
   role: Role;
   phone?: string | null;
   image?: string | null;
+  region?: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export type ClassificationStatus = 'none' | 'pending' | 'classified' | 'failed';
 
 /**
  * Represents a waste item in Firestore.
@@ -28,6 +31,11 @@ export interface Waste {
   imageUrl?: string | null;
   confidence?: number | null;
   assignedCollectorId?: string | null;
+  // AI classification fields
+  aiWasteType?: string | null;
+  disposalTips?: string | null;
+  classificationStatus?: ClassificationStatus;
+  classifiedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   firebaseStatus?: string;
@@ -80,6 +88,12 @@ export interface UserDashboardData {
   pickupHistory: PickupHistoryItem[];
   rewards: RewardsData;
   social: SocialMetrics;
+  recentAiTips?: Array<{
+    id: string;
+    wasteType: string;
+    tips: string;
+    date: string;
+  }>;
 }
 
 /**
@@ -93,7 +107,13 @@ export interface PickupHistoryItem {
   wasteType: string;
   location: string;
   points: number;
+  price?: number;
+  paymentStatus?: string;
   firebaseStatus?: string;
+  // AI classification
+  aiWasteType?: string | null;
+  disposalTips?: string | null;
+  classificationStatus?: ClassificationStatus;
 }
 
 /**
@@ -129,12 +149,29 @@ export interface RewardsData {
   nextMilestone: number;
   milestoneProgress: number; // 0 to 100
   tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+  canRedeem: boolean;
   availableRewards: Array<{
     id: string;
     title: string;
     pointsCost: number;
     description: string;
   }>;
+}
+
+/**
+ * Represents a reward redemption record in Firestore.
+ */
+export interface RewardRedemption {
+  id: string;
+  userId: string;
+  rewardId: string;
+  rewardTitle: string;
+  pointsCost: number;
+  status: 'processing' | 'completed' | 'failed';
+  createdAt: string;
+  completedAt?: string;
+  userEmail?: string;
+  userName?: string;
 }
 
 
@@ -175,7 +212,8 @@ export interface Payment {
   wasteId: string;
   amount: number;
   status: 'PENDING' | 'SUCCESS' | 'FAILED';
-  transactionId?: string | null;
+  stripeSessionId?: string | null;
+  transactionId?: string | null; // Stripe PaymentIntent ID after success
   createdAt: string;
   updatedAt: string;
 }

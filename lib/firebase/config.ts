@@ -61,12 +61,26 @@ if (typeof window !== 'undefined' && app && firebaseConfig.apiKey && useFirebase
   globalForEmulatorConnection.__firebaseEmulatorsConnected = true;
 }
 
-// Initialize analytics only on the client
+// Initialize analytics only on the client and in production
 let analytics: Analytics | null = null;
 let messaging: Messaging | null = null;
+
 if (typeof window !== 'undefined' && app && firebaseConfig.apiKey) {
-  analytics = getAnalytics(app);
-  messaging = getMessaging(app);
+  // Only initialize analytics in production to avoid Installations errors during dev
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      analytics = getAnalytics(app);
+    } catch (e) {
+      console.warn('[Firebase] Analytics failed to initialize:', e);
+    }
+  }
+
+  // Messaging is often needed in dev, but can fail if Installations API is disabled or key is restricted
+  try {
+    messaging = getMessaging(app);
+  } catch (e) {
+    console.warn('[Firebase] Messaging failed to initialize. If you see "403 PERMISSION_DENIED", ensure the Firebase Installations API is enabled in your Google Cloud Console project.', e);
+  }
 }
 
 export { analytics, messaging };

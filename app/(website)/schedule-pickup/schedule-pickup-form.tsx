@@ -17,13 +17,17 @@ type WasteDetails = {
   aiConfidence?: number;
   classificationSource: "manual" | "ai-assisted";
   aiPhotoUsed?: boolean;
+  disposalTips?: string;
 };
 
 type PickupDetails = {
   address: string;
+  region: string;
   date: Date | undefined;
   timeSlot: string;
   instructions: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 interface SchedulePickupFormProps {
@@ -33,7 +37,7 @@ interface SchedulePickupFormProps {
 export default function SchedulePickupForm({ userName: _userName }: SchedulePickupFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wasteDetails, setWasteDetails] = useState<WasteDetails>({ type: "", classificationSource: "manual", aiPhotoUsed: false });
-  const [pickupDetails, setPickupDetails] = useState<PickupDetails>({ address: "", date: undefined, timeSlot: "", instructions: "" });
+  const [pickupDetails, setPickupDetails] = useState<PickupDetails>({ address: "", region: "", date: undefined, timeSlot: "", instructions: "", latitude: undefined, longitude: undefined });
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -76,10 +80,16 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
           aiConfidence: wasteDetails.aiConfidence ?? null,
           classificationSource: wasteDetails.classificationSource,
           aiPhotoUsed: wasteDetails.aiPhotoUsed ?? false,
+          aiWasteType: wasteDetails.aiSuggestedType ?? null,
+          disposalTips: wasteDetails.disposalTips ?? null,
+          classificationStatus: wasteDetails.aiSuggestedType ? 'classified' : 'none',
           address: pickupDetails.address,
+          region: pickupDetails.region,
           pickupDate: pickupDetails.date?.toISOString() ?? null,
           timeSlot: pickupDetails.timeSlot,
           instructions: pickupDetails.instructions,
+          latitude: pickupDetails.latitude ?? null,
+          longitude: pickupDetails.longitude ?? null,
         }),
       });
 
@@ -92,8 +102,8 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
       setPickupId(id);
       setIsSuccessModalOpen(true);
 
-      setWasteDetails({ type: "", classificationSource: "manual", aiPhotoUsed: false });
-      setPickupDetails({ address: "", date: undefined, timeSlot: "", instructions: "" });
+      setWasteDetails({ type: "", classificationSource: "manual", aiPhotoUsed: false, disposalTips: undefined });
+      setPickupDetails({ address: "", region: "", date: undefined, timeSlot: "", instructions: "" });
       setCurrentStep(1);
     } catch (error) {
       console.error("Error scheduling pickup:", error);

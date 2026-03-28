@@ -1,94 +1,336 @@
-import React from 'react';
-import Image from 'next/image';
+"use client";
 
-const ChallengesPage = () => {
-  const challenges = [
-    {
-      id: 1,
-      title: '30-Day Zero Waste Challenge',
-      description: 'Commit to reducing your waste to an absolute minimum for 30 days. We provide daily tips, resources, and a supportive community to help you succeed in minimizing your ecological footprint.',
-      difficulty: 'Intermediate',
-      reward: 'Digital Certificate & Community Recognition',
-      image: '/images/zero-waste-challenge.jpg', // Placeholder
-    },
-    {
-      id: 2,
-      title: 'Plastic-Free July Pledge',
-      description: 'Join millions worldwide in avoiding single-use plastics for the entire month of July. Learn easy swaps and discover sustainable alternatives that can become lifelong habits.',
-      difficulty: 'Beginner',
-      reward: 'Exclusive Green Loop Reusable Bag',
-      image: '/images/plastic-free-challenge.jpg', // Placeholder
-    },
-    {
-      id: 3,
-      title: 'Green Commute Week',
-      description: 'Challenge yourself to use sustainable transportation (walking, biking, public transport, carpooling) for your daily commute for one week. Track your impact and inspire others to join in.',
-      difficulty: 'Beginner',
-      reward: 'Entry into our Eco-Gadget Raffle',
-      image: '/images/commute-challenge.jpg', // Placeholder
-    },
-    {
-      id: 4,
-      title: 'Community Garden Grow-Off',
-      description: 'Participate in our friendly competition to grow the most vibrant and productive community garden plot. Share tips, learn from experts, and contribute to local food security.',
-      difficulty: 'Intermediate',
-      reward: 'Gardening Kit & Local Produce Voucher',
-      image: '/images/garden-challenge.jpg', // Placeholder
-    },
-    {
-      id: 5,
-      title: 'Energy Saving Home Audit',
-      description: 'Conduct a thorough energy audit of your home. Identify areas for improvement, implement energy-saving measures, and share your success with the Green Loop community.',
-      difficulty: 'Advanced',
-      reward: 'Smart Home Energy Monitor',
-      image: '/images/energy-challenge.jpg', // Placeholder
-    },
-  ];
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Trophy, Search, ChevronLeft, ChevronRight, Users, Target, Calendar, TrendingUp } from 'lucide-react';
+import { motion } from "framer-motion";
+import type { ChallengeDoc } from '@/types/firestore';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { format, differenceInDays } from 'date-fns';
+
+const STATUS_OPTIONS = ['All', 'Active', 'Upcoming', 'Completed'];
+
+export default function ChallengesPage() {
+  const [challenges, setChallenges] = useState<ChallengeDoc[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 12;
+
+  useEffect(() => {
+    fetchChallenges();
+  }, [selectedStatus, searchQuery, page]);
+
+  const fetchChallenges = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      
+      if (selectedStatus !== 'All') {
+        params.append('status', selectedStatus.toLowerCase());
+      }
+      
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+
+      const response = await fetch(`/api/public/challenges?${params}`);
+      const data = await response.json();
+      
+      setChallenges(data.data);
+      setTotalPages(data.pagination.totalPages);
+    } catch (error) {
+      console.error('Failed to fetch challenges:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activeChallenges = challenges.filter(c => c.status === 'active');
+  const upcomingChallenges = challenges.filter(c => c.status === 'upcoming');
+  const completedChallenges = challenges.filter(c => c.status === 'completed');
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-green-800 mb-6">Green Loop Challenges</h1>
-      <p className="text-lg text-gray-700 mb-8">
-        Ready to take your commitment to sustainability to the next level? Our challenges are designed
-        to inspire, educate, and empower you to adopt eco-friendly habits and make a tangible impact.
-        Join a challenge today and become part of a movement for a greener future!
-      </p>
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-amber-500 to-orange-600 py-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+        <div className="max-w-6xl mx-auto text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Trophy className="w-8 h-8 text-amber-200" />
+              <span className="text-amber-200 font-semibold uppercase tracking-wider text-sm">
+                Community Challenges
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
+              Take on the Challenge
+            </h1>
+            <p className="text-xl text-amber-100 max-w-2xl mx-auto">
+              Join sustainability challenges, track your progress, and make an impact with the community
+            </p>
+          </motion.div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-amber-50 to-transparent"></div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {challenges.map((challenge) => (
-          <div key={challenge.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
-            {challenge.image && (
-              <Image src={challenge.image} alt={challenge.title} className="w-full h-48 object-cover" width={400} height={192} />
-            )}
-            <div className="p-6 flex-grow flex flex-col">
-              <h2 className="text-2xl font-semibold text-green-700 mb-2">{challenge.title}</h2>
-              <p className="text-gray-600 mb-4 flex-grow">{challenge.description}</p>
-              <div className="flex justify-between items-center text-sm mb-4">
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                  Difficulty: {challenge.difficulty}
-                </span>
-                <span className="text-gray-500">Reward: {challenge.reward}</span>
+      {/* Filters Section */}
+      <section className="max-w-7xl mx-auto px-6 -mt-8 relative z-20">
+        <div className="bg-white rounded-2xl shadow-xl p-6 border border-amber-100">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <form onSubmit={(e) => { e.preventDefault(); fetchChallenges(); }} className="flex-1 w-full md:max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search challenges..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-12"
+                />
               </div>
-              <button className="mt-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full transition-colors">
-                Join Challenge
-              </button>
+            </form>
+
+            {/* Status Pills */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {STATUS_OPTIONS.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setSelectedStatus(status);
+                    setPage(1);
+                  }}
+                  className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${
+                    selectedStatus === status
+                      ? 'bg-amber-600 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      <div className="mt-10 text-center">
-        <h2 className="text-3xl font-bold text-green-800 mb-4">Propose a New Challenge!</h2>
-        <p className="text-lg text-gray-700 mb-4">
-          Have an idea for a fun and impactful sustainability challenge? We&apos;d love to hear it!
-          Submit your idea and help us grow our community initiatives.
-        </p>
-        <button className="bg-yellow-500 hover:bg-yellow-600 text-green-900 font-bold py-3 px-6 rounded-full transition-colors">
-          Submit Your Idea
-        </button>
-      </div>
+      {/* Loading State */}
+      {loading ? (
+        <section className="py-16 max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-lg">
+                <Skeleton className="h-56 w-full" />
+                <div className="p-6 space-y-3">
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <>
+          {/* Active Challenges */}
+          {activeChallenges.length > 0 && (
+            <section className="py-16 max-w-7xl mx-auto px-6">
+              <div className="flex items-center gap-3 mb-8">
+                <TrendingUp className="w-6 h-6 text-amber-600" />
+                <h2 className="text-3xl font-bold text-gray-900">Active Challenges</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {activeChallenges.map((challenge, index) => (
+                  <ChallengeCard key={challenge.id} challenge={challenge} index={index} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Upcoming Challenges */}
+          {upcomingChallenges.length > 0 && (
+            <section className="py-16 max-w-7xl mx-auto px-6">
+              <div className="flex items-center gap-3 mb-8">
+                <Calendar className="w-6 h-6 text-blue-600" />
+                <h2 className="text-3xl font-bold text-gray-900">Upcoming Challenges</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {upcomingChallenges.map((challenge, index) => (
+                  <ChallengeCard key={challenge.id} challenge={challenge} index={index} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Completed Challenges */}
+          {completedChallenges.length > 0 && (
+            <section className="py-16 max-w-7xl mx-auto px-6">
+              <div className="flex items-center gap-3 mb-8">
+                <Trophy className="w-6 h-6 text-gray-600" />
+                <h2 className="text-3xl font-bold text-gray-900">Completed Challenges</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {completedChallenges.map((challenge, index) => (
+                  <ChallengeCard key={challenge.id} challenge={challenge} index={index} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Empty State */}
+          {challenges.length === 0 && (
+            <div className="text-center py-20">
+              <Trophy className="w-16 h-16 text-amber-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No challenges found</h3>
+              <p className="text-gray-600">
+                Try adjusting your filters or check back later for new challenges
+              </p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 pb-16">
+              <Button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                variant="outline"
+                size="icon"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-medium text-gray-700">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                variant="outline"
+                size="icon"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
-};
+}
 
-export default ChallengesPage;
+function ChallengeCard({ challenge, index }: { challenge: ChallengeDoc; index: number }) {
+  const progressPercentage = challenge.currentProgress || 0;
+  const participantCount = challenge.participants?.length || 0;
+  const daysLeft = differenceInDays(new Date(challenge.endDate), new Date());
+  const isActive = challenge.status === 'active';
+  const isUpcoming = challenge.status === 'upcoming';
+  const isCompleted = challenge.status === 'completed';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+      className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group"
+    >
+      {challenge.imageUrl ? (
+        <div className="relative h-56 bg-gradient-to-br from-amber-100 to-orange-100 overflow-hidden">
+          <Image
+            src={challenge.imageUrl}
+            alt={challenge.title}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div className="absolute top-4 right-4">
+            {isActive && (
+              <Badge className="bg-green-600 text-white">Active</Badge>
+            )}
+            {isUpcoming && (
+              <Badge className="bg-blue-600 text-white">Upcoming</Badge>
+            )}
+            {isCompleted && (
+              <Badge className="bg-gray-600 text-white">Completed</Badge>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="h-56 bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+          <Trophy className="w-16 h-16 text-amber-300" />
+        </div>
+      )}
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-amber-600 transition-colors">
+          {challenge.title}
+        </h3>
+        <p className="text-gray-600 line-clamp-2 mb-4">
+          {challenge.description}
+        </p>
+        
+        {/* Progress Bar */}
+        {isActive && (
+          <div className="mb-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-600">Progress</span>
+              <span className="font-bold text-amber-600">{progressPercentage}%</span>
+            </div>
+            <Progress value={progressPercentage} className="h-2" />
+          </div>
+        )}
+
+        <div className="space-y-2 text-sm text-gray-600 mb-4">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-amber-600" />
+            <span className="font-medium">Goal:</span>
+            <span>{challenge.goal}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-amber-600" />
+            <span className="font-medium">{participantCount} participants</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-amber-600" />
+            {isActive && daysLeft > 0 && (
+              <span className="font-medium text-green-600">{daysLeft} days left</span>
+            )}
+            {isUpcoming && (
+              <span className="font-medium">Starts {format(new Date(challenge.startDate), 'MMM d, yyyy')}</span>
+            )}
+            {isCompleted && (
+              <span className="font-medium">Ended {format(new Date(challenge.endDate), 'MMM d, yyyy')}</span>
+            )}
+          </div>
+        </div>
+        
+        <Button 
+          className={`w-full ${
+            isActive 
+              ? 'bg-amber-600 hover:bg-amber-700' 
+              : isCompleted 
+              ? 'bg-gray-400' 
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white`}
+          disabled={isCompleted}
+        >
+          {isActive && 'Join Challenge'}
+          {isUpcoming && 'Sign Up'}
+          {isCompleted && 'Challenge Ended'}
+        </Button>
+      </div>
+    </motion.div>
+  );
+}

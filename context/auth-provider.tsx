@@ -7,8 +7,10 @@ import { useFCMToken } from '@/lib/firebase/messaging';
 import { useRouter } from 'next/navigation';
 
 function setAuthCookie(token: string) {
-  const expires = new Date(Date.now() + 2 * 60 * 60 * 1000).toUTCString();
+  // Use a longer expiration (24 hours) for better session persistence
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
   const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  // Ensure the cookie is accessible to both the client and the server (middleware)
   document.cookie = `firebase-token=${token}; path=/; expires=${expires}; ${isSecure ? 'secure;' : ''} samesite=Lax`;
 }
 
@@ -74,14 +76,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
             setRole('USER');
             setStatus('authenticated'); // Still sets to authenticated even on error to avoid infinite loading
-            console.log('Auth status set to authenticated (with claims error). User role: USER');
+            console.log('[Auth] Authenticated with claims error. Defaulting to USER role.');
           }
         } else {
           setUser(null);
           setRole(null);
           clearAuthCookie();
           setStatus('unauthenticated');
-          console.log('Auth status set to unauthenticated. No user.');
+          console.log('[Auth] Unauthenticated state detected.');
         }
       },
       (err) => {

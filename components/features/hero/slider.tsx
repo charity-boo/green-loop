@@ -25,7 +25,7 @@ export default function HeroSlider() {
     // ✅ 1️⃣ Green Loop Waste Management
     {
       type: "video",
-      src: "/videos/waste1.mp4",
+      src: "/videos/hero.mp4",
       title: "Green Loop Waste Management",
       desc: "Empowering communities with smart, eco-friendly waste solutions for a cleaner and greener Ndagani. Together, we close the loop for a sustainable future.",
       cta: { label: "Learn More", link: "/about-us" },
@@ -147,7 +147,7 @@ export default function HeroSlider() {
       ))}
 
       {/* --- Navigation Bar --- */}
-      <div className="absolute bottom-0 left-0 w-full z-40 bg-white/10 backdrop-blur-sm shadow-xl">
+      <div className="absolute bottom-0 left-0 w-full z-40 bg-card/10 backdrop-blur-sm shadow-xl">
         <div className="flex justify-center md:justify-start overflow-x-auto whitespace-nowrap px-4">
           {slides.map((slide, index) => (
             <button

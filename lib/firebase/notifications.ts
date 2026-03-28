@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
-export type NotificationType = 'info' | 'warning' | 'alert' | 'AI-suggestion';
+export type NotificationType = 'info' | 'warning' | 'alert' | 'AI-suggestion' | 'reward_earned';
 export type NotificationStatus = 'unread' | 'read';
 export type UserRole = 'ADMIN' | 'COLLECTOR' | 'USER';
 

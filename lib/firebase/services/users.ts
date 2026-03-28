@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { dbService } from './db';
 import { adminAuth } from '@/lib/firebase/admin';
-import { UserDoc, Role, AdminActionLogDoc } from '@/lib/types/firestore';
+import { UserDoc, Role, AdminActionLogDoc } from '@/types/firestore';
 
 export interface UserFilters {
   role?: Role;

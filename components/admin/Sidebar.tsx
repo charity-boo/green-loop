@@ -9,25 +9,34 @@ import {
     Truck,
     BarChart3,
     LogOut,
-    Leaf,
-    Calendar,
-    Activity,
     ShieldCheck,
-    Loader2
+    ShieldAlert,
+    CalendarPlus,
+    Loader2,
+    Leaf,
+    BookOpen,
+    ChevronDown,
+    ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 
 const menuItems = [
     { icon: LayoutDashboard, label: 'Overview', href: '/admin/dashboard' },
-    { icon: Truck, label: 'Pickups', href: '/admin/dashboard/pickups' },
+    { icon: CalendarPlus, label: 'Pickups', href: '/admin/dashboard/schedules' },
+    { icon: ShieldAlert, label: 'Collectors', href: '/admin/dashboard/collectors' },
     { icon: Users, label: 'Users', href: '/admin/dashboard/users' },
     { icon: ShieldCheck, label: 'Moderation', href: '/admin/dashboard/moderation' },
     { icon: BarChart3, label: 'Analytics', href: '/admin/dashboard/analytics' },
-    { icon: Calendar, label: 'Schedules', href: '/admin/dashboard/schedules' },
-    { icon: Activity, label: 'Audit Logs', href: '/admin/dashboard/audit' },
+];
+
+const contentMenuItems = [
+    { label: 'Green Tips', href: '/admin/dashboard/content/green-tips' },
+    { label: 'Events & Drives', href: '/admin/dashboard/content/events' },
+    { label: 'Community Stories', href: '/admin/dashboard/content/stories' },
+    { label: 'Challenges', href: '/admin/dashboard/content/challenges' },
 ];
 
 export function Sidebar() {
@@ -35,6 +44,9 @@ export function Sidebar() {
     const { logout: signOut } = useAuth();
     const router = useRouter();
     const [signingOut, setSigningOut] = useState(false);
+    const [contentExpanded, setContentExpanded] = useState(
+        pathname.startsWith('/admin/dashboard/content')
+    );
 
     const handleSignOut = async () => {
         setSigningOut(true);
@@ -42,18 +54,22 @@ export function Sidebar() {
         router.push('/auth/login');
     };
 
+    const isContentActive = contentMenuItems.some(item => pathname === item.href);
+
     return (
-        <div className="flex flex-col h-full w-64 bg-slate-900 text-white border-r border-slate-800">
-            <div className="p-6">
-                <Link href="/" className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-500 rounded-lg">
-                        <Leaf className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-xl font-bold tracking-tight">GreenLoop</span>
-                </Link>
+        <div className="flex flex-col h-full w-64 bg-emerald-700 text-emerald-50 border-r border-emerald-800 transition-colors">
+            {/* Logo Section */}
+            <div className="flex items-center h-20 px-6 gap-3 border-b border-emerald-600/50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 shadow-inner">
+                    <Leaf className="text-white w-5 h-5" />
+                </div>
+                <span className="font-bold text-white tracking-tight text-lg">
+                    Green Loop
+                </span>
             </div>
 
-            <nav className="flex-1 px-4 py-4 space-y-1">
+            <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                <p className="text-[10px] font-bold text-emerald-200/50 uppercase tracking-widest px-4 mb-2">Core Controls</p>
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -61,47 +77,86 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-slate-400 hover:text-white hover:bg-slate-800/50",
-                                isActive && "bg-emerald-600/10 text-emerald-400 border border-emerald-600/20"
+                                "flex items-center h-11 px-4 gap-3 rounded-lg transition-all font-medium text-sm",
+                                isActive
+                                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/20"
+                                    : "text-emerald-100 hover:bg-emerald-600/50 hover:text-white"
                             )}
                         >
                             <item.icon className={cn(
-                                "w-5 h-5 transition-colors",
-                                isActive ? "text-emerald-400" : "group-hover:text-emerald-400"
+                                "w-4 h-4 transition-colors",
+                                isActive ? "text-white" : "text-emerald-300"
                             )} />
-                            <span className="font-medium">{item.label}</span>
-                            {isActive && (
-                                <motion.div
-                                    layoutId="active-pill"
-                                    className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400"
-                                />
-                            )}
+                            <span>{item.label}</span>
                         </Link>
                     );
                 })}
+
+                <div className="pt-4">
+                    <p className="text-[10px] font-bold text-emerald-200/50 uppercase tracking-widest px-4 mb-2">Community Content</p>
+                    <button
+                        onClick={() => setContentExpanded(!contentExpanded)}
+                        className={cn(
+                            "flex items-center h-11 px-4 gap-3 rounded-lg transition-all font-medium text-sm w-full group",
+                            isContentActive 
+                                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/20" 
+                                : "text-emerald-100 hover:bg-emerald-600/50 hover:text-white"
+                        )}
+                    >
+                        <BookOpen className={cn(
+                            "w-4 h-4 transition-colors",
+                            isContentActive ? "text-white" : "text-emerald-300"
+                        )} />
+                        <span className="flex-1 text-left">Library</span>
+                        {contentExpanded ? (
+                            <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                        ) : (
+                            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                        )}
+                    </button>
+
+                    <AnimatePresence>
+                        {contentExpanded && (
+                            <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="ml-6 mt-1 border-l border-emerald-600/50 pl-4 space-y-1 overflow-hidden"
+                            >
+                                {contentMenuItems.map((item) => {
+                                    const isActive = pathname === item.href;
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                "flex items-center h-9 px-3 rounded-lg transition-colors text-xs font-medium",
+                                                isActive 
+                                                    ? "text-white bg-emerald-600/80" 
+                                                    : "text-emerald-200 hover:text-white hover:bg-emerald-600/40"
+                                            )}
+                                        >
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    );
+                                })}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </nav>
 
-            <div className="p-4 mt-auto">
+            {/* Bottom Section */}
+            <div className="p-4 border-t border-emerald-600/50">
                 <button
                     onClick={handleSignOut}
                     disabled={signingOut}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex items-center gap-3 px-4 py-3 w-full text-emerald-200 hover:text-white hover:bg-rose-500/20 rounded-lg transition-all text-sm font-medium group"
                 >
-                    <LogOut className="w-5 h-5" />
-                    <span className="font-medium">Sign Out</span>
+                    {signingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4 opacity-70 group-hover:opacity-100" />}
+                    <span>{signingOut ? 'Signing Out...' : 'Sign Out'}</span>
                 </button>
             </div>
-
-            {/* Logging out overlay */}
-            {signingOut && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl px-8 py-6 flex flex-col items-center gap-4 shadow-xl">
-                        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-                        <p className="text-white font-medium text-lg">Signing out…</p>
-                        <p className="text-slate-400 text-sm">Please wait a moment</p>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { PickupHistoryItem } from "@/types";
-import { WasteStatus } from "@/lib/types/waste-status";
+import { WasteStatus } from "@/types/waste-status";
 import { Calendar, MapPin, Package, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 
 interface ActivityHistoryProps {

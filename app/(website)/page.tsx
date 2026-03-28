@@ -5,7 +5,7 @@ import SustainabilitySection from "@/components/features/waste/sustainability-se
 
 export default function Home() {
   return (
-    <main className="bg-gray-50 min-h-screen">
+    <main className="bg-background min-h-screen transition-colors">
       <Hero />
       <ServicesSection />
       <CombinedWastePage />

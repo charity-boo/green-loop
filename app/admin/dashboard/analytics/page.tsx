@@ -54,7 +54,7 @@ export default async function AnalyticsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 relative z-10">
-          <button className="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-xl transition-all font-bold text-sm flex items-center gap-2 backdrop-blur-md">
+          <button className="px-5 py-2.5 bg-card/10 hover:bg-card/15 text-white border border-white/10 rounded-xl transition-all font-bold text-sm flex items-center gap-2 backdrop-blur-md">
             <Calendar className="w-4 h-4 text-emerald-400" />
             Last 30 Days
           </button>
@@ -105,18 +105,18 @@ export default async function AnalyticsPage() {
 
       {/* Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow relative group">
+        <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow relative group">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-emerald-500" />
                 Collection Volume Trend
               </h3>
-              <p className="text-slate-500 text-sm mt-1">Daily waste volume (kg) processed by GreenLoop.</p>
+              <p className="text-muted-foreground text-sm mt-1">Daily waste volume (kg) processed by GreenLoop.</p>
             </div>
             <div className="flex gap-2">
-              <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><Filter className="w-4 h-4" /></button>
-              <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><Share2 className="w-4 h-4" /></button>
+              <button className="p-2 text-slate-400 hover:text-foreground transition-colors"><Filter className="w-4 h-4" /></button>
+              <button className="p-2 text-slate-400 hover:text-foreground transition-colors"><Share2 className="w-4 h-4" /></button>
             </div>
           </div>
           <div className="h-[350px] w-full">
@@ -124,9 +124,9 @@ export default async function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className="bg-card border border-border rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
               <PieIcon className="w-5 h-5 text-emerald-500" />
               Waste Stream Distribution
             </h3>
@@ -145,7 +145,7 @@ export default async function AnalyticsPage() {
                     )} />
                     {item.wasteType}
                  </div>
-                 <div className="font-bold text-slate-900">{item.count} units</div>
+                 <div className="font-bold text-foreground">{item.count} units</div>
                </div>
              ))}
           </div>
@@ -163,17 +163,17 @@ export default async function AnalyticsPage() {
             <p className="text-emerald-50/80 text-sm leading-relaxed max-w-xs mb-8">
                Total carbon footprint reduction achieved through proper waste segregation in Ndagani this quarter.
             </p>
-            <button className="flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all shadow-xl shadow-emerald-950/20">
+            <button className="flex items-center gap-2 px-6 py-3 bg-card text-emerald-700 rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all shadow-xl shadow-emerald-950/20">
                View Impact Report <ArrowUpRight className="w-4 h-4" />
             </button>
          </div>
 
-         <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">Community Engagement</h3>
+         <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
+            <h3 className="text-xl font-bold text-foreground mb-6">Community Engagement</h3>
             <div className="space-y-6">
                <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                     <span className="text-slate-500 font-medium">User Participation Rate</span>
+                     <span className="text-muted-foreground font-medium">User Participation Rate</span>
                      <span className="text-emerald-600 font-bold">82%</span>
                   </div>
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -182,7 +182,7 @@ export default async function AnalyticsPage() {
                </div>
                <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                     <span className="text-slate-500 font-medium">Goal Completion (Ndgani Clean City)</span>
+                     <span className="text-muted-foreground font-medium">Goal Completion (Ndgani Clean City)</span>
                      <span className="text-blue-500 font-bold">64%</span>
                   </div>
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -200,7 +200,7 @@ export default async function AnalyticsPage() {
                         +840
                      </div>
                   </div>
-                  <button className="text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors">View All Members</button>
+                  <button className="text-sm font-bold text-slate-400 hover:text-foreground transition-colors">View All Members</button>
                </div>
             </div>
          </div>
@@ -211,10 +211,10 @@ export default async function AnalyticsPage() {
 
 function KPIReportCard({ title, value, trend, up, color: _color, desc }: { title: string; value: string | number; trend: string; up: boolean; color: string; desc: string }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+    <div className="bg-card border border-border rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
       <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-100 group-hover:bg-emerald-500 transition-colors" />
       <div className="flex justify-between items-start mb-4">
-        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest">{title}</h4>
+        <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{title}</h4>
         <div className={cn(
           "px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1",
           up ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
@@ -223,7 +223,7 @@ function KPIReportCard({ title, value, trend, up, color: _color, desc }: { title
           {trend}
         </div>
       </div>
-      <div className="text-3xl font-black text-slate-900 tracking-tight group-hover:scale-105 origin-left transition-transform duration-300">{value}</div>
+      <div className="text-3xl font-black text-foreground tracking-tight group-hover:scale-105 origin-left transition-transform duration-300">{value}</div>
       <p className="text-xs text-slate-400 mt-2 font-medium">{desc}</p>
     </div>
   );

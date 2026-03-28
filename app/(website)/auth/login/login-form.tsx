@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signInFirebase, signInWithGoogle } from "@/lib/firebase/auth-integration";
 import { useAuth } from "@/context/auth-provider";
+import { Eye, EyeOff } from "lucide-react";
 
 // Import Shadcn UI Components
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -22,24 +22,34 @@ export function LoginForm() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
     const handleRoleRedirect = useCallback((userRole: string, customPath?: string) => {
-        if (customPath && customPath !== '/dashboard') {
-            router.push(customPath);
+        console.log('[LoginForm] Redirecting based on role:', userRole, 'with customPath:', customPath);
+        
+        // Ensure cookies are synced before redirect
+        router.refresh();
+
+        if (customPath && customPath !== '/dashboard' && customPath !== '/auth/login') {
+            console.log('[LoginForm] Redirecting to custom path via location:', customPath);
+            window.location.href = customPath;
             return;
         }
 
         if (userRole === "ADMIN") {
-            router.push("/admin");
+            console.log('[LoginForm] Redirecting to /admin via location');
+            window.location.href = "/admin";
         } else if (userRole === "COLLECTOR") {
-            router.push("/dashboard");
+            console.log('[LoginForm] Redirecting to /dashboard/collector via location');
+            window.location.href = "/dashboard/collector";
         } else {
-            router.push("/dashboard");
+            console.log('[LoginForm] Redirecting to /dashboard via location');
+            window.location.href = "/dashboard";
         }
-    }, [router]);
+    }, []);
 
     useEffect(() => {
         if (registered) {
@@ -49,6 +59,7 @@ export function LoginForm() {
 
     useEffect(() => {
         if (status === 'authenticated' && role) {
+            console.log('[LoginForm] Auth detected. Status:', status, 'Role:', role);
             handleRoleRedirect(role, redirectPath || undefined);
         }
     }, [status, role, handleRoleRedirect, redirectPath]);
@@ -100,18 +111,19 @@ export function LoginForm() {
     };
 
     return (
-        <Card className="w-full max-w-md shadow-2xl">
-            <CardHeader className="text-center">
-                <CardTitle className="text-3xl text-gray-800">Sign In to Green Loop</CardTitle>
-                <CardDescription>
+        <div className="w-full max-w-md space-y-8 bg-black/40 lg:bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl p-8 lg:p-12 animate-in zoom-in-95 duration-700">
+            <div className="text-center lg:text-left">
+                <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Sign In</h2>
+                <p className="text-sm text-gray-300">
                     Access your Smart Waste Pickup schedule.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
+                </p>
+            </div>
+            
+            <div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Email Input */}
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="email" className="text-sm font-medium text-gray-200">Email Address</Label>
                         <Input
                             id="email"
                             type="email"
@@ -120,21 +132,40 @@ export function LoginForm() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
+                            className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 ring-offset-background focus-visible:ring-2 focus-visible:ring-green-500"
                         />
                     </div>
 
                     {/* Password Input */}
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            required
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="********"
-                        />
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="password" colonial-className="text-sm font-medium text-gray-200">Password</Label>
+                            <Link
+                                href="/auth/forgot-password"
+                                className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors"
+                            >
+                                Forgot password?
+                            </Link>
+                        </div>
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                required
+                                autoComplete="current-password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="********"
+                                className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 ring-offset-background focus-visible:ring-2 focus-visible:ring-green-500 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Error Message */}
@@ -155,7 +186,7 @@ export function LoginForm() {
                     <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-green-600 hover:bg-green-700"
+                        className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {loading ? (
                             <div className="flex items-center justify-center">
@@ -173,10 +204,10 @@ export function LoginForm() {
                     {/* Divider */}
                     <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-300" />
+                            <div className="w-full border-t border-white/10" />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                            <span className="bg-transparent px-2 text-gray-400">Or continue with</span>
                         </div>
                     </div>
 
@@ -184,7 +215,7 @@ export function LoginForm() {
                     <Button
                         type="button"
                         variant="outline"
-                        className="w-full flex items-center justify-center gap-3 border-gray-300 hover:bg-gray-50"
+                        className="w-full flex items-center justify-center gap-3 border-white/10 bg-white/5 text-white hover:bg-white/10"
                         onClick={handleGoogleSignIn}
                     >
                         <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -208,17 +239,27 @@ export function LoginForm() {
                         Sign in with Google
                     </Button>
 
+                    {/* Alternative sign-in */}
+                    <div className="mt-4 text-center">
+                        <Link 
+                            href="/auth/phone" 
+                            className="text-sm font-medium text-green-400 hover:text-green-300 underline-offset-4 hover:underline"
+                        >
+                            Sign in with phone number instead
+                        </Link>
+                    </div>
+
                     {/* Register Link */}
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                             Don&apos;t have an account?{" "}
-                            <Link href="/auth/register" className="font-medium text-green-600 hover:text-green-500">
+                            <Link href="/auth/register" className="font-medium text-green-400 hover:text-green-300 underline-offset-4 hover:underline">
                                 Register now
                             </Link>
                         </p>
                     </div>
                 </form>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

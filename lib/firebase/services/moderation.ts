@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { dbService } from './db';
-import { AdminActionLogDoc } from '@/lib/types/firestore';
+import { AdminActionLogDoc } from '@/types/firestore';
 
 export interface ReportDoc {
   id: string;
@@ -35,9 +35,20 @@ export interface WasteReportDoc {
   updatedAt?: string;
 }
 
+export interface ContactMessageDoc {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'NEW' | 'READ' | 'REPLIED' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface ModerationFilters {
   status?: string;
-  type?: 'ISSUE' | 'WASTE';
+  type?: 'ISSUE' | 'WASTE' | 'MESSAGE';
   page?: number;
   limit?: number;
 }
@@ -63,6 +74,19 @@ export async function getWasteReports(filters: ModerationFilters = {}): Promise<
   if (filters.status) queryFilters.push(['status', '==', filters.status]);
 
   return dbService.query<WasteReportDoc>('wasteReports', {
+    where: queryFilters as any,
+    orderBy: [['createdAt', 'desc']],
+  });
+}
+
+/**
+ * Fetch contact messages
+ */
+export async function getContactMessages(filters: ModerationFilters = {}): Promise<ContactMessageDoc[]> {
+  const queryFilters: any[] = [];
+  if (filters.status) queryFilters.push(['status', '==', filters.status]);
+
+  return dbService.query<ContactMessageDoc>('contact_messages', {
     where: queryFilters as any,
     orderBy: [['createdAt', 'desc']],
   });
@@ -122,6 +146,33 @@ export async function updateWasteReport(
     targetId: reportId,
     beforeState: { status: beforeState?.status },
     afterState: { status, comment },
+    createdAt: new Date().toISOString(),
+  });
+}
+
+/**
+ * Update contact message status
+ */
+export async function updateContactMessage(
+  adminId: string,
+  messageId: string,
+  status: ContactMessageDoc['status']
+): Promise<void> {
+  const beforeState = await dbService.get<ContactMessageDoc>('contact_messages', messageId);
+
+  await dbService.update('contact_messages', messageId, {
+    status,
+    updatedAt: new Date().toISOString(),
+  });
+
+  // @ts-expect-error: AdminActionLogDoc structure mismatch with dbService.add
+  await dbService.add<AdminActionLogDoc>('admin_action_logs', {
+    adminId,
+    actionType: 'UPDATE_CONTACT_MESSAGE',
+    targetType: 'ContactMessage',
+    targetId: messageId,
+    beforeState: { status: beforeState?.status },
+    afterState: { status },
     createdAt: new Date().toISOString(),
   });
 }

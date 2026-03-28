@@ -6,60 +6,128 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, MapPin, Trash2, X } from 'lucide-react';
+import { 
+  Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, MapPin, 
+  Trash2, X, ArrowRight, ArrowLeft, AlertTriangle, Info, 
+  ShieldCheck, EyeOff, Wind, Droplets, Trash, Plus, Navigation
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+
+const ISSUE_TYPES = [
+  { id: 'waste-collection', label: 'Missed Waste Collection', icon: Trash2, description: 'Waste was not picked up as scheduled.' },
+  { id: 'environmental-violation', label: 'Environmental Violation', icon: ShieldCheck, description: 'Illegal dumping or pollution observed.' },
+  { id: 'spillage', label: 'Spillage/Overflow', icon: Droplets, description: 'Waste bins are overflowing or leaking.' },
+  { id: 'pollution', label: 'Air/Noise Pollution', icon: Wind, description: 'Excessive smoke or noise levels.' },
+  { id: 'general-feedback', label: 'General Feedback', icon: Info, description: 'Suggestions or general observations.' },
+  { id: 'other', label: 'Other Issue', icon: Plus, description: 'Anything else we should know about.' },
+];
+
+const STEPS = ['Category', 'Details', 'Evidence', 'Contact'];
 
 const ReportIssuePage = () => {
-  // const router = useRouter();
   interface FormData {
     fullName: string;
     email: string;
     phone: string;
     issueType: string;
+    priority: 'low' | 'medium' | 'high';
     location: string;
-    dateTime: string;
     description: string;
-    preferredContact: string;
-    imageFile: File | null;
+    isAnonymous: boolean;
+    images: string[]; // Store base64 or URLs
+    imageFiles: File[];
   }
 
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
     phone: '',
     issueType: '',
+    priority: 'medium',
     location: '',
-    dateTime: '',
     description: '',
-    preferredContact: 'email',
-    imageFile: null,
+    isAnonymous: false,
+    images: [],
+    imageFiles: [],
   });
 
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const validateForm = () => {
+  const validateStep = (step: number) => {
     const newErrors: Record<string, string> = {};
-    if (!formData.fullName) newErrors.fullName = 'Full Name is required.';
-    if (!formData.email) newErrors.email = 'Email is required.';
-    if (!formData.issueType) newErrors.issueType = 'Issue Type is required.';
-    if (!formData.description) newErrors.description = 'Description is required.';
+    if (step === 0) {
+      if (!formData.issueType) newErrors.issueType = 'Please select an issue type.';
+    } else if (step === 1) {
+      if (!formData.location) newErrors.location = 'Location is required.';
+      if (!formData.description) newErrors.description = 'Description is required.';
+    } else if (step === 3) {
+      if (!formData.isAnonymous) {
+        if (!formData.fullName) newErrors.fullName = 'Full Name is required.';
+        if (!formData.email) newErrors.email = 'Email is required.';
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setErrors(prev => ({ ...prev, location: 'Geolocation is not supported by your browser.' }));
+      return;
+    }
+
+    setIsDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData(prev => ({ ...prev, location: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
+        
+        try {
+          // Attempt reverse geocoding if possible, or just keep coordinates
+          // For now, we'll stick to coordinates
+        } catch (err) {
+          console.error("Geocoding error:", err);
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setErrors(prev => ({ ...prev, location: 'Could not detect your location. Please enter manually.' }));
+        setIsDetectingLocation(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   const startCamera = async () => {
     setIsCameraOpen(true);
-    setCapturedImage(null);
-    setFormData(prev => ({ ...prev, imageFile: null }));
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
@@ -89,37 +157,59 @@ const ReportIssuePage = () => {
         canvasRef.current.height = videoRef.current.videoHeight;
         context.drawImage(videoRef.current, 0, 0);
         const imageData = canvasRef.current.toDataURL('image/jpeg');
-        setCapturedImage(imageData);
+        setFormData(prev => ({ ...prev, images: [...prev.images, imageData] }));
         stopCamera();
       }
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setCapturedImage(null);
-      setFormData((prev) => ({ ...prev, imageFile: e.target.files![0] }));
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      const newImageFiles = [...formData.imageFiles, ...filesArray];
+      
+      // Convert files to URLs for preview
+      const newImageURLs = filesArray.map(file => URL.createObjectURL(file));
+      setFormData(prev => ({ 
+        ...prev, 
+        images: [...prev.images, ...newImageURLs],
+        imageFiles: newImageFiles
+      }));
     }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => {
+      const newImages = [...prev.images];
+      const newImageFiles = [...prev.imageFiles];
+      newImages.splice(index, 1);
+      if (index < prev.imageFiles.length) {
+        newImageFiles.splice(index, 1);
+      }
+      return { ...prev, images: newImages, imageFiles: newImageFiles };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
-      setSubmissionStatus({ type: 'error', message: 'Please fix the errors in the form.' });
-      return;
-    }
+    if (!validateStep(3)) return;
 
     setIsSubmitting(true);
     setSubmissionStatus({ type: null, message: 'Submitting your report...' });
-    setErrors({});
 
     try {
-      // Create a payload. In a real app, you'd use FormData for file uploads.
-      // Here we simulate with JSON for compatibility with the existing mock API.
       const payload = {
-        ...formData,
-        imageFile: capturedImage || (formData.imageFile ? formData.imageFile.name : null),
-        capturedLive: !!capturedImage
+        fullName: formData.isAnonymous ? 'Anonymous' : formData.fullName,
+        email: formData.isAnonymous ? 'anonymous@greenloop.com' : formData.email,
+        phone: formData.phone,
+        issueType: formData.issueType,
+        location: formData.location,
+        dateTime: new Date().toISOString(),
+        description: `[Priority: ${formData.priority.toUpperCase()}] ${formData.description}`,
+        preferredContact: 'email',
+        // In a real app, you would upload files to storage first
+        // Here we send the first image or a placeholder
+        imageFile: formData.images.length > 0 ? formData.images[0] : null,
       };
 
       const response = await fetch('/api/report-issue', {
@@ -132,18 +222,10 @@ const ReportIssuePage = () => {
 
       if (response.ok) {
         setSubmissionStatus({ type: 'success', message: `Report submitted! ID: ${result.reportId}` });
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          issueType: '',
-          location: '',
-          dateTime: '',
-          description: '',
-          preferredContact: 'email',
-          imageFile: null,
-        });
-        setCapturedImage(null);
+        // Reset or redirect
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       } else {
         setSubmissionStatus({ type: 'error', message: result.message || 'Submission failed.' });
       }
@@ -155,264 +237,392 @@ const ReportIssuePage = () => {
     }
   };
 
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-8"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {ISSUE_TYPES.map((type) => (
+                <Card 
+                  key={type.id}
+                  className={cn(
+                    "cursor-pointer transition-all border-2 group hover:shadow-md",
+                    formData.issueType === type.id 
+                      ? "border-green-500 bg-green-50/50" 
+                      : "border-gray-100 hover:border-green-200"
+                  )}
+                  onClick={() => setFormData(prev => ({ ...prev, issueType: type.id }))}
+                >
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <div className={cn(
+                      "p-3 rounded-xl transition-colors",
+                      formData.issueType === type.id ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500 group-hover:bg-green-100 group-hover:text-green-600"
+                    )}>
+                      <type.icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800">{type.label}</h4>
+                      <p className="text-xs text-gray-500 mt-1">{type.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {errors.issueType && <p className="text-red-500 text-sm">{errors.issueType}</p>}
+
+            <div className="space-y-4 pt-4 border-t">
+              <Label className="text-sm font-bold text-gray-700">How urgent is this?</Label>
+              <div className="flex gap-4">
+                {['low', 'medium', 'high'].map((p) => (
+                  <Badge
+                    key={p}
+                    variant={formData.priority === p ? (p === 'high' ? 'destructive' : 'success') : 'outline'}
+                    className={cn(
+                      "px-6 py-2 cursor-pointer capitalize text-sm transition-all",
+                      formData.priority === p ? "scale-105" : "opacity-60 hover:opacity-100"
+                    )}
+                    onClick={() => setFormData(prev => ({ ...prev, priority: p as 'low' | 'medium' | 'high' }))}
+                  >
+                    {p}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        );
+      case 1:
+        return (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <div className="space-y-3">
+              <Label className="text-sm font-bold text-gray-700 flex justify-between">
+                Location
+                <button 
+                  type="button" 
+                  onClick={detectLocation}
+                  disabled={isDetectingLocation}
+                  className="text-green-600 hover:text-green-700 flex items-center gap-1 text-xs"
+                >
+                  {isDetectingLocation ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+                  Detect my location
+                </button>
+              </Label>
+              <div className="relative">
+                <Input
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="Enter address or coordinates..."
+                  className="h-12 pl-10 rounded-xl"
+                />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+              {errors.location && <p className="text-red-500 text-xs">{errors.location}</p>}
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-bold text-gray-700">What happened?</Label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Please describe the issue in detail..."
+                rows={6}
+                className="rounded-2xl resize-none"
+              />
+              {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+            </div>
+          </motion.div>
+        );
+      case 2:
+        return (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={startCamera}
+                className="h-32 flex flex-col gap-2 rounded-2xl border-dashed border-2 hover:bg-green-50 hover:border-green-300"
+              >
+                <Camera className="h-8 w-8 text-green-600" />
+                <span>Take Photo</span>
+              </Button>
+              <Label
+                htmlFor="multi-upload"
+                className="h-32 flex flex-col items-center justify-center gap-2 rounded-2xl border-dashed border-2 border-gray-200 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              >
+                <Upload className="h-8 w-8 text-blue-600" />
+                <span>Upload Photos</span>
+                <Input id="multi-upload" type="file" multiple accept="image/*" className="hidden" onChange={handleFileChange} />
+              </Label>
+            </div>
+
+            <AnimatePresence>
+              {isCameraOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative rounded-3xl overflow-hidden bg-black aspect-[4/3] shadow-2xl"
+                >
+                  <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                  <div className="absolute bottom-6 left-0 w-full flex justify-center gap-4 px-6">
+                    <Button
+                      type="button"
+                      onClick={takePhoto}
+                      className="rounded-full h-16 w-16 bg-white hover:bg-gray-100 flex items-center justify-center"
+                    >
+                      <div className="h-12 w-12 rounded-full border-4 border-green-600"></div>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={stopCamera}
+                      className="rounded-full h-16 w-16 p-0"
+                    >
+                      <X className="h-8 w-8 text-white" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {formData.images.length > 0 && (
+              <div className="grid grid-cols-3 gap-3 mt-4">
+                {formData.images.map((img, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group border shadow-sm">
+                    <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        );
+      case 3:
+        return (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center space-x-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <Checkbox 
+                id="anonymous" 
+                checked={formData.isAnonymous} 
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAnonymous: !!checked }))}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="anonymous"
+                  className="text-sm font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                >
+                  Report Anonymously <EyeOff className="h-4 w-4 text-gray-500" />
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Your identity will not be shared with anyone.
+                </p>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {!formData.isAnonymous && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-gray-700">Full Name</Label>
+                    <Input
+                      value={formData.fullName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="Enter your name"
+                      className="h-12 rounded-xl"
+                    />
+                    {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-gray-700">Email Address</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="you@example.com"
+                      className="h-12 rounded-xl"
+                    />
+                    {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-gray-700">Phone Number (Optional)</Label>
+                    <Input
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="+254..."
+                      className="h-12 rounded-xl"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex gap-3">
+              <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-800 leading-relaxed">
+                By submitting, you agree that the information provided is accurate. 
+                Reports are usually verified and acted upon within 24-48 hours.
+              </p>
+            </div>
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 bg-white/50 backdrop-blur px-4 py-1.5 rounded-full border border-green-200 text-green-700 text-sm font-bold mb-6 shadow-sm"
+          >
+            <AlertTriangle className="h-4 w-4" /> Community Reporting System
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-500 mb-4"
+            className="text-4xl sm:text-5xl font-black text-gray-900 mb-4 tracking-tight"
           >
-            Report an Issue
+            Report an <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500">Issue</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className="text-lg text-gray-600"
           >
-            Help us build a cleaner future. Report collection issues or environmental violations instantly.
+            {currentStep === 0 && "What kind of issue did you observe?"}
+            {currentStep === 1 && "Tell us where and what happened."}
+            {currentStep === 2 && "Visual evidence helps us act faster."}
+            {currentStep === 3 && "Final details before submission."}
           </motion.p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl overflow-hidden p-8 sm:p-12 relative"
-        >
+        {/* Progress */}
+        <div className="mb-10 space-y-4 px-2">
+          <div className="flex justify-between text-xs font-black uppercase tracking-wider text-gray-400">
+            {STEPS.map((step, idx) => (
+              <span key={step} className={cn(idx <= currentStep ? "text-green-600" : "")}>{step}</span>
+            ))}
+          </div>
+          <Progress value={(currentStep / (STEPS.length - 1)) * 100} className="h-1.5" />
+        </div>
+
+        {/* Form Card */}
+        <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-[2.5rem] overflow-hidden p-8 sm:p-10 relative">
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-600"></div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
-            {/* Step 1: Personal Info */}
-            <section className="space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700 font-bold">1</span>
-                <h3 className="text-2xl font-bold text-gray-800">Your Information</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-sm font-bold text-gray-700">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    placeholder="Enter your full name"
-                    className="h-12 border-gray-200 rounded-xl focus:ring-green-500/20"
-                  />
-                  {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-bold text-gray-700">Email Address</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="you@example.com"
-                    className="h-12 border-gray-200 rounded-xl focus:ring-green-500/20"
-                  />
-                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                </div>
-              </div>
-            </section>
-
-            {/* Step 2: Issue Details */}
-            <section className="space-y-6 pt-6 border-t border-gray-100">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold">2</span>
-                <h3 className="text-2xl font-bold text-gray-800">Issue Details</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label className="text-sm font-bold text-gray-700">Issue Type</Label>
-                  <Select
-                    value={formData.issueType}
-                    onValueChange={(val) => setFormData(prev => ({ ...prev, issueType: val }))}
-                  >
-                    <SelectTrigger className="h-12 border-gray-200 rounded-xl">
-                      <SelectValue placeholder="What's happening?" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="waste-collection">Missed Waste Collection</SelectItem>
-                      <SelectItem value="environmental-violation">Environmental Violation</SelectItem>
-                      <SelectItem value="spillage">Spillage/Overflow</SelectItem>
-                      <SelectItem value="general-feedback">General Feedback</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.issueType && <p className="text-red-500 text-xs mt-1">{errors.issueType}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-bold text-gray-700">Location</Label>
-                  <div className="relative">
-                    <Input
-                      id="location"
-                      name="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Address or landmark"
-                      className="h-12 pl-10 border-gray-200 rounded-xl"
-                    />
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-2">
-                <Label className="text-sm font-bold text-gray-700">Detailed Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Tell us more about the issue..."
-                  rows={4}
-                  className="border-gray-200 rounded-2xl resize-none"
-                />
-                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-              </div>
-            </section>
-
-            {/* Step 3: Evidence */}
-            <section className="space-y-6 pt-6 border-t border-gray-100">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">3</span>
-                <h3 className="text-2xl font-bold text-gray-800">Visual Evidence</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {!capturedImage && !formData.imageFile && !isCameraOpen && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={startCamera}
-                      className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-green-200 rounded-3xl hover:bg-green-50 hover:border-green-300 transition-all group"
-                    >
-                      <Camera className="h-10 w-10 text-green-500 mb-3 group-hover:scale-110 transition-transform" />
-                      <span className="font-bold text-green-700">Capture Live Photo</span>
-                      <span className="text-xs text-green-600/60 mt-1">Directly from camera</span>
-                    </button>
-
-                    <Label
-                      htmlFor="imageUpload"
-                      className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-blue-200 rounded-3xl hover:bg-blue-50 hover:border-blue-300 transition-all group cursor-pointer"
-                    >
-                      <Upload className="h-10 w-10 text-blue-500 mb-3 group-hover:scale-110 transition-transform" />
-                      <span className="font-bold text-blue-700">Upload from Gallery</span>
-                      <span className="text-xs text-blue-600/60 mt-1">Max 5MB (JPG, PNG)</span>
-                      <Input
-                        id="imageUpload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileChange}
-                      />
-                    </Label>
-                  </>
-                )}
-
-                <AnimatePresence>
-                  {isCameraOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="col-span-full relative rounded-3xl overflow-hidden bg-black aspect-video"
-                    >
-                      <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                      <div className="absolute bottom-6 left-0 w-full flex justify-center gap-4 px-6">
-                        <Button
-                          type="button"
-                          onClick={takePhoto}
-                          className="rounded-full h-16 w-16 bg-white hover:bg-gray-100 flex items-center justify-center shadow-2xl"
-                        >
-                          <div className="h-12 w-12 rounded-full border-4 border-green-600"></div>
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          onClick={() => { stopCamera(); setIsCameraOpen(false); }}
-                          className="rounded-full h-16 w-16 p-0"
-                        >
-                          <X className="h-8 w-8 text-white" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {(capturedImage || formData.imageFile) && (
-                  <div className="col-span-full relative rounded-3xl overflow-hidden shadow-lg border border-gray-100 group">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={capturedImage || (formData.imageFile ? URL.createObjectURL(formData.imageFile) : '')}
-                      alt="Preview"
-                      className="w-full max-h-96 object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        className="rounded-full px-6 flex items-center gap-2"
-                        onClick={() => { setCapturedImage(null); setFormData(prev => ({ ...prev, imageFile: null })); }}
-                      >
-                        <Trash2 className="h-5 w-5" /> Remove & Retake
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Submit */}
-            <div className="pt-6">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className={cn(
-                  "w-full h-16 rounded-2xl text-xl font-black bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-2xl shadow-green-600/30 transition-all",
-                  isSubmitting && "opacity-80 scale-[0.98]"
-                )}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-3">
-                    <RefreshCw className="h-6 w-6 animate-spin" />
-                    Submitting Report...
-                  </div>
-                ) : (
-                  "Finalize & Submit Report"
-                )}
-              </Button>
-
-              <AnimatePresence>
-                {submissionStatus.message && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    role="alert"
-                    className={cn(
-                      "mt-6 p-4 rounded-xl flex items-center gap-3 border",
-                      submissionStatus.type === 'success'
-                        ? "bg-green-50 border-green-200 text-green-800"
-                        : "bg-red-50 border-red-200 text-red-800"
-                    )}
-                  >
-                    {submissionStatus.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                    <p className="font-bold">{submissionStatus.message}</p>
-                  </motion.div>
-                )}
+          <form onSubmit={handleSubmit} className="min-h-[400px] flex flex-col">
+            <div className="flex-grow">
+              <AnimatePresence mode="wait">
+                {renderStep()}
               </AnimatePresence>
             </div>
-          </form>
-        </motion.div>
 
-        <p className="mt-8 text-center text-gray-500 text-sm">
-          Green Loop Smart Systems &copy; 2026 | All reports are verified within 24 hours.
-        </p>
+            {/* Navigation */}
+            <div className="pt-10 flex gap-4">
+              {currentStep > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                  className="h-14 px-8 rounded-2xl font-bold border-2"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-2" /> Back
+                </Button>
+              )}
+              
+              {currentStep < STEPS.length - 1 ? (
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex-grow h-14 rounded-2xl text-lg font-black bg-gray-900 hover:bg-black text-white shadow-xl transition-all"
+                >
+                  Continue <ArrowRight className="h-5 w-5 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-grow h-14 rounded-2xl text-lg font-black bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl shadow-green-600/20 transition-all"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-3">
+                      <RefreshCw className="h-5 w-5 animate-spin" /> Submitting...
+                    </div>
+                  ) : (
+                    "Submit Report"
+                  )}
+                </Button>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {submissionStatus.message && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn(
+                    "mt-8 p-4 rounded-2xl flex items-center gap-3 border shadow-sm",
+                    submissionStatus.type === 'success' ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800"
+                  )}
+                >
+                  {submissionStatus.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                  <p className="font-bold text-sm">{submissionStatus.message}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center space-y-4">
+          <p className="text-gray-400 text-sm">
+            Need immediate assistance? Call <span className="text-gray-900 font-bold">0800 123 456</span>
+          </p>
+          <div className="flex justify-center gap-6">
+            <span className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+              <ShieldCheck className="h-3 w-3" /> Secure Transmission
+            </span>
+            <span className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+              <EyeOff className="h-3 w-3" /> Privacy Guaranteed
+            </span>
+          </div>
+        </div>
       </div>
       <canvas ref={canvasRef} className="hidden" />
     </div>

@@ -1,7 +1,10 @@
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import SidebarNav from "@/components/dashboard/sidebar-nav";
+import { TopNav } from "@/components/dashboard/top-nav";
 import AuthStatusWrapper from "@/components/layout/auth-status-wrapper";
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const session = await getSession();
@@ -18,10 +21,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (session.user.role === "USER") {
         return (
             <AuthStatusWrapper>
-                <div className="flex min-h-screen bg-slate-50">
+                <div className="flex min-h-screen bg-background text-foreground transition-colors">
                     <SidebarNav />
-                    <div className="flex-1 pl-60 min-w-0">
-                        {children}
+                    <div className="flex-1 pl-64 min-w-0 flex flex-col">
+                        <TopNav />
+                        <main className="flex-1">
+                            {children}
+                        </main>
                     </div>
                 </div>
             </AuthStatusWrapper>

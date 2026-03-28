@@ -1,7 +1,6 @@
 {
   "projects": {
-    "default": "green-loop-c9b5f",
-    "staging": "green-loop-c9b5f"
+    "default": "green-loop-26"
   },
   "targets": {},
   "etags": {}

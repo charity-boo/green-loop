@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-provider";
+import { cn } from "@/lib/utils";
 
 import {
   DropdownMenu,
@@ -10,16 +14,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import RegisterDialog from "@/components/features/auth/register-dialog"; // ✅ Ensure this file exists
+import RegisterDialog from "@/components/features/auth/register-dialog";
+import { ProfileDropdown } from "@/components/dashboard/profile-dropdown";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const GreenLoopNavBar = () => {
+  const router = useRouter();
   const { user, role, status, signOut } = useAuth();
   const isLoading = status === "loading";
   const isAdmin = role === "ADMIN";
+  const isCollector = role === "COLLECTOR";
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // States for hover dropdowns
+  const [learningOpen, setLearningOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <nav className="relative z-50 font-sans">
+    <nav className="sticky top-0 z-50 font-sans w-full transition-all">
       {/* --- Top Bar --- */}
       <div className="bg-green-800 text-white text-xs hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-end space-x-6">
@@ -30,136 +51,107 @@ const GreenLoopNavBar = () => {
             Community Stories
           </Link>
           <Link href="/events-drives" className="hover:text-yellow-400 transition-colors">
-            Events & Drives
+            Events &amp; Drives
           </Link>
           <Link href="/challenges" className="hover:text-yellow-400 transition-colors">
             Challenges
           </Link>
-          <Link href="/faqs" className="hover:text-yellow-400 transition-colors">
-            FAQs
-          </Link>
-          <div className="border-l border-white/50 pl-6 flex items-center">
-            <span className="font-bold">Hotline: 0800 123 456</span>
-          </div>
         </div>
       </div>
 
-      {/* --- Main Navbar --- */}
-      <div className="bg-white shadow-md">
+      {/* --- Main Navbar (with professional glassmorphism) --- */}
+      <div 
+        className={cn(
+          "transition-all duration-300 border-b",
+          isScrolled 
+            ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-sm border-slate-200/50 dark:border-slate-800/50 py-2" 
+            : "bg-white dark:bg-slate-950 border-transparent py-4"
+        )}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16">
             {/* ✅ Logo */}
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 group">
               <Image
                 src="/images/logo.png"
                 alt="Green Loop Logo"
-                width={50}
-                height={50}
-                className="rounded-full shadow-md"
+                width={44}
+                height={44}
+                className="rounded-full shadow-md group-hover:scale-105 transition-transform"
               />
-              <span className="text-green-900 font-bold text-lg">Green Loop</span>
-            </div>
+              <span className="text-green-900 dark:text-green-400 font-extrabold text-xl tracking-tight">Green Loop</span>
+            </Link>
 
             {/* ✅ Desktop Menu */}
-            <div className="hidden lg:flex items-center space-x-6">
-              <Link href="/" className="text-gray-700 hover:text-green-700 font-medium transition">
+            <div className="hidden lg:flex items-center space-x-2">
+              <Link href="/" className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
                 Home
               </Link>
 
-              <Link href="/services" className="text-gray-700 hover:text-green-700 font-medium transition">
+              <Link href="/services" className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
                 Our Services
               </Link>
 
-              {/* About Us Dropdown (No changes needed, already comprehensive) */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center text-gray-700 hover:text-green-700">
-                    About Us
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white shadow-lg border rounded-md p-1">
-                  <DropdownMenuItem asChild>
-                    <Link href="/about-us">Who We Are</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/service-areas" className="hover:text-green-600">Service Areas</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/about-us/methodology">Methodology</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/about-us/technology-innovation">Technology & Innovation</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/about-us/partnerships">Partnerships</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/about-us/safety-compliance">Safety & Compliance</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Link href="/about-us" className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
+                About Us
+              </Link>
 
-              {/* Learning Hub Dropdown (Updated Links) */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-gray-700 hover:text-green-700">
-                    Learning Hub
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white shadow-lg border rounded-md p-1">
-                  <DropdownMenuItem asChild>
-                    <Link href="/learning-hub/guides">Recycling Guides</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/learning-hub/videos">Educational Videos</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/learning-hub/waste-types">Waste Classification</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/learning-hub/faqs">FAQs</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Link href="/learning-hub" className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
+                Learning Hub
+              </Link>
 
-              {/* Join the Movement Dropdown (Updated Links) */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-gray-700 hover:text-green-700">
-                    Join the Movement
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white shadow-lg border rounded-md p-1">
-                  <DropdownMenuItem asChild>
-                    <Link href="/community/volunteer">Volunteer</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/community/sponsorship">Sponsor a Project</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/community/careers">Careers at Green Loop</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/community/partnerships">Partnerships</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Join the Movement Dropdown (Hover to open, Click to navigate) */}
+              <div 
+                className="relative"
+                onMouseEnter={() => setJoinOpen(true)}
+                onMouseLeave={() => setJoinOpen(false)}
+              >
+                <DropdownMenu open={joinOpen} onOpenChange={setJoinOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 focus-visible:ring-0"
+                      onClick={() => router.push("/community")}
+                    >
+                      Join the Movement
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="start" 
+                    className="w-56 bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 rounded-xl p-1 animate-in fade-in zoom-in duration-200"
+                    onMouseEnter={() => setJoinOpen(true)}
+                  >
+                    <DropdownMenuItem asChild>
+                      <Link href="/community/volunteer" className="rounded-lg">Volunteer</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/community/sponsorship" className="rounded-lg">Sponsor a Project</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/community/careers" className="rounded-lg">Careers at Green Loop</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/community/partnerships" className="rounded-lg">Partnerships</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
-              {/* Admin link — only visible to admin users */}
-              {isLoading ? null : isAdmin && (
-                <Link href="/admin" className="text-gray-700 hover:text-green-700 font-medium transition">
-                  Admin
-                </Link>
-              )}
-
-              <Link href="/contact" className="text-gray-700 hover:text-green-700 font-medium transition">
+              <Link href="/contact" className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
                 Contact Us
               </Link>
 
-              {/* ✅ Register Button */}
-              <div className="ml-4">
+              {isAdmin && (
+                <Link href="/admin/dashboard" className="px-3 py-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 transition-colors border-l pl-4 border-slate-200 dark:border-slate-800">
+                  Admin Panel
+                </Link>
+              )}
+
+              {/* ✅ Auth Section */}
+              <div className="ml-4 flex items-center gap-3 border-l pl-4 border-slate-200 dark:border-slate-800">
+                <ThemeToggle />
                 {user ? (
-                  <Button onClick={() => signOut()}>Sign Out</Button>
+                  <ProfileDropdown variant={(role?.toLowerCase() as 'user' | 'admin' | 'collector') || 'user'} />
                 ) : (
                   <RegisterDialog />
                 )}
@@ -167,10 +159,11 @@ const GreenLoopNavBar = () => {
             </div>
 
             {/* ✅ Mobile Menu Button */}
-            <div className="lg:hidden">
+            <div className="lg:hidden flex items-center gap-2">
+              <ThemeToggle />
               <button
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
-                className="p-2 text-gray-700 hover:text-green-700"
+                className="p-2 text-slate-700 dark:text-slate-300 hover:text-green-700 dark:hover:text-green-400 rounded-lg transition-colors"
               >
                 {isMobileOpen ? (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,63 +179,46 @@ const GreenLoopNavBar = () => {
           </div>
         </div>
 
-        {/* ✅ Mobile Dropdown Menu (Updated for consistency) */}
+        {/* ✅ Mobile Dropdown Menu (Professional Glass Look) */}
         {isMobileOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-200 shadow-md">
-            <div className="flex flex-col p-4 space-y-3">
-              <Link href="/" onClick={() => setIsMobileOpen(false)} className="text-gray-700 hover:text-green-700">
+          <div className="lg:hidden bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 shadow-2xl max-h-[calc(100vh-100px)] overflow-y-auto">
+            <div className="flex flex-col p-6 space-y-4">
+              <Link href="/" onClick={() => setIsMobileOpen(false)} className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Home
               </Link>
 
-              <Link href="/services" onClick={() => setIsMobileOpen(false)} className="text-gray-700 hover:text-green-700">
+              <Link href="/services" onClick={() => setIsMobileOpen(false)} className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Our Services
               </Link>
 
-              {/* Mobile About Us Links */}
-              <div className="flex flex-col space-y-1 border-b pb-2">
-                <span className="text-green-700 font-bold">About Us</span>
-                <Link href="/about-us" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Who We Are</Link>
-                <Link href="/service-areas" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Service Areas</Link>
-                <Link href="/about-us/methodology" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Methodology</Link>
-                <Link href="/about-us/technology-innovation" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Technology & Innovation</Link>
-                <Link href="/about-us/partnerships" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Partnerships</Link>
-                <Link href="/about-us/safety-compliance" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Safety & Compliance</Link>
-              </div>
+              <Link href="/about-us" onClick={() => setIsMobileOpen(false)} className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                About Us
+              </Link>
 
-              {/* Mobile Learning Hub Links */}
-              <div className="flex flex-col space-y-1 border-b pb-2">
-                <span className="text-green-700 font-bold">Learning Hub</span>
-                <Link href="/learning-hub/guides" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Recycling Guides</Link>
-                <Link href="/learning-hub/videos" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Educational Videos</Link>
-                <Link href="/learning-hub/waste-types" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Waste Classification</Link>
-                <Link href="/learning-hub/faqs" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">FAQs</Link>
-              </div>
+              <Link href="/learning-hub" onClick={() => setIsMobileOpen(false)} className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Learning Hub
+              </Link>
 
-              {/* Mobile Join the Movement Links */}
-              <div className="flex flex-col space-y-1 border-b pb-2">
-                <span className="text-green-700 font-bold">Join the Movement</span>
-                <Link href="/community/volunteer" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Volunteer</Link>
-                <Link href="/community/sponsorship" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Sponsor a Project</Link>
-                <Link href="/community/careers" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Careers at Green Loop</Link>
-                <Link href="/community/partnerships" onClick={() => setIsMobileOpen(false)} className="text-gray-600 hover:text-green-700 pl-4">Partnerships</Link>
-              </div>
-
-              {/* Mobile Admin link — only visible to admin users */}
-              {!isLoading && isAdmin && (
-                <Link href="/admin" onClick={() => setIsMobileOpen(false)} className="text-green-700 font-bold hover:text-green-900">
-                  Admin
-                </Link>
-              )}
-
-              <Link href="/contact" onClick={() => setIsMobileOpen(false)} className="text-gray-700 hover:text-green-700">
+              <Link href="/contact" onClick={() => setIsMobileOpen(false)} className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Contact Us
               </Link>
 
-              <div className="w-full pt-2">
+              <div className="w-full pt-4 border-t dark:border-slate-800 mt-2">
                 {user ? (
-                  <Button onClick={() => signOut()}>Sign Out</Button>
+                  <div className="flex flex-col gap-4">
+                    <Link 
+                      href={isAdmin ? "/admin/dashboard" : isCollector ? "/dashboard/collector" : "/dashboard"} 
+                      onClick={() => setIsMobileOpen(false)}
+                      className="text-green-700 dark:text-green-400 font-bold"
+                    >
+                      {isAdmin ? "Go to Admin Dashboard" : isCollector ? "Go to Collector Dashboard" : "Go to Dashboard"}
+                    </Link>
+                    <Button variant="outline" onClick={() => { signOut(); setIsMobileOpen(false); }}>Sign Out</Button>
+                  </div>
                 ) : (
-                  <RegisterDialog />
+                  <div className="flex flex-col gap-3">
+                    <RegisterDialog />
+                  </div>
                 )}
               </div>
             </div>

@@ -1,11 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
-import {
-  loadClassificationModel,
-  classifyTensorAndNotify,
-  ClassificationResult,
-} from '../lib/ai/classification-service';
+import { useState, useCallback } from 'react';
+import { ClassificationResult } from '../lib/ai/gemini';
 import { uploadImageAndGetURL } from '../lib/storage/image-service';
-import { imageToTensor } from '../lib/ai/image-to-tensor';
+import { addNotification } from '../lib/firebase/notifications';
 import { AppUser } from '@/types';
 
 interface WasteClassificationState {
@@ -20,7 +16,7 @@ interface WasteClassificationState {
 
 /**
  * A hook to manage the entire waste classification process, from upload to notification.
- * It's designed to be cross-platform.
+ * Uses the Gemini Vision API via the server-side /api/waste/classify route.
  * @param user - The user object, containing id and role.
  */
 export const useWasteClassification = (user: Pick<AppUser, 'id' | 'role'>) => {
@@ -30,20 +26,6 @@ export const useWasteClassification = (user: Pick<AppUser, 'id' | 'role'>) => {
     result: null,
     progress: { status: 'idle', value: 0 },
   });
-
-  // Pre-load the model when the hook is first used.
-  useEffect(() => {
-    setState((s) => ({ ...s, progress: { status: 'loading_model', value: 0 } }));
-    loadClassificationModel((p) => {
-      setState((s) => ({ ...s, progress: { status: 'loading_model', value: p } }));
-    })
-      .then(() => {
-        setState((s) => ({ ...s, progress: { status: 'idle', value: 0 } }));
-      })
-      .catch((error) => {
-        setState((s) => ({ ...s, error, loading: false }));
-      });
-  }, []);
 
   const classifyImage = useCallback(
     async (image: Blob | string) => {
@@ -60,30 +42,37 @@ export const useWasteClassification = (user: Pick<AppUser, 'id' | 'role'>) => {
       });
 
       try {
-        // 1. Upload image
+        // 1. Upload image and get a URL
         setState((s) => ({ ...s, progress: { status: 'uploading', value: 0 } }));
-        // The bundler will pick the correct platform-specific version of the service.
-        // For web, `image` is a Blob. For native, `image` is a URI string.
         // @ts-expect-error - We accept Blob or string, but the service is specific.
-        const _imageURL = await uploadImageAndGetURL(image, user.id, (p) => {
+        const imageURL = await uploadImageAndGetURL(image, user.id, (p: number) => {
           setState((s) => ({ ...s, progress: { status: 'uploading', value: p } }));
         });
 
-        // 2. Convert to tensor
-        setState((s) => ({ ...s, progress: { status: 'processing', value: 0 } }));
-        // @ts-expect-error - imageToTensor accepts platform-specific input types
-        const tensor = await imageToTensor(image);
-        setState((s) => ({ ...s, progress: { status: 'processing', value: 1 } }));
+        // 2. Classify via Gemini API
+        setState((s) => ({ ...s, progress: { status: 'classifying', value: 0.5 } }));
+        const res = await fetch('/api/waste/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: imageURL }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error((err as { error?: string }).error || 'AI classification failed');
+        }
+        const classificationResult: ClassificationResult = await res.json();
+        setState((s) => ({ ...s, progress: { status: 'classifying', value: 1 } }));
 
-        // 3. Classify and notify
-        const classificationResult = await classifyTensorAndNotify(
-          tensor,
-          user.id,
-          user.role as 'USER' | 'ADMIN' | 'COLLECTOR',
-          (status, value) => {
-            setState((s) => ({ ...s, progress: { status, value } }));
-          }
-        );
+        // 3. Send notification
+        setState((s) => ({ ...s, progress: { status: 'notifying', value: 0.5 } }));
+        await addNotification({
+          userId: user.id,
+          role: user.role as 'USER' | 'ADMIN' | 'COLLECTOR',
+          title: 'AI Waste Suggestion',
+          message: `We think your waste is '${classificationResult.wasteCategory}' with ${Math.round(classificationResult.probability * 100)}% confidence. Please confirm.`,
+          type: 'AI-suggestion',
+          status: 'unread',
+        });
 
         // 4. Done
         setState({
@@ -92,8 +81,6 @@ export const useWasteClassification = (user: Pick<AppUser, 'id' | 'role'>) => {
           result: classificationResult,
           progress: { status: 'completed', value: 1 },
         });
-
-        tensor.dispose(); // Clean up tensor memory
       } catch (err) {
         setState({
           loading: false,

@@ -13,6 +13,7 @@ interface WasteDetailsFormProps {
     aiConfidence?: number;
     classificationSource?: "manual" | "ai-assisted";
     aiPhotoUsed?: boolean;
+    disposalTips?: string;
   };
   onSubmit: (details: {
     type: string;
@@ -20,6 +21,7 @@ interface WasteDetailsFormProps {
     aiConfidence?: number;
     classificationSource: "manual" | "ai-assisted";
     aiPhotoUsed?: boolean;
+    disposalTips?: string;
   }) => void;
   onCancel: () => void;
 }
@@ -44,6 +46,7 @@ export default function WasteDetailsForm({ initialWasteDetails, onSubmit, onCanc
     initialWasteDetails.classificationSource || "manual"
   );
   const [aiPhotoUsed, setAiPhotoUsed] = useState(initialWasteDetails.aiPhotoUsed);
+  const [disposalTips, setDisposalTips] = useState(initialWasteDetails.disposalTips);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,15 +61,17 @@ export default function WasteDetailsForm({ initialWasteDetails, onSubmit, onCanc
       aiConfidence,
       classificationSource,
       aiPhotoUsed,
+      disposalTips,
     });
   };
 
-  const handleAiAccept = (confirmedType: string, aiType: string, confidence: number, photoUsed: boolean) => {
+  const handleAiAccept = (confirmedType: string, aiType: string, confidence: number, photoUsed: boolean, tips: string) => {
     setSelectedWasteType(confirmedType);
     setAiSuggestedType(aiType);
     setAiConfidence(confidence);
     setClassificationSource("ai-assisted");
     setAiPhotoUsed(photoUsed);
+    setDisposalTips(tips);
     setIsAiModalOpen(false);
   };
 
@@ -74,6 +79,7 @@ export default function WasteDetailsForm({ initialWasteDetails, onSubmit, onCanc
     setAiSuggestedType(undefined);
     setAiConfidence(undefined);
     setClassificationSource("manual");
+    setDisposalTips(undefined);
     setIsAiModalOpen(false);
   };
 

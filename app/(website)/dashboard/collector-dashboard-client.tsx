@@ -11,560 +11,261 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
     ClipboardList, Map, History, AlertTriangle, TrendingUp,
-    Scale, User, Bell, WifiOff, Loader2,
-    CheckCircle2, MapPin, Send, Wifi, Package, LogOut
+    Scale, Bell, WifiOff, Loader2,
+    CheckCircle2, MapPin, Send, Wifi, ArrowRight,
+    Navigation, Activity, Crosshair
 } from 'lucide-react';
+import MissionControlHeader from '@/components/dashboard/collector/mission-control-header';
+import TacticalMap from '@/components/dashboard/collector/tactical-map';
+import MissionQueue from '@/components/dashboard/collector/mission-queue';
 
-type SidebarView = 'tasks' | 'map' | 'history' | 'issues' | 'earnings';
+type SidebarView = 'hud' | 'history' | 'issues' | 'earnings';
 
 const navItems: { id: SidebarView; label: string; icon: React.ComponentType<{ size?: number; className?: string }>; desc: string }[] = [
-    { id: 'tasks',    label: 'Active Tasks',       icon: ClipboardList,  desc: 'Assigned pickups'   },
-    { id: 'map',      label: 'Route Map',           icon: Map,            desc: 'Collection points'  },
-    { id: 'history',  label: 'Collection History',  icon: History,        desc: 'Completed pickups'  },
-    { id: 'issues',   label: 'Issues / Alerts',     icon: AlertTriangle,  desc: 'Report problems'    },
-    { id: 'earnings', label: 'Earnings',            icon: TrendingUp,     desc: 'Incentives & rewards'},
-];
-
-const collectionPoints = [
-    { name: 'Ndagani Main Point',    status: 'Active',     tasks: 3 },
-    { name: 'Muongoni Collection',   status: 'Scheduled',  tasks: 0 },
-    { name: 'Near Chuka University', status: 'Active',     tasks: 2 },
-    { name: 'Sector 4-B Central',    status: 'Idle',       tasks: 0 },
+    { id: 'hud',      label: 'Mission Control',     icon: Crosshair,      desc: 'Tactical HUD & Navigation' },
+    { id: 'history',  label: 'Ops History',         icon: History,        desc: 'Completed sorties'  },
+    { id: 'issues',   label: 'Incident Reports',    icon: AlertTriangle,  desc: 'Report field issues'    },
+    { id: 'earnings', label: 'Incentives',          icon: TrendingUp,     desc: 'Performance rewards'},
 ];
 
 export default function CollectorDashboard() {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const router = useRouter();
     const { tasks, loading, isOffline } = useCollectorTasks(user?.uid || '');
 
-    const [activeView, setActiveView]       = useState<SidebarView>('tasks');
-    const [issueType, setIssueType]         = useState('overflow');
-    const [issueDesc, setIssueDesc]         = useState('');
-    const [reportSent, setReportSent]       = useState(false);
-    const [weightInput, setWeightInput]     = useState('');
-    const [selectedTaskId, setSelectedTaskId] = useState('');
-    const [isSigningOut, setIsSigningOut]   = useState(false);
+    const [activeView, setActiveView] = useState<SidebarView>('hud');
+    const [issueType, setIssueType] = useState('overflow');
+    const [issueDesc, setIssueDesc] = useState('');
+    const [reportSent, setReportSent] = useState(false);
 
-    const handleSignOut = async () => {
-        setIsSigningOut(true);
-        try {
-            await logout();
-            router.push('/auth/login');
-        } catch (error) {
-            console.error('Logout failed:', error);
-        } finally {
-            setIsSigningOut(false);
-        }
-    };
+    const activeTasks = useMemo(() => tasks.filter(t => t.status !== 'completed'), [tasks]);
+    const completedTasks = useMemo(() => tasks.filter(t => t.status === 'completed'), [tasks]);
+    const activeJob = useMemo(() => tasks.find(t => t.status === 'active' || t.status === 'collected'), [tasks]);
 
-    const activeTasks    = useMemo(() => tasks.filter(t => t.status !== 'completed'), [tasks]);
-    const completedTasks = useMemo(() => tasks.filter(t => t.status === 'completed'),  [tasks]);
-    const activeJob      = useMemo(() => tasks.find(t => t.status === 'active' || t.status === 'collected'), [tasks]);
-
-    const totalWeight    = completedTasks.reduce((acc, t) => acc + (t.weight ?? 0), 0);
+    const totalWeight = completedTasks.reduce((acc, t) => acc + (t.weight ?? 0), 0);
     const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-[#f0f4f0] dark:bg-[#011a14] font-outfit">
+            <div className="flex h-screen items-center justify-center bg-muted/50 font-outfit">
                 <div className="flex flex-col items-center gap-6">
-                    <div className="relative">
-                        <Loader2 className="w-14 h-14 animate-spin text-[#10b981]" />
-                        <motion.div
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2] }}
-                            transition={{ repeat: Infinity, duration: 2 }}
-                            className="absolute inset-0 bg-[#10b981] blur-3xl rounded-full"
-                        />
-                    </div>
-                    <p className="text-[#10b981] font-black text-xs tracking-[0.35em] uppercase animate-pulse">Initializing Field-Ops...</p>
+                    <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+                    <p className="text-emerald-900 font-black text-xs tracking-widest uppercase">Initializing Ops...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#f0f4f0] dark:bg-[#011a14] font-outfit text-slate-900 dark:text-white">
+        <div className="min-h-screen bg-muted/50 font-outfit pb-20 lg:pb-12">
+            
+            <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8 space-y-8">
+                
+                {/* ── Tier 1: Mission Status ── */}
+                <MissionControlHeader 
+                    collectorName={user?.displayName || "Agent"}
+                    collectorZone="Ndagani"
+                    totalWeight={totalWeight}
+                    completionRate={completionRate}
+                    activeTasks={activeTasks.length}
+                    completedTasksCount={completedTasks.length}
+                />
 
-            {/* ── HEADER ── */}
-            <header className="sticky top-0 z-40 bg-white/85 dark:bg-[#011a14]/92 backdrop-blur-2xl border-b border-slate-200 dark:border-emerald-900/20">
-                <div className="flex items-center justify-between px-4 lg:px-6 h-15 py-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-[#10b981] flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                            <Package className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-base font-black uppercase tracking-tighter leading-none">
-                                Ndagani<span className="text-[#10b981]">.Ops</span>
-                            </h1>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                                <span className="text-[9px] font-black text-slate-400 dark:text-emerald-100/40 uppercase tracking-[0.2em]">Zone 4-B Active</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {isOffline ? (
-                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-wide">
-                                <WifiOff size={11} /> Offline
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wide">
-                                <Wifi size={11} /> Live
-                            </span>
-                        )}
-                        <button className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/20 transition-colors">
-                            <Bell className="w-5 h-5 text-slate-400 dark:text-emerald-100/40" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#011a14]" />
-                        </button>
-                        <button className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-emerald-900/20 transition-colors">
-                            <User className="w-5 h-5 text-slate-400 dark:text-emerald-100/40" />
-                        </button>
-                        <button 
-                            onClick={handleSignOut}
-                            disabled={isSigningOut}
-                            className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Sign Out"
-                        >
-                            {isSigningOut ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <LogOut className="w-5 h-5" />
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            {/* ── 3-COLUMN BODY ── */}
-            <div className="flex min-h-[calc(100vh-3.75rem)]">
-
-                {/* ── LEFT SIDEBAR ── */}
-                <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 border-r border-slate-200 dark:border-emerald-900/20 bg-white dark:bg-[#022c22]/50 sticky top-[3.75rem] h-[calc(100vh-3.75rem)] overflow-y-auto pt-5 pb-6">
-                    <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.25em] px-5 mb-3">Navigation</p>
-                    <nav className="flex flex-col gap-0.5 px-3">
-                        {navItems.map(({ id, label, icon: Icon, desc }) => (
-                            <button
-                                key={id}
-                                onClick={() => setActiveView(id)}
-                                className={cn(
-                                    'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group',
-                                    activeView === id
-                                        ? 'bg-[#10b981] text-white shadow-lg shadow-emerald-500/20'
-                                        : 'hover:bg-slate-50 dark:hover:bg-emerald-900/20 text-slate-600 dark:text-emerald-100/60'
-                                )}
-                            >
-                                <Icon
-                                    size={15}
-                                    className={activeView === id
-                                        ? 'text-white'
-                                        : 'text-slate-400 dark:text-emerald-100/40 group-hover:text-[#10b981] transition-colors'}
-                                />
-                                <div className="min-w-0">
-                                    <p className={cn('text-xs font-black leading-none truncate', activeView === id ? 'text-white' : '')}>{label}</p>
-                                    <p className={cn('text-[10px] mt-0.5 font-medium', activeView === id ? 'text-white/70' : 'text-slate-400 dark:text-emerald-100/30')}>{desc}</p>
-                                </div>
-                                {id === 'tasks' && activeTasks.length > 0 && (
-                                    <span className={cn('ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0',
-                                        activeView === id ? 'bg-white/25 text-white' : 'bg-emerald-100 dark:bg-emerald-900/40 text-[#10b981]')}>
-                                        {activeTasks.length}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    {/* ── Tier 2: Sidebar (Navigation & Quick Actions) ── */}
+                    <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-8">
+                        
+                        {/* Live Status Widget */}
+                        <div className="bg-card rounded-[2rem] p-6 shadow-sm border border-border">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">System Status</h3>
+                                {isOffline ? (
+                                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase">
+                                        <WifiOff size={12} /> Offline
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase">
+                                        <Wifi size={12} /> Live Sync
                                     </span>
                                 )}
-                                {id === 'issues' && (
-                                    <span className={cn('ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0',
-                                        activeView === id ? 'bg-white/25 text-white' : 'bg-red-100 dark:bg-red-900/20 text-red-500')}>!</span>
-                                )}
-                            </button>
-                        ))}
-                    </nav>
-
-                    {/* Zone info */}
-                    <div className="mt-auto px-4 pt-4">
-                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-emerald-900/20 border border-slate-100 dark:border-emerald-800/20">
-                            <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-widest mb-1.5">Assigned Zone</p>
-                            <p className="text-sm font-black text-slate-900 dark:text-white">Ndagani</p>
-                            <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium mt-0.5">Muongoni Collection Pt.</p>
-                        </div>
-                    </div>
-                </aside>
-
-                {/* ── CENTER CONTENT ── */}
-                <main className="flex-1 min-w-0 p-4 lg:p-6 pb-28 lg:pb-8">
-
-                    {/* Metric cards */}
-                    <div className="grid grid-cols-3 gap-3 mb-5">
-                        {[
-                            { label: 'Assigned Jobs', value: activeTasks.length.toString(),    sub: 'Remaining today',    color: 'text-amber-500',    bg: 'bg-amber-50 dark:bg-amber-900/20',       icon: ClipboardList },
-                            { label: 'Total Weight',  value: `${totalWeight.toFixed(1)}kg`,    sub: 'Collected today',    color: 'text-[#10b981]',    bg: 'bg-emerald-50 dark:bg-emerald-900/20',   icon: Scale         },
-                            { label: 'Completion',    value: `${completionRate}%`,             sub: 'Task success rate',  color: 'text-blue-500',     bg: 'bg-blue-50 dark:bg-blue-900/20',         icon: CheckCircle2  },
-                        ].map((stat, i) => (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.07 }}
-                                className="bg-white dark:bg-[#022c22]/60 rounded-2xl p-3.5 border border-slate-100 dark:border-emerald-800/10 shadow-sm hover:shadow-md transition-shadow"
-                            >
-                                <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center mb-2.5', stat.bg)}>
-                                    <stat.icon size={15} className={stat.color} />
-                                </div>
-                                <p className="text-xl font-black text-slate-900 dark:text-white leading-none">{stat.value}</p>
-                                <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.15em] mt-1 leading-tight">{stat.label}</p>
-                                <p className="text-[10px] text-slate-400 dark:text-emerald-100/20 mt-0.5 font-medium hidden sm:block">{stat.sub}</p>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* Content panel */}
-                    <div className="bg-white dark:bg-[#022c22]/60 rounded-3xl border border-slate-100 dark:border-emerald-800/10 shadow-sm overflow-hidden">
-                        {/* Panel header */}
-                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-emerald-800/10 bg-slate-50/50 dark:bg-emerald-900/5">
-                            {(() => {
-                                const item = navItems.find(n => n.id === activeView)!;
-                                const Icon = item.icon;
-                                return (
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-xl bg-[#10b981]/10 flex items-center justify-center">
-                                            <Icon size={14} className="text-[#10b981]" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{item.label}</h2>
-                                            <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium">{item.desc}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                            {activeView === 'tasks' && (
-                                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#10b981]/10 text-[#10b981] rounded-full text-[9px] font-black tracking-widest uppercase">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                                    Live Queue
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Panel body */}
-                        <div className="p-5">
-                            <AnimatePresence mode="wait">
-
-                                {/* ACTIVE TASKS */}
-                                {activeView === 'tasks' && (
-                                    <motion.div 
-                                        key="tasks" 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        animate={{ opacity: 1, x: 0 }} 
-                                        exit={{ opacity: 0, x: 10 }}
-                                    >
-                                        <TaskTable tasks={activeTasks} />
-                                    </motion.div>
-                                )}
-
-                                {/* ROUTE MAP */}
-                                {activeView === 'map' && (
-                                    <motion.div 
-                                        key="map" 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        animate={{ opacity: 1, x: 0 }} 
-                                        exit={{ opacity: 0, x: 10 }} 
-                                        className="space-y-4"
-                                    >
-                                        <div className="rounded-2xl overflow-hidden border border-slate-100 dark:border-emerald-800/20 h-64 relative">
-                                            <iframe
-                                                title="Ndagani Collection Map"
-                                                src="https://maps.google.com/maps?q=Ndagani,Chuka,Kenya&t=&z=14&ie=UTF8&iwloc=&output=embed"
-                                                className="w-full h-full border-0 grayscale dark:invert-[0.9] dark:hue-rotate-180 contrast-125"
-                                                allowFullScreen
-                                                loading="lazy"
-                                            />
-                                            <div className="absolute top-4 right-4 bg-white/90 dark:bg-emerald-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200 dark:border-emerald-800/20 flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
-                                                <span className="text-[10px] font-black uppercase tracking-wider dark:text-emerald-100">Live GPS tracking</span>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {collectionPoints.map(pt => (
-                                                <div key={pt.name} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-emerald-950/20 border border-slate-100 dark:border-emerald-800/20 hover:bg-white dark:hover:bg-emerald-900/30 transition-all cursor-default">
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div>
-                                                            <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{pt.name}</p>
-                                                            <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium">
-                                                                <MapPin size={9} />
-                                                                {pt.tasks} task{pt.tasks !== 1 ? 's' : ''}
-                                                            </div>
-                                                        </div>
-                                                        <span className={cn('text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide flex-shrink-0 shadow-sm',
-                                                            pt.status === 'Active'    ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-                                                            pt.status === 'Scheduled' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
-                                                                                        'bg-slate-100 dark:bg-slate-800/30 text-slate-500')}>
-                                                            {pt.status}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                )}
-
-                                {/* COLLECTION HISTORY */}
-                                {activeView === 'history' && (
-                                    <motion.div 
-                                        key="history" 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        animate={{ opacity: 1, x: 0 }} 
-                                        exit={{ opacity: 0, x: 10 }}
-                                    >
-                                        <JobHistory tasks={tasks} />
-                                    </motion.div>
-                                )}
-
-                                {/* ISSUES / ALERTS */}
-                                {activeView === 'issues' && (
-                                    <motion.div 
-                                        key="issues" 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        animate={{ opacity: 1, x: 0 }} 
-                                        exit={{ opacity: 0, x: 10 }} 
-                                        className="space-y-5"
-                                    >
-                                        {reportSent ? (
-                                            <div className="flex flex-col items-center justify-center py-16 text-center">
-                                                <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center mb-4 border border-emerald-100 dark:border-emerald-800/20">
-                                                    <CheckCircle2 className="text-[#10b981]" size={32} />
-                                                </div>
-                                                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">Report Logged Successfully</h3>
-                                                <p className="text-sm text-slate-400 dark:text-emerald-100/40 mt-1 max-w-[240px] mx-auto">Field operations has received your alert. We&apos;ll monitor for updates.</p>
-                                                <button
-                                                    onClick={() => { setReportSent(false); setIssueDesc(''); }}
-                                                    className="mt-6 px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-emerald-600 text-white text-xs font-black shadow-lg hover:opacity-90 transition-all active:scale-[0.98] uppercase tracking-widest"
-                                                >
-                                                    New Report
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div>
-                                                    <label className="text-[9px] font-black text-slate-500 dark:text-emerald-100/40 uppercase tracking-widest mb-3 block">Category of Issue</label>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                                                        {[
-                                                            { val: 'overflow',  label: 'Overflowing Bin'  },
-                                                            { val: 'drain',     label: 'Blocked Drain'    },
-                                                            { val: 'equipment', label: 'Equipment Need'   },
-                                                            { val: 'hazard',    label: 'Hazardous Waste'  },
-                                                            { val: 'access',    label: 'Access Blocked'   },
-                                                            { val: 'other',     label: 'Other'            },
-                                                        ].map(opt => (
-                                                            <button
-                                                                key={opt.val}
-                                                                onClick={() => setIssueType(opt.val)}
-                                                                className={cn(
-                                                                    'py-2.5 px-3 rounded-xl text-[10px] font-black transition-all text-center border uppercase tracking-tighter',
-                                                                    issueType === opt.val
-                                                                        ? 'bg-[#10b981] text-white border-[#10b981] shadow-md shadow-emerald-500/20'
-                                                                        : 'bg-white dark:bg-emerald-950/20 text-slate-500 dark:text-emerald-100/50 border-slate-100 dark:border-emerald-800/20 hover:border-[#10b981]/40'
-                                                                )}
-                                                            >
-                                                                {opt.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[9px] font-black text-slate-500 dark:text-emerald-100/40 uppercase tracking-widest mb-3 block">Detailed Description</label>
-                                                    <textarea
-                                                        value={issueDesc}
-                                                        onChange={e => setIssueDesc(e.target.value)}
-                                                        rows={4}
-                                                        placeholder="Please provide specifics (Location, Severity, etc...)"
-                                                        className="w-full px-4 py-3.5 rounded-2xl bg-white dark:bg-emerald-950/20 border border-slate-200 dark:border-emerald-800/20 text-sm text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-emerald-100/20 font-medium resize-none focus:outline-none focus:ring-2 focus:ring-[#10b981]/30 transition-all"
-                                                    />
-                                                </div>
-                                                <button
-                                                    onClick={() => issueDesc.trim() && setReportSent(true)}
-                                                    disabled={!issueDesc.trim()}
-                                                    className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[#10b981] hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] uppercase tracking-[0.2em]"
-                                                >
-                                                    <Send size={14} />
-                                                    Dispatch Incident Report
-                                                </button>
-                                            </>
-                                        )}
-                                    </motion.div>
-                                )}
-
-                                {/* EARNINGS */}
-                                {activeView === 'earnings' && (
-                                    <motion.div 
-                                        key="earnings" 
-                                        initial={{ opacity: 0, x: -10 }} 
-                                        animate={{ opacity: 1, x: 0 }} 
-                                        exit={{ opacity: 0, x: 10 }}
-                                    >
-                                        <PerformanceStats tasks={tasks} />
-                                    </motion.div>
-                                )}
-
-                            </AnimatePresence>
-                        </div>
-                    </div>
-                </main>
-
-                {/* ── RIGHT SIDEBAR ── */}
-                <aside className="hidden lg:flex flex-col w-72 flex-shrink-0 border-l border-slate-200 dark:border-emerald-900/20 bg-white dark:bg-[#022c22]/50 sticky top-[3.75rem] h-[calc(100vh-3.75rem)] overflow-y-auto pt-5 pb-6 px-4 gap-4">
-
-                    {/* Quick Action Widget */}
-                    <div className="rounded-2xl border border-slate-100 dark:border-emerald-800/20 overflow-hidden bg-white dark:bg-emerald-950/10">
-                        <div className="bg-slate-50 dark:bg-emerald-950/40 px-4 py-2.5 border-b border-slate-100 dark:border-emerald-800/20">
-                            <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.2em]">Quick Actions</p>
-                        </div>
-                        <div className="p-4 flex flex-col items-center gap-3">
-                            <div className="w-14 h-14 rounded-2xl bg-[#10b981]/10 dark:bg-emerald-500/10 flex items-center justify-center">
-                                <CheckCircle2 className="w-7 h-7 text-[#10b981]" />
                             </div>
-                            <div className="text-center">
-                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Log Field Pickup</p>
-                                <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium mt-1 leading-relaxed px-2">Perform manual verification and weight assessment for current task</p>
-                            </div>
-                            <button
-                                onClick={() => activeJob && router.push(`/dashboard/active/${activeJob.id}/verify`)}
-                                disabled={!activeJob}
-                                className={cn(
-                                    'w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all active:scale-[0.98]',
-                                    activeJob
-                                        ? 'bg-[#10b981] hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
-                                        : 'bg-slate-100 dark:bg-emerald-900/20 text-slate-400 dark:text-emerald-100/30 cursor-not-allowed'
-                                )}
-                            >
-                                {activeJob ? 'Open Verification' : 'Queue Empty'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Quick Weight Report */}
-                    <div className="rounded-2xl border border-slate-100 dark:border-emerald-800/20 overflow-hidden">
-                        <div className="bg-slate-50 dark:bg-emerald-950/20 px-4 py-2.5 border-b border-slate-100 dark:border-emerald-800/20">
-                            <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.2em]">Quick Weight Log</p>
-                        </div>
-                        <div className="p-4 space-y-3">
-                            <div>
-                                <label className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-widest mb-1 block">Task</label>
-                                <select
-                                    value={selectedTaskId}
-                                    onChange={e => setSelectedTaskId(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-emerald-950/20 border border-slate-200 dark:border-emerald-800/20 text-xs text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#10b981]/30"
-                                >
-                                    <option value="">Select task...</option>
-                                    {activeTasks.map(t => (
-                                        <option key={t.id} value={t.id}>
-                                            #{t.id.slice(0, 6).toUpperCase()} — {t.type || 'General'}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-widest mb-1 block">Weight (kg)</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        value={weightInput}
-                                        onChange={e => setWeightInput(e.target.value)}
-                                        placeholder="0.0"
-                                        min="0"
-                                        step="0.1"
-                                        className="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-emerald-950/20 border border-slate-200 dark:border-emerald-800/20 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-emerald-100/20 focus:outline-none focus:ring-2 focus:ring-[#10b981]/30"
-                                    />
+                            
+                            <div className="space-y-4">
+                                {navItems.map(({ id, label, icon: Icon }) => (
                                     <button
-                                        disabled={!weightInput || !selectedTaskId}
-                                        onClick={() => { setWeightInput(''); setSelectedTaskId(''); }}
-                                        className="px-3 py-2 rounded-xl bg-[#10b981] hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all active:scale-[0.98]"
+                                        key={id}
+                                        onClick={() => setActiveView(id)}
+                                        className={cn(
+                                            'w-full flex items-center justify-between p-4 rounded-2xl transition-all group',
+                                            activeView === id 
+                                                ? 'bg-slate-900 text-white shadow-lg' 
+                                                : 'bg-muted/50 text-slate-600 hover:bg-slate-100'
+                                        )}
                                     >
-                                        <Scale size={14} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Collector Profile */}
-                    <div className="rounded-2xl border border-slate-100 dark:border-emerald-800/20 overflow-hidden">
-                        <div className="bg-slate-50 dark:bg-emerald-950/20 px-4 py-2.5 border-b border-slate-100 dark:border-emerald-800/20">
-                            <p className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.2em]">Collector Profile</p>
-                        </div>
-                        <div className="p-4">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-[#10b981]/10 flex items-center justify-center flex-shrink-0">
-                                    <User size={18} className="text-[#10b981]" />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-sm font-black text-slate-900 dark:text-white leading-tight truncate">{user?.displayName || 'Collector'}</p>
-                                    <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-medium truncate">{user?.email || ''}</p>
-                                </div>
-                            </div>
-                            <div className="space-y-0">
-                                {[
-                                    { label: 'Status', value: 'On Duty',             dot: true  },
-                                    { label: 'Zone',   value: 'Ndagani / 4-B',       dot: false },
-                                    { label: 'Shift',  value: '06:00 – 14:00',       dot: false },
-                                ].map(item => (
-                                    <div key={item.label} className="flex items-center justify-between py-2 border-b border-slate-50 dark:border-emerald-800/10 last:border-0">
-                                        <span className="text-[10px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-wider">{item.label}</span>
-                                        <div className="flex items-center gap-1.5">
-                                            {item.dot && <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />}
-                                            <span className="text-[11px] font-bold text-slate-700 dark:text-emerald-100/70">{item.value}</span>
+                                        <div className="flex items-center gap-3">
+                                            <div className={cn(
+                                                'p-2 rounded-xl',
+                                                activeView === id ? 'bg-background/10' : 'bg-card shadow-sm'
+                                            )}>
+                                                <Icon size={18} />
+                                            </div>
+                                            <span className="text-sm font-bold">{label}</span>
                                         </div>
-                                    </div>
+                                        {id === 'hud' && activeTasks.length > 0 && (
+                                            <span className={cn(
+                                                'text-[10px] font-black px-2 py-0.5 rounded-full',
+                                                activeView === id ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-600'
+                                            )}>
+                                                {activeTasks.length}
+                                            </span>
+                                        )}
+                                    </button>
                                 ))}
                             </div>
-                            <button
-                                onClick={handleSignOut}
-                                disabled={isSigningOut}
-                                className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-xl border border-red-100 dark:border-red-900/10 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        </div>
+
+                        {/* Active Mission Quick Action */}
+                        {activeJob && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="bg-emerald-600 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-200"
                             >
-                                {isSigningOut ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <LogOut size={14} />
-                                )}
-                                {isSigningOut ? 'Signing Out...' : 'End Shift & Sign Out'}
-                            </button>
-                        </div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Activity className="w-6 h-6 animate-pulse" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Active Engagement</span>
+                                </div>
+                                <h4 className="text-2xl font-black mb-2 uppercase italic tracking-tighter">Current Target</h4>
+                                <p className="text-emerald-100/60 text-xs font-medium mb-8 leading-relaxed">
+                                    Location verified. Proceed with waste retrieval and digital signature.
+                                </p>
+                                <button
+                                    onClick={() => router.push(`/dashboard/active/${activeJob.id}/verify`)}
+                                    className="w-full py-4 bg-card text-emerald-700 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors shadow-lg"
+                                >
+                                    Open Verification <ArrowRight size={14} />
+                                </button>
+                            </motion.div>
+                        )}
                     </div>
 
-                </aside>
-            </div>
+                    {/* ── Tier 3: Main Viewport ── */}
+                    <div className="lg:col-span-9">
+                        <AnimatePresence mode="wait">
+                            {activeView === 'hud' && (
+                                <motion.div 
+                                    key="hud"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="grid grid-cols-1 xl:grid-cols-12 gap-8"
+                                >
+                                    {/* Tactical Map */}
+                                    <div className="xl:col-span-8">
+                                        <TacticalMap tasks={tasks} activeTasks={activeTasks} />
+                                    </div>
 
-            {/* Global signing out overlay */}
-            {isSigningOut && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
-                    <div className="bg-slate-900 border border-emerald-500/20 rounded-3xl px-10 py-8 flex flex-col items-center gap-5 shadow-2xl shadow-emerald-500/10">
-                        <div className="relative">
-                            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
-                            <div className="absolute inset-0 blur-xl bg-emerald-400/20 rounded-full animate-pulse" />
-                        </div>
-                        <div className="text-center">
-                            <p className="text-white font-black text-xl uppercase tracking-tight">Closing Session</p>
-                            <p className="text-emerald-100/40 text-xs font-bold uppercase tracking-[0.2em] mt-1">Securing field data...</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── MOBILE BOTTOM NAV ── */}
-            <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white/92 dark:bg-[#011a14]/95 backdrop-blur-2xl border-t border-slate-200 dark:border-emerald-900/20">
-                <div className="flex items-center justify-around px-2 py-2.5">
-                    {navItems.map(({ id, label, icon: Icon }) => (
-                        <button
-                            key={id}
-                            onClick={() => setActiveView(id)}
-                            className={cn(
-                                'flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl transition-all',
-                                activeView === id ? 'text-[#10b981]' : 'text-slate-400 dark:text-slate-600'
+                                    {/* Mission Queue */}
+                                    <div className="xl:col-span-4 h-[600px]">
+                                        <MissionQueue tasks={activeTasks} />
+                                    </div>
+                                </motion.div>
                             )}
-                        >
-                            <Icon size={19} className={activeView === id ? 'scale-110 transition-transform' : ''} />
-                            <span className="text-[8px] font-black uppercase tracking-wider">{label.split(' ')[0]}</span>
-                        </button>
-                    ))}
-                </div>
-            </nav>
 
+                            {activeView !== 'hud' && (
+                                <motion.div 
+                                    key="secondary"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    className="bg-card rounded-[2.5rem] shadow-sm border border-border overflow-hidden min-h-[600px] flex flex-col"
+                                >
+                                    {/* Panel Header */}
+                                    <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 bg-muted/50 rounded-2xl">
+                                                {(() => {
+                                                    const item = navItems.find(n => n.id === activeView)!;
+                                                    const Icon = item.icon;
+                                                    return <Icon className="w-5 h-5 text-foreground" />;
+                                                })()}
+                                            </div>
+                                            <div>
+                                                <h2 className="text-lg font-black text-foreground uppercase tracking-tight">
+                                                    {navItems.find(n => n.id === activeView)?.label}
+                                                </h2>
+                                                <p className="text-xs text-slate-400 font-medium italic">
+                                                    {navItems.find(n => n.id === activeView)?.desc}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="hidden sm:flex items-center gap-2">
+                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Zone_Alpha</span>
+                                            <div className="h-4 w-px bg-slate-100" />
+                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Ready_To_Deploy</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Panel Body */}
+                                    <div className="p-8 flex-1">
+                                        {activeView === 'history' && <JobHistory tasks={tasks} />}
+                                        {activeView === 'earnings' && <PerformanceStats tasks={tasks} />}
+                                        {activeView === 'issues' && (
+                                            <div className="max-w-2xl mx-auto space-y-8 py-8">
+                                                {reportSent ? (
+                                                    <div className="text-center py-12">
+                                                        <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mb-6 mx-auto">
+                                                            <CheckCircle2 className="text-emerald-600" size={40} />
+                                                        </div>
+                                                        <h3 className="text-2xl font-black text-foreground uppercase italic">Report Synchronized</h3>
+                                                        <p className="text-sm text-slate-400 mt-2 font-medium">Headquarters has been notified. Stand by for instructions.</p>
+                                                        <button onClick={() => { setReportSent(false); setIssueDesc(''); }} className="mt-8 px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest">New Entry</button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="space-y-4">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Incident Category</label>
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                {['overflow', 'drain', 'hazard', 'access'].map(opt => (
+                                                                    <button
+                                                                        key={opt}
+                                                                        onClick={() => setIssueType(opt)}
+                                                                        className={cn(
+                                                                            'py-4 px-6 rounded-2xl text-[10px] font-black transition-all border uppercase tracking-widest',
+                                                                            issueType === opt ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-card text-slate-400 border-border hover:border-slate-300'
+                                                                        )}
+                                                                    >
+                                                                        {opt}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Observation Log</label>
+                                                            <textarea
+                                                                value={issueDesc}
+                                                                onChange={e => setIssueDesc(e.target.value)}
+                                                                rows={6}
+                                                                placeholder="LOG_OBSERVATION..."
+                                                                className="w-full px-6 py-4 rounded-2xl bg-muted/50 border border-border text-sm font-bold placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all uppercase"
+                                                            />
+                                                        </div>
+                                                        <button onClick={() => issueDesc.trim() && setReportSent(true)} className="w-full py-5 bg-emerald-600 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest shadow-xl shadow-emerald-100 flex items-center justify-center gap-3">
+                                                            <Send size={16} /> Broadcast Incident Report
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

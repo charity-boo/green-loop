@@ -3,7 +3,8 @@ import { getUserDashboardData } from "@/lib/dashboard-data";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/admin";
 import UserDashboardClient from "./user-dashboard-client";
-import CollectorDashboard from "./collector-dashboard-client";
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
     const session = await getSession();
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
     }
 
     if (session.user.role === "COLLECTOR") {
-        return <CollectorDashboard />;
+        redirect("/dashboard/collector");
     }
 
     // USER
@@ -33,16 +34,13 @@ export default async function DashboardPage() {
     ]);
 
     const userData = userDoc?.data?.();
-    const userCounty: string | null = userData?.county ?? null;
-    const userRegion: string | null = userData?.region ?? null;
+    const userName = userData?.name || userData?.displayName || session.user.name || "";
 
     return (
         <div className="min-h-screen">
             <UserDashboardClient
                 data={dashboardData}
-                userName={session.user.name || ""}
-                userCounty={userCounty}
-                userRegion={userRegion}
+                userName={userName}
             />
         </div>
     );

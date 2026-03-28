@@ -8,7 +8,8 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
-  User
+  User,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 
 export interface FirebaseAuthUser {
@@ -16,6 +17,18 @@ export interface FirebaseAuthUser {
   email: string;
   displayName: string;
   role: string;
+}
+
+/**
+ * Reset Password
+ */
+export async function resetPassword(email: string): Promise<void> {
+    try {
+        await sendPasswordResetEmail(firebaseAuth, email);
+    } catch (error: unknown) {
+        console.error('Error sending password reset email:', error);
+        throw error;
+    }
 }
 
 /**

@@ -41,10 +41,21 @@ export async function POST(req: NextRequest) {
 
     const reportId = reportRef.id;
 
-    // Simulate sending SMS confirmation
+    // Send SMS confirmation if requested
     if (preferredContact === 'sms' && phone) {
-      console.log(`Simulating SMS to ${phone} for report ID ${reportId}`);
-      // Integrate with an SMS service provider here
+      try {
+        const smsMessage = `Green Loop: Your issue report has been received. Report ID: ${reportId}. We will contact you within 24 hours. Thank you!`;
+        const smsSent = await sendSMS({ to: phone, message: smsMessage });
+        
+        if (smsSent) {
+          console.log(`SMS sent successfully to ${phone} for report ID ${reportId}`);
+        } else {
+          console.warn(`SMS sending failed for ${phone}, report ID ${reportId}`);
+        }
+      } catch (smsError) {
+        console.error(`Error sending SMS for report ID ${reportId}:`, smsError);
+        // Continue processing - SMS failure should not block the report
+      }
     }
 
     // Send email confirmation via Gmail SMTP

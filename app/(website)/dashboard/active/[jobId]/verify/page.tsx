@@ -59,7 +59,7 @@ export default function VerificationPage() {
         return (
             <div className="p-6 text-center bg-slate-50 dark:bg-[#022c22] min-h-screen flex flex-col items-center justify-center font-outfit">
                 <p className="text-red-500 mb-6 font-black uppercase tracking-widest">{error || 'Job not found'}</p>
-                <Button asChild variant="outline" className="rounded-2xl border-slate-200">
+                <Button asChild variant="outline" className="rounded-2xl border-border">
                     <Link href="/dashboard">Return Queue</Link>
                 </Button>
             </div>
