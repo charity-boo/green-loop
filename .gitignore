@@ -61,3 +61,4 @@ firebase-export-*/
 
 # gemini
 .gemini/
+.worktrees/
