@@ -5,6 +5,7 @@ import { adminDb } from '@/lib/firebase/admin';
 import { wasteStatusSchema } from '@/lib/validation/schemas';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/api-response';
 import { handleApiError } from '@/lib/api-handler';
+import { writeWorkflowLog } from '@/lib/workflow-log';
 
 /**
  * PUT /api/collector/tasks/[id] - Update status of an assigned task
@@ -42,7 +43,7 @@ export async function PUT(
     const validation = wasteStatusSchema.safeParse(body.status);
 
     if (!validation.success) {
-      return createValidationErrorResponse(validation.error, "Invalid status. Accepted values: pending, collected, completed");
+      return createValidationErrorResponse(validation.error, "Invalid status. Accepted values: pending, active, completed");
     }
 
     const status = validation.data;
@@ -50,6 +51,20 @@ export async function PUT(
     await adminDb.collection('waste').doc(id).update({
       status,
       updatedAt: new Date().toISOString()
+    });
+
+    await writeWorkflowLog({
+      event: 'collector_task_status_updated',
+      scheduleId: typeof wasteItem.scheduleId === 'string' ? wasteItem.scheduleId : id,
+      wasteId: id,
+      actorType: 'collector',
+      actorId: collectorId,
+      before: {
+        status: typeof wasteItem.status === 'string' ? wasteItem.status : null,
+      },
+      after: {
+        status,
+      },
     });
 
     const updatedWasteItem = {

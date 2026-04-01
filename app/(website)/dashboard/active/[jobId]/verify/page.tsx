@@ -3,7 +3,6 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useActiveJob } from '@/hooks/use-active-job';
 import { WeightEntry } from '@/components/dashboard/collector/weight-entry';
-import { PhotoUpload } from '@/components/dashboard/collector/photo-upload';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
@@ -17,19 +16,15 @@ export default function VerificationPage() {
     const { job, loading, error, updateJob } = useActiveJob(jobId);
 
     const [weight, setWeight] = useState<number | null>(null);
-    const [beforeUrl, setBeforeUrl] = useState<string | null>(null);
-    const [afterUrl, setAfterUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleCompleteJob = async () => {
-        if (!weight || !beforeUrl || !afterUrl) return;
+        if (!weight) return;
 
         setIsSubmitting(true);
         try {
             await updateJob({
                 weight,
-                beforeImageUrl: beforeUrl,
-                afterImageUrl: afterUrl,
                 status: 'completed',
                 completedAt: new Date().toISOString(),
             } as Record<string, unknown>);
@@ -50,7 +45,6 @@ export default function VerificationPage() {
                     <Skeleton className="h-6 w-32" />
                 </div>
                 <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
-                <Skeleton className="h-[300px] w-full rounded-[2.5rem]" />
             </div>
         );
     }
@@ -66,7 +60,7 @@ export default function VerificationPage() {
         );
     }
 
-    const isFormValid = weight !== null && beforeUrl !== null && afterUrl !== null;
+    const isFormValid = weight !== null;
 
     return (
         <div className="min-h-screen bg-[#f8fafc] dark:bg-[#022c22] text-slate-900 dark:text-white p-4 pb-40 font-outfit transition-colors duration-500">
@@ -89,42 +83,10 @@ export default function VerificationPage() {
                     </div>
                 </div>
 
-                {/* Evidence Section */}
-                <section className="space-y-6">
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-[1.25rem] bg-slate-900 dark:bg-[#10b981] flex items-center justify-center font-black text-white shadow-xl shadow-emerald-500/20 text-lg">1</div>
-                        <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white">Evidence Capture</h2>
-                            <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-bold uppercase tracking-widest mt-0.5">Visual verification of site conditions</p>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-[#064e3b]/20 backdrop-blur-md border border-slate-200 dark:border-emerald-800/10 rounded-[3rem] p-10 space-y-12 shadow-2xl shadow-slate-200/50 dark:shadow-none">
-                        <div className="space-y-4">
-                            <PhotoUpload
-                                jobId={jobId}
-                                type="before"
-                                label="Pre-Collection State"
-                                onUploadComplete={setBeforeUrl}
-                            />
-                            <p className="text-[10px] text-center text-slate-400 dark:text-emerald-100/20 font-medium italic">Capture the bin/area before starting collection</p>
-                        </div>
-                        <div className="h-px bg-gradient-to-r from-transparent via-slate-100 dark:via-emerald-950/50 to-transparent" />
-                        <div className="space-y-4">
-                            <PhotoUpload
-                                jobId={jobId}
-                                type="after"
-                                label="Post-Collection Verification"
-                                onUploadComplete={setAfterUrl}
-                            />
-                            <p className="text-[10px] text-center text-slate-400 dark:text-emerald-100/20 font-medium italic">Verification of cleared area and sorted waste</p>
-                        </div>
-                    </div>
-                </section>
-
                 {/* Weight Section */}
                 <section className="space-y-6 pb-24">
                     <div className="flex items-center gap-4 mb-2">
-                        <div className="w-12 h-12 rounded-[1.25rem] bg-slate-900 dark:bg-[#10b981] flex items-center justify-center font-black text-white shadow-xl shadow-emerald-500/20 text-lg">2</div>
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-slate-900 dark:bg-[#10b981] flex items-center justify-center font-black text-white shadow-xl shadow-emerald-500/20 text-lg">1</div>
                         <div>
                             <h2 className="text-xl font-black uppercase tracking-tighter italic text-slate-900 dark:text-white">Payload Audit</h2>
                             <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-bold uppercase tracking-widest mt-0.5">Quantifying collected resources</p>

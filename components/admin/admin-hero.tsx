@@ -16,10 +16,10 @@ export default function AdminHero() {
                         </span>
                     </div>
                     <h1 className="text-3xl font-bold text-foreground tracking-tight transition-colors">
-                        System Overview
+                        Administrative Overview
                     </h1>
                     <p className="text-muted-foreground text-sm mt-1 max-w-md transition-colors">
-                        Monitor waste collection efficiency, active smart bins, and eco-point distribution across the network.
+                        Monitor waste collection efficiency and eco-point distribution across the network.
                     </p>
                 </div>
 

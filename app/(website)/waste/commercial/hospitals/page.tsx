@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { AuthCTA } from '@/components/features/auth/auth-cta';
 import { 
   Building2, ShieldAlert, FileDigit, HeartPulse, ArrowLeft,
-  Stethoscope, ShieldCheck, FileCheck, Users, Activity,
+  Stethoscope, Users, Activity,
   Syringe, FlaskConical, AlertTriangle, BookOpenCheck
 } from 'lucide-react';
 

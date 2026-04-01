@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     if (status) {
       const statusValidation = wasteStatusSchema.safeParse(status);
       if (!statusValidation.success) {
-        return createValidationErrorResponse(statusValidation.error, "Invalid status. Accepted values: pending, collected, completed");
+        return createValidationErrorResponse(statusValidation.error, "Invalid status. Accepted values: pending, active, completed");
       }
       wasteRef = wasteRef.where('status', '==', statusValidation.data);
     }

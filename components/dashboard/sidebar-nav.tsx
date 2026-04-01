@@ -3,82 +3,169 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/auth-provider";
+import { useUserData } from "@/hooks/use-user-data";
 import {
     LayoutDashboard,
     CalendarPlus,
     Scan,
-    Star,
     MapPin,
     Settings,
     LogOut,
-    Activity
+    Activity,
+    Leaf,
+    Coins,
+    ChevronRight,
+    Clock,
+    ClipboardList,
+    TrendingUp,
+    AlertTriangle,
+    History
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+const USER_NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Schedule Pickup", icon: CalendarPlus, href: "/schedule-pickup" },
+    { label: "Green Points", icon: Coins, href: "/dashboard/green-points" },
     { label: "AI Sorting", icon: Scan, href: "/learning-hub" },
-    { label: "Green Points", icon: Star, href: "/rewards-program" },
     { label: "Maps & Sites", icon: MapPin, href: "/service-areas" },
     { label: "Settings/Support", icon: Settings, href: "/report" },
 ];
 
+const COLLECTOR_NAV_ITEMS = [
+    { label: "Overview", icon: LayoutDashboard, href: "/dashboard/collector" },
+    { label: "Auto Assignment", icon: ClipboardList, href: "/dashboard/collector/available" },
+    { label: "Earnings", icon: TrendingUp, href: "/dashboard/collector/earnings" },
+    { label: "Report Issue", icon: AlertTriangle, href: "/dashboard/collector/issues" },
+    { label: "Job History", icon: History, href: "/dashboard/collector/history" },
+    { label: "Maps & Sites", icon: MapPin, href: "/service-areas" },
+    { label: "Settings", icon: Settings, href: "/profile?tab=settings" },
+];
+
 export default function SidebarNav() {
     const pathname = usePathname();
-    const { signOut } = useAuth();
+    const { signOut, role } = useAuth();
+    const { nextPickup, loading } = useUserData();
+
+    const isCollector = role === 'COLLECTOR';
+    const navItems = isCollector ? COLLECTOR_NAV_ITEMS : USER_NAV_ITEMS;
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 z-40 flex flex-col bg-slate-900 text-white shadow-2xl border-r border-white/5">
+        <aside className={cn(
+            "fixed left-0 top-0 h-screen w-64 z-40 flex flex-col shadow-2xl transition-colors duration-300",
+            isCollector 
+                ? "bg-emerald-700 text-emerald-50 border-r border-emerald-600/50" 
+                : "bg-slate-800 text-green-50 border-r border-green-900/20"
+        )}>
             {/* Logo Section */}
-            <div className="flex items-center h-24 px-8 border-b border-white/5 shrink-0 gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20">
-                    <Activity className="text-white w-6 h-6" />
+            <div className={cn(
+                "flex items-center h-24 px-8 border-b shrink-0 gap-4",
+                isCollector ? "border-emerald-600/50" : "border-green-900/20"
+            )}>
+                <div className={cn(
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-lg",
+                    isCollector 
+                        ? "bg-emerald-600 shadow-emerald-900/20" 
+                        : "bg-green-600 shadow-green-900/20"
+                )}>
+                    {isCollector ? <Leaf className="text-white w-6 h-6" /> : <Activity className="text-white w-6 h-6" />}
                 </div>
                 <div>
-                    <span className="font-black text-lg tracking-tighter uppercase italic leading-none block">
-                        Green<span className="text-emerald-500">.Loop</span>
+                    <span className="font-black text-lg tracking-tighter uppercase italic leading-none block text-white">
+                        Green<span className={isCollector ? "text-emerald-300" : "text-green-400"}>.Loop</span>
                     </span>
-                    <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mt-1 block">OS_CORE_V2</span>
+                    <span className={cn(
+                        "text-[10px] font-black uppercase tracking-[0.3em] mt-1 block",
+                        isCollector ? "text-emerald-200/50" : "text-green-400/50"
+                    )}>
+                        {isCollector ? "COLLECTOR_OS" : "USER_OS"}
+                    </span>
                 </div>
             </div>
 
             {/* Nav Items */}
-            <nav className="flex-1 py-8 px-4 overflow-y-auto space-y-2">
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.25em] px-4 mb-4">Operations</p>
-                {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
-                    const isActive = pathname === href || pathname.startsWith(href + "/");
+            <nav className="flex-1 py-8 px-4 overflow-y-auto space-y-1 no-scrollbar">
+                <p className={cn(
+                    "text-[10px] font-black uppercase tracking-[0.25em] px-4 mb-4",
+                    isCollector ? "text-emerald-200/50" : "text-green-400/50"
+                )}>Operations</p>
+                {navItems.map(({ label, icon: Icon, href }) => {
+                    const isActive = pathname === href || (href !== '/dashboard' && href !== '/dashboard/collector' && pathname.startsWith(href));
                     return (
                         <Link
                             key={href}
                             href={href}
                             className={cn(
-                                "group flex items-center h-12 px-4 gap-3 rounded-2xl transition-all duration-300",
+                                "group flex items-center h-11 px-4 gap-3 rounded-2xl transition-all duration-300",
                                 isActive
-                                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                                    : "text-slate-400 hover:bg-background/5 hover:text-white"
+                                    ? isCollector 
+                                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20"
+                                        : "bg-green-600 text-white shadow-lg shadow-green-900/20"
+                                    : isCollector
+                                        ? "text-emerald-100 hover:bg-emerald-600/50 hover:text-white"
+                                        : "text-slate-400 hover:bg-green-500/10 hover:text-green-400"
                             )}
                         >
                             <Icon className={cn(
-                                "h-5 w-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
-                                isActive ? "text-white" : "text-muted-foreground group-hover:text-emerald-400"
+                                "h-4.5 w-4.5 shrink-0 transition-transform duration-300 group-hover:scale-110",
+                                isActive 
+                                    ? "text-white" 
+                                    : isCollector 
+                                        ? "text-emerald-300 group-hover:text-white"
+                                        : "text-slate-500 group-hover:text-green-400"
                             )} />
-                            <span className="text-xs font-black uppercase tracking-widest">{label}</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest">{label}</span>
                         </Link>
                     );
                 })}
+
+                {/* Role Specific Section */}
+                {!isCollector && (
+                    <div className="mt-6 px-2">
+                        <div className="bg-green-600/10 rounded-2xl p-4 border border-green-500/20">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Clock className="w-3 h-3 text-green-500" />
+                                <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Next Pickup</span>
+                            </div>
+                            <p className="text-[11px] font-bold text-white mb-3">
+                                {loading ? '---' : (nextPickup || 'None Scheduled')}
+                            </p>
+                            <Link 
+                                href="/schedule-pickup" 
+                                className="text-[9px] font-bold text-green-400 hover:text-green-300 transition-colors flex items-center gap-1 uppercase tracking-widest"
+                            >
+                                {nextPickup ? 'Manage' : 'Schedule Now'} <ChevronRight className="w-2.5 h-2.5" />
+                            </Link>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Bottom: User & Sign Out */}
-            <div className="border-t border-white/5 p-6 mt-auto bg-slate-950/50">
+            <div className={cn(
+                "border-t p-6 mt-auto",
+                isCollector ? "border-emerald-600/50 bg-emerald-800/20" : "border-green-900/20 bg-slate-900/50"
+            )}>
                 <button
                     onClick={() => signOut()}
-                    className="flex items-center gap-4 px-4 py-4 w-full text-muted-foreground hover:text-rose-400 hover:bg-rose-400/10 rounded-[1.5rem] transition-all duration-300 group"
+                    className={cn(
+                        "flex items-center gap-4 px-4 py-4 w-full rounded-[1.5rem] transition-all duration-300 group",
+                        isCollector 
+                            ? "text-emerald-100 hover:text-white hover:bg-emerald-600/50"
+                            : "text-slate-400 hover:text-green-400 hover:bg-green-400/10"
+                    )}
                 >
-                    <div className="p-2 rounded-xl bg-card/5 group-hover:bg-rose-400/20 transition-colors">
+                    <div className={cn(
+                        "p-2 rounded-xl transition-colors",
+                        isCollector 
+                            ? "bg-emerald-600/50 group-hover:bg-emerald-500"
+                            : "bg-green-900/20 group-hover:bg-green-400/20"
+                    )}>
                         <LogOut className="h-5 w-5 shrink-0" />
                     </div>
-                    <span className="font-black text-[10px] uppercase tracking-[0.2em]">Terminate Session</span>
+                    <span className="font-black text-[10px] uppercase tracking-[0.2em]">
+                        {isCollector ? "Terminate Ops" : "Terminate Session"}
+                    </span>
                 </button>
             </div>
         </aside>

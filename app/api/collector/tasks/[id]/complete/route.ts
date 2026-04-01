@@ -6,6 +6,7 @@ import { WasteStatus } from '@/types/waste-status';
 import { createErrorResponse } from '@/lib/api-response';
 import { handleApiError } from '@/lib/api-handler';
 import { calculateRewardPoints } from '@/lib/utils/reward-calculator';
+import { writeWorkflowLog } from '@/lib/workflow-log';
 
 /**
  * POST /api/collector/tasks/[id]/complete - Mark a task as completed
@@ -21,6 +22,8 @@ export async function POST(
     const session = await getSession();
     await authorize(session, ['COLLECTOR', 'ADMIN']);
     const collectorId = session!.user.id;
+    let previousStatus: string | null = null;
+    let relatedScheduleId: string | null = null;
 
     // Use a transaction to ensure atomic updates and idempotency
     const updatedWasteItem = await adminDb.runTransaction(async (transaction) => {
@@ -37,6 +40,9 @@ export async function POST(
         throw new Error('WASTE_DATA_EMPTY');
       }
 
+      previousStatus = typeof wasteItem.status === 'string' ? wasteItem.status : null;
+      relatedScheduleId = typeof wasteItem.scheduleId === 'string' ? wasteItem.scheduleId : id;
+
       // Ensure collector can only complete their own assigned tasks
       if (wasteItem.assignedCollectorId !== collectorId && session!.user.role !== 'ADMIN') {
         throw new Error('FORBIDDEN');
@@ -50,7 +56,7 @@ export async function POST(
         };
       }
 
-      if (wasteItem.status !== WasteStatus.Collected) {
+      if (wasteItem.status !== WasteStatus.Active) {
         throw new Error('INVALID_STATUS');
       }
 
@@ -100,6 +106,20 @@ export async function POST(
       };
     });
 
+    await writeWorkflowLog({
+      event: 'collector_task_completed',
+      scheduleId: relatedScheduleId ?? id,
+      wasteId: id,
+      actorType: 'collector',
+      actorId: collectorId,
+      before: {
+        status: previousStatus,
+      },
+      after: {
+        status: WasteStatus.Completed,
+      },
+    });
+
     return NextResponse.json(updatedWasteItem);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -113,7 +133,7 @@ export async function POST(
       return createErrorResponse('Forbidden: You are not assigned to this task', undefined, 403);
     }
     if (message === 'INVALID_STATUS') {
-      return createErrorResponse('Waste item must be collected before completing.', undefined, 400);
+      return createErrorResponse('Waste item must be active before completing.', undefined, 400);
     }
     if (message === 'USER_NOT_FOUND') {
       return createErrorResponse('User document not found for this waste item', undefined, 404);

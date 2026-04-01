@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+
+export const dynamic = 'force-dynamic';
+
 import {
   Search,
   CheckCircle2,

@@ -200,7 +200,7 @@ export default function HostelsWastePage() {
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">What goes in which bin?</h2>
               <p className="text-slate-500 text-lg max-w-2xl mx-auto font-medium">
-                Proper campus sorting is the foundation of Green Loop. Let's get it right together.
+                Proper campus sorting is the foundation of Green Loop. Let&apos;s get it right together.
               </p>
             </div>
 

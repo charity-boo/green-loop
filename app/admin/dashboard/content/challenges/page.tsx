@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { ChallengeDoc } from '@/types/firestore';
 import {
   Search,
@@ -324,7 +325,14 @@ export default function ChallengesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {challenge.imageUrl && (
-                          <img src={challenge.imageUrl} alt={challenge.title} className="w-10 h-10 rounded-lg object-cover" />
+                          <Image
+                            src={challenge.imageUrl}
+                            alt={challenge.title}
+                            width={40}
+                            height={40}
+                            className="rounded-lg object-cover"
+                            unoptimized
+                          />
                         )}
                         <div>
                           <p className="font-medium text-foreground">{challenge.title}</p>

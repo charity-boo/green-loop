@@ -11,14 +11,12 @@ export async function GET() {
 
     let totalWaste = 0;
     let totalStudents = 0;
-    let totalPoints = 0;
     const hostelCount = hostelsSnap.docs.length;
 
     hostelsSnap.docs.forEach((doc) => {
       const data = doc.data();
       totalWaste += data.totalWasteRecycled ?? 0;
       totalStudents += data.studentCount ?? 0;
-      totalPoints += data.points ?? 0;
     });
 
     const diversionRate = hostelCount > 0 ? Math.min(Math.round((totalWaste / (totalWaste + 200)) * 100), 99) : 0;

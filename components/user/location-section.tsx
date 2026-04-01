@@ -2,17 +2,32 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Save, Loader2, CheckCircle2 } from "lucide-react";
-import { KENYA_COUNTIES } from "@/lib/constants/regions";
+import { MapPin, Save, Loader2, CheckCircle2, Search } from "lucide-react";
+import AddressAutocomplete from "@/components/location/address-autocomplete";
+import { validateCollectorLocationSelection } from "@/lib/location/collector-location-validation";
 
 interface LocationSectionProps {
+  initialAddress?: string | null;
   initialCounty?: string | null;
   initialRegion?: string | null;
+  initialPlaceId?: string | null;
+  initialLocationSource?: "manual" | "gps" | "google_autocomplete" | null;
 }
 
-export default function LocationSection({ initialCounty, initialRegion }: LocationSectionProps) {
+export default function LocationSection({
+  initialAddress,
+  initialCounty,
+  initialRegion,
+  initialPlaceId,
+  initialLocationSource,
+}: LocationSectionProps) {
   const [county, setCounty] = useState(initialCounty ?? "");
   const [region, setRegion] = useState(initialRegion ?? "");
+  const [searchValue, setSearchValue] = useState(initialAddress ?? "");
+  const [placeId, setPlaceId] = useState<string | null>(initialPlaceId ?? null);
+  const [locationSource, setLocationSource] = useState<"manual" | "gps" | "google_autocomplete">(
+    initialLocationSource ?? "manual"
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -24,29 +39,25 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
     };
   }, []);
 
-  const selectedCounty = KENYA_COUNTIES.find((c) => c.value === county);
-  const subRegions = selectedCounty?.subRegions ?? [];
-  const selectedSubRegion = subRegions.find((r) => r.value === region);
-
   const mapQuery =
-    selectedSubRegion && selectedCounty
-      ? `${selectedSubRegion.label},${selectedCounty.label},Kenya`
-      : selectedCounty
-      ? `${selectedCounty.label},Kenya`
+    region && county
+      ? `${region}, ${county}, Kenya`
+      : county
+      ? `${county}, Kenya`
       : "Kenya";
 
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
-  function handleCountyChange(val: string) {
-    setCounty(val);
-    setRegion("");
-    setSaved(false);
-    setError("");
-  }
-
   async function handleSave() {
-    if (!county || !region) {
-      setError("Please select both a county and a service area.");
+    const validation = validateCollectorLocationSelection({
+      address: searchValue,
+      county,
+      region,
+      placeId,
+      locationSource,
+    });
+    if (!validation.isValid) {
+      setError(validation.error ?? "Invalid location details.");
       return;
     }
     setSaving(true);
@@ -54,7 +65,13 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
       const res = await fetch("/api/user/location", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ county, region }),
+        body: JSON.stringify({
+          address: searchValue,
+          county,
+          region,
+          placeId,
+          locationSource,
+        }),
       });
       if (!res.ok) throw new Error();
       setSaved(true);
@@ -94,54 +111,45 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
           allowFullScreen
           loading="lazy"
         />
-        {selectedSubRegion && (
+        {region && (
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200 text-[10px] font-black text-slate-700 uppercase tracking-wider">
-            {selectedSubRegion.label}
+            {region}
           </div>
         )}
       </div>
 
       {/* Selects & Actions */}
-      <div className="px-6 py-5 space-y-3">
-        {/* County */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">County</label>
-          <select
-            value={county}
-            onChange={(e) => handleCountyChange(e.target.value)}
+      <div className="px-6 py-5 space-y-4">
+        {/* Google Autocomplete */}
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
+            <Search className="h-2.5 w-2.5" /> Search Your Address
+          </label>
+          <AddressAutocomplete
+            value={searchValue}
+            onManualChange={(nextAddress) => {
+              setSearchValue(nextAddress);
+              setCounty("");
+              setRegion("");
+              setPlaceId(null);
+              setLocationSource("manual");
+            }}
+            onSelectAddress={(selection) => {
+              setSearchValue(selection.address);
+              setPlaceId(selection.placeId);
+              setLocationSource(selection.source);
+              setCounty(selection.county ?? "");
+              setRegion(selection.region ?? "");
+              setSaved(false);
+              setError("");
+            }}
+            placeholder="Search for your street or building..."
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="">Select county…</option>
-            {KENYA_COUNTIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          />
+          <p className="text-[10px] text-slate-400 font-medium italic">
+            Tip: choose from Google suggestions to update your location.
+          </p>
         </div>
-
-        {/* Sub-region */}
-        {county && (
-          <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Service Area</label>
-            <select
-              value={region}
-              onChange={(e) => {
-                setRegion(e.target.value);
-                setSaved(false);
-                setError("");
-              }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="">Select area…</option>
-              {subRegions.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         {/* Error */}
         {error && <p className="text-xs text-red-500">{error}</p>}
@@ -149,7 +157,7 @@ export default function LocationSection({ initialCounty, initialRegion }: Locati
         {/* Save button */}
         <button
           onClick={handleSave}
-          disabled={saving || !county || !region || !selectedSubRegion}
+          disabled={saving || !county || !region || !placeId || locationSource !== "google_autocomplete"}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-black text-white transition-colors"
         >
           {saving ? (

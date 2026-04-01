@@ -18,8 +18,14 @@ export interface SendEmailOptions {
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<void> {
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM ?? `Green Loop <${process.env.SMTP_USER}>`,
-    ...options,
-  });
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM ?? `Green Loop <${process.env.SMTP_USER}>`,
+      ...options,
+    });
+    console.log(`Email successfully sent to ${options.to}`);
+  } catch (error) {
+    console.error('ERROR: Failed to send email via Nodemailer:', error);
+    throw error;
+  }
 }

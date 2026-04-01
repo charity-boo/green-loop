@@ -28,7 +28,7 @@ export function useActiveJob(jobId: string | undefined) {
 
         setLoading(true);
         try {
-            const docRef = doc(db, 'waste_schedules', jobId);
+            const docRef = doc(db, 'waste', jobId);
 
             const unsubscribe = onSnapshot(
                 docRef,
@@ -65,7 +65,7 @@ export function useActiveJob(jobId: string | undefined) {
 
     const startJob = async () => {
         if (!jobId || !db) return;
-        const docRef = doc(db, 'waste_schedules', jobId);
+        const docRef = doc(db, 'waste', jobId);
         return updateDoc(docRef, {
             status: 'active',
             startedAt: new Date().toISOString(),
@@ -75,7 +75,7 @@ export function useActiveJob(jobId: string | undefined) {
 
     const updateJob = async (updates: Partial<CollectorTask>) => {
         if (!jobId || !db) return;
-        const docRef = doc(db, 'waste_schedules', jobId);
+        const docRef = doc(db, 'waste', jobId);
         return updateDoc(docRef, {
             ...updates,
             updatedAt: new Date().toISOString(),

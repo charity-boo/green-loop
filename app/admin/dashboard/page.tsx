@@ -1,5 +1,8 @@
 import React, { Suspense } from 'react';
 import { getDashboardKPIs, getWasteTrendData, getWasteDistribution } from '@/lib/firebase/services/analytics';
+
+export const dynamic = 'force-dynamic';
+
 import { DashboardClient } from './dashboard-client';
 import WasteTrendChart from '@/components/admin/WasteTrendChart';
 import WasteDistributionChart from '@/components/admin/WasteDistributionChart';

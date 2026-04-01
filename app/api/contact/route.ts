@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb, admin } from '@/lib/firebase/admin';
+import { adminDb } from '@/lib/firebase/admin';
 import { handleApiError } from '@/lib/api-handler';
 import { sendEmail } from '@/lib/email';
 

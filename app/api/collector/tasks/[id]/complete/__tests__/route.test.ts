@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getSession } from '@/lib/auth';
-import { adminDb } from '@/lib/firebase/admin';
 import { WasteStatus } from '@/types/waste-status';
+import type { AuthSession } from '@/lib/auth';
+import type { NextRequest } from 'next/server';
+import { writeWorkflowLog } from '@/lib/workflow-log';
 
 const mockJsonFn = vi.hoisted(() =>
   vi.fn((data: unknown, init?: { status?: number }) => ({
@@ -13,6 +15,7 @@ const mockJsonFn = vi.hoisted(() =>
 vi.mock('next/server', () => ({ NextResponse: { json: mockJsonFn } }));
 
 vi.mock('@/lib/auth', () => ({ getSession: vi.fn() }));
+vi.mock('@/lib/workflow-log', () => ({ writeWorkflowLog: vi.fn() }));
 
 const mockTransaction = {
   get: vi.fn(),
@@ -48,15 +51,24 @@ vi.mock('@/lib/firebase/admin', () => {
 });
 
 const mockGetSession = vi.mocked(getSession);
-const mockAdminDb = vi.mocked(adminDb);
 
-const collectorSession = {
-  user: { id: 'col-1', role: 'COLLECTOR' as const },
+const collectorSession: AuthSession = {
+  user: {
+    id: 'col-1',
+    role: 'COLLECTOR',
+    email: 'collector@test.com',
+    name: 'Collector',
+    image: null,
+  },
   expires: new Date(Date.now() + 3600000).toISOString(),
 };
 
 function makeRequest(url = 'http://localhost/api/collector/tasks/waste-1/complete', options: RequestInit = {}) {
-  return new Request(url, { method: 'POST', ...options });
+  return new Request(url, { method: 'POST', ...options }) as NextRequest;
+}
+
+function getResponseBody(res: { _body?: unknown }) {
+  return (res._body ?? {}) as { status?: WasteStatus; message?: string };
 }
 
 beforeEach(() => {
@@ -70,7 +82,7 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     const wasteData = {
       userId: 'user-1',
       assignedCollectorId: 'col-1',
-      status: WasteStatus.Collected,
+      status: WasteStatus.Active,
       wasteItem: {
         formValue: 'plastic',
         probability: 0.95,
@@ -126,6 +138,15 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
         createdAt: { _serverTimestamp: true },
       })
     );
+    expect(writeWorkflowLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'collector_task_completed',
+        scheduleId: 'waste-1',
+        wasteId: 'waste-1',
+        actorType: 'collector',
+        actorId: 'col-1',
+      })
+    );
   });
 
   it('calculates points using fallbacks to wasteType and aiConfidence', async () => {
@@ -134,7 +155,7 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     const wasteData = {
       userId: 'user-1',
       assignedCollectorId: 'col-1',
-      status: WasteStatus.Collected,
+      status: WasteStatus.Active,
       // No wasteItem object
       wasteType: 'plastic',
       aiConfidence: 0.95,
@@ -184,7 +205,7 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     const res = await POST(makeRequest(), { params: Promise.resolve({ id: 'waste-1' }) });
 
     expect(res.status).toBe(200);
-    const body = (res as any)._body;
+    const body = getResponseBody(res as { _body?: unknown });
     expect(body.status).toBe(WasteStatus.Completed);
     
     // Should NOT have called update or set
@@ -192,13 +213,13 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     expect(mockTransaction.set).not.toHaveBeenCalled();
   });
 
-  it('returns 400 if waste item status is not Collected', async () => {
+  it('returns 400 if waste item status is not Active', async () => {
     mockGetSession.mockResolvedValue(collectorSession);
 
     const wasteData = {
       userId: 'user-1',
       assignedCollectorId: 'col-1',
-      status: WasteStatus.Pending, // Not Collected
+      status: WasteStatus.Pending, // Not Active
       wasteItem: {
         formValue: 'plastic',
         probability: 0.95,
@@ -213,8 +234,8 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     const res = await POST(makeRequest(), { params: Promise.resolve({ id: 'waste-1' }) });
 
     expect(res.status).toBe(400);
-    const body = (res as any)._body;
-    expect(body.message).toContain('must be collected before completing');
+    const body = getResponseBody(res as { _body?: unknown });
+    expect(body.message).toContain('must be active before completing');
   });
 
   it('returns 404 if user document is missing', async () => {
@@ -223,7 +244,7 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     const wasteData = {
       userId: 'user-1',
       assignedCollectorId: 'col-1',
-      status: WasteStatus.Collected,
+      status: WasteStatus.Active,
       wasteItem: {
         formValue: 'plastic',
         probability: 0.95,
@@ -241,7 +262,23 @@ describe('POST /api/collector/tasks/[id]/complete', () => {
     const res = await POST(makeRequest(), { params: Promise.resolve({ id: 'waste-1' }) });
 
     expect(res.status).toBe(404);
-    const body = (res as any)._body;
+    const body = getResponseBody(res as { _body?: unknown });
     expect(body.message).toContain('User document not found');
+  });
+
+  it('returns 403 when task is assigned to another collector', async () => {
+    mockGetSession.mockResolvedValue(collectorSession);
+
+    mockTransaction.get.mockResolvedValueOnce({
+      exists: true,
+      data: () => ({
+        userId: 'user-1',
+        assignedCollectorId: 'other-collector',
+        status: WasteStatus.Active,
+      }),
+    });
+
+    const res = await POST(makeRequest(), { params: Promise.resolve({ id: 'waste-1' }) });
+    expect(res.status).toBe(403);
   });
 });

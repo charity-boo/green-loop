@@ -11,7 +11,9 @@ import {
     Clock,
     AlertCircle,
     ChevronLeft,
-    Layers
+    Layers,
+    User,
+    Phone
 } from 'lucide-react';
 import { CollectorTask } from '@/types';
 import { useActiveJob } from '@/hooks/use-active-job';
@@ -19,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import InteractiveMap from '@/components/dashboard/collector/interactive-map';
 
 export default function ActiveJobPage() {
     const params = useParams();
@@ -96,8 +99,45 @@ export default function ActiveJobPage() {
             </div>
 
             <main className="p-4 space-y-6 max-w-2xl mx-auto">
-                {/* Destination Card */}
+                {/* Resident Info Card */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
+                    <Card className="border-none bg-white dark:bg-[#064e3b]/20 shadow-xl shadow-slate-200/50 dark:shadow-none rounded-[2rem] overflow-hidden">
+                        <CardHeader className="p-8 pb-4">
+                            <p className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-4">Resident Contact</p>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-slate-50 dark:bg-emerald-950/40 rounded-2xl">
+                                        <User className="h-6 w-6 text-slate-400" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-xl text-slate-900 dark:text-white leading-tight">
+                                            {job.user?.name || job.userName || 'Resident'}
+                                        </h4>
+                                        <p className="text-[10px] text-slate-400 dark:text-emerald-100/30 font-bold uppercase tracking-widest mt-1">Verification Code: {job.id.slice(-6).toUpperCase()}</p>
+                                    </div>
+                                </div>
+                                {job.userPhone && (
+                                    <Button asChild variant="outline" className="rounded-2xl h-12 w-12 p-0 border-slate-100 dark:border-emerald-800/20 bg-slate-50 dark:bg-emerald-950/40">
+                                        <a href={`tel:${job.userPhone}`}>
+                                            <Phone className="h-5 w-5 text-[#10b981]" />
+                                        </a>
+                                    </Button>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent className="px-8 pb-8 pt-2">
+                             {job.userPhone && (
+                                <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-emerald-400/60 mt-2">
+                                    <Phone className="h-3 w-3" />
+                                    <span>{job.userPhone}</span>
+                                </div>
+                             )}
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                {/* Destination Card & Integrated Map */}
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     <Card className="border-none bg-white dark:bg-[#064e3b]/20 shadow-xl shadow-slate-200/50 dark:shadow-none rounded-[2rem] overflow-hidden">
                         <div className={`h-2 w-full ${isActive ? 'bg-[#10b981]' : 'bg-slate-300 dark:bg-emerald-900/50'} transition-all duration-700`} />
                         <CardHeader className="p-8 pb-4">
@@ -119,6 +159,9 @@ export default function ActiveJobPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="px-8 pb-8 pt-4">
+                            <div className="rounded-[1.5rem] overflow-hidden border border-slate-100 dark:border-emerald-800/20 mb-6">
+                                <InteractiveMap focusedTask={job} height="300px" />
+                            </div>
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center text-sm font-bold text-slate-500 dark:text-emerald-400/60">
                                     <Clock className="h-4 w-4 mr-2" />
@@ -139,7 +182,7 @@ export default function ActiveJobPage() {
                 </motion.div>
 
                 {/* Cargo Specification Card */}
-                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     <Card className="border-none bg-white dark:bg-[#064e3b]/20 shadow-xl shadow-slate-200/50 dark:shadow-none rounded-[2rem] p-8">
                         <CardTitle className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-6">
                             Cargo Assessment

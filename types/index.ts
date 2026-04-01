@@ -51,7 +51,11 @@ export interface CollectorTask extends Waste {
   aiCategory?: string | null;
   beforeImageUrl?: string | null;
   afterImageUrl?: string | null;
-  collectorId?: string | null;
+  collectorId?: string;
+  userName?: string | null;
+  userPhone?: string | null;
+  region?: string | null;
+  address?: string | null;
   user?: {
     name: string | null;
     email: string;

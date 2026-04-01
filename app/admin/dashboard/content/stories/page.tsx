@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
+
+export const dynamic = 'force-dynamic';
+
 import { CommunityStoryDoc } from '@/types/firestore';
 import {
   Search,
@@ -303,7 +307,14 @@ export default function StoriesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {story.imageUrl && (
-                          <img src={story.imageUrl} alt={story.title} className="w-10 h-10 rounded-lg object-cover" />
+                          <Image
+                            src={story.imageUrl}
+                            alt={story.title}
+                            width={40}
+                            height={40}
+                            className="rounded-lg object-cover"
+                            unoptimized
+                          />
                         )}
                         <div>
                           <div className="flex items-center gap-2">

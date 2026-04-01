@@ -2,6 +2,13 @@ import { setGlobalOptions } from "firebase-functions";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+
+// Initialize Admin SDK early to avoid "FirebaseAppError: The default Firebase app does not exist"
+// especially in imported handlers that might use admin.firestore() at the top level.
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
 import { FieldValue } from "firebase-admin/firestore";
 import * as nodemailer from "nodemailer";
 
@@ -9,14 +16,10 @@ import * as nodemailer from "nodemailer";
 import { 
   handleClassificationRequest, 
   handleWasteReportCreation 
-} from "./handlers/classification.ts";
+} from "./handlers/classification";
 
 setGlobalOptions({ maxInstances: 10 });
 
-// Initialize Admin SDK
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
 const db = admin.firestore();
 
 // --- Email Configuration ---
@@ -32,13 +35,24 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendEmail(to: string, subject: string, text: string, html: string): Promise<void> {
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM ?? `Green Loop <${process.env.SMTP_USER}>`,
-    to,
-    subject,
-    text,
-    html,
-  });
+  logger.info(`[Nodemailer] Preparing to send email to: ${to} (Subject: ${subject})`);
+  try {
+    // Verify connection before sending
+    await transporter.verify();
+    logger.info(`[Nodemailer] SMTP connection verified successfully`);
+    
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM ?? `Green Loop <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+    });
+    logger.info(`[Nodemailer] Email sent successfully! Message ID: ${info.messageId}`);
+  } catch (error) {
+    logger.error(`[Nodemailer] FAILED to send email to ${to}:`, error);
+    throw error;
+  }
 }
 
 // --- Schedule Notifications ---
@@ -106,6 +120,7 @@ async function sendScheduleNotification(scheduleId: string, data: any) {
     });
 
     const userEmail = userData?.email;
+    logger.info(`Notification logic for user ${userId}: email=${userEmail}, status=${status}`);
     if (userEmail) {
       // Email sending logic (simplified for brevity here, but keep the core logic)
       try {
@@ -119,10 +134,14 @@ async function sendScheduleNotification(scheduleId: string, data: any) {
             <p><strong>Current Status:</strong> ${status}</p>
           </div>
         `;
+        logger.info(`Attempting to send email to ${userEmail} for schedule ${scheduleId}`);
         await sendEmail(userEmail, subject, config.message, html);
+        logger.info(`✅ Email sent successfully to ${userEmail}`);
       } catch (e) {
-        logger.error(`Error sending email for user ${userId}:`, e);
+        logger.error(`❌ Error sending email for user ${userId}:`, e);
       }
+    } else {
+      logger.warn(`No email found for user ${userId}, skipping email notification`);
     }
   } catch (error) {
     logger.error(`Error sending notification for schedule ${scheduleId}:`, error);
@@ -135,6 +154,14 @@ export const onScheduleCreated = onDocumentCreated(
   "schedules/{scheduleId}",
   async (event) => {
     const data = event.data?.data();
+    logger.info(`New schedule created: ${event.params.scheduleId}`, { 
+      data,
+      env: {
+        hasSmtpUser: !!process.env.SMTP_USER,
+        hasSmtpPass: !!process.env.SMTP_PASS,
+        smtpUser: process.env.SMTP_USER,
+      }
+    });
     if (data) await sendScheduleNotification(event.params.scheduleId, data);
   }
 );
@@ -189,6 +216,61 @@ export const onUserCreated = onDocumentCreated(
         "Welcome to Green Loop!",
         `<h2>Welcome to Green Loop!</h2><p>Hi ${userData.name || 'there'}, we're excited to have you join us!</p>`
       );
+    }
+  }
+);
+
+// --- Waste Sync Triggers ---
+
+export const onWasteUpdated = onDocumentUpdated(
+  "waste/{wasteId}",
+  async (event) => {
+    const beforeData = event.data?.before.data();
+    const afterData = event.data?.after.data();
+    if (!beforeData || !afterData) return;
+
+    // Detect completion or weight updates
+    const isNowCompleted = beforeData.status !== 'completed' && afterData.status === 'completed';
+    const hasWeightChanged = beforeData.weight !== afterData.weight;
+
+    if (isNowCompleted || hasWeightChanged || beforeData.status !== afterData.status) {
+      const scheduleId = afterData.scheduleId || event.params.wasteId;
+      const scheduleRef = db.collection("schedules").doc(scheduleId);
+      
+      const updateData: Record<string, any> = {
+        status: afterData.status,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+
+      if (afterData.weight !== undefined) updateData.weight = afterData.weight;
+      if (afterData.beforeImageUrl !== undefined) updateData.beforeImageUrl = afterData.beforeImageUrl;
+      if (afterData.afterImageUrl !== undefined) updateData.afterImageUrl = afterData.afterImageUrl;
+
+      // Calculate points if completed
+      if (isNowCompleted) {
+        // Base points (50) + Weight-based points (2 per kg)
+        const weight = afterData.weight || 0;
+        const earnedPoints = 50 + Math.floor(weight * 2);
+        updateData.points = earnedPoints;
+        updateData.completedAt = afterData.completedAt || FieldValue.serverTimestamp();
+
+        // Update user points
+        const userId = afterData.userId;
+        if (userId) {
+          try {
+            await db.collection("users").doc(userId).update({
+              rewardPoints: FieldValue.increment(earnedPoints),
+              updatedAt: FieldValue.serverTimestamp(),
+            });
+            logger.info(`Awarded ${earnedPoints} points to user ${userId} for waste ${event.params.wasteId}`);
+          } catch (err) {
+            logger.error(`Failed to award points to user ${userId}:`, err);
+          }
+        }
+      }
+
+      await scheduleRef.update(updateData);
+      logger.info(`Synced waste ${event.params.wasteId} status/weight to schedule ${scheduleId}`);
     }
   }
 );

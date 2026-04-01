@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { handleApiError } from '@/lib/api-handler';
 import { sendEmail } from '@/lib/email';
+import { sendSMS } from '@/lib/sms';
 
 export async function POST(req: NextRequest) {
   try {

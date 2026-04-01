@@ -38,42 +38,43 @@ export function useCollectorTasks(uid: string | undefined) {
 
     setLoading(true);
 
-    try {
-      // Per USER_REQUEST: collection is 'waste_schedules' and field is 'collectorId'
-      const q = query(
-        collection(db, 'waste_schedules'),
-        where('collectorId', '==', uid),
-        orderBy('createdAt', 'desc')
-      );
+    const q = query(
+      collection(db, 'waste'),
+      where('assignedCollectorId', '==', uid),
+      orderBy('createdAt', 'desc')
+    );
 
-      const unsubscribe = onSnapshot(
-        q,
-        { includeMetadataChanges: true },
-        (snapshot: QuerySnapshot<DocumentData>) => {
-          const tasksData = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            hasPendingWrites: doc.metadata.hasPendingWrites,
-          })) as unknown as (CollectorTask & { hasPendingWrites: boolean })[];
+    const unsubscribe = onSnapshot(
+      q,
+      { includeMetadataChanges: true },
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const tasksData = snapshot.docs.map((taskDoc) => {
+          const data = taskDoc.data();
+          return {
+            id: taskDoc.id,
+            ...data,
+            type: data.type ?? data.wasteType ?? 'Recyclable',
+            location: data.location ?? data.address ?? 'Ndagani Area',
+            user: data.user ?? (data.userName ? { name: data.userName, email: '' } : undefined),
+            hasPendingWrites: taskDoc.metadata.hasPendingWrites,
+          };
+        }) as unknown as (CollectorTask & { hasPendingWrites: boolean })[];
 
-          setTasks(tasksData);
-          setLoading(false);
-          setIsOffline(snapshot.metadata.fromCache);
-          setHasPendingWrites(snapshot.metadata.hasPendingWrites);
-        },
-        (err) => {
-          console.error('Error in useCollectorTasks snapshot:', err);
-          setError(err.message);
-          setLoading(false);
-        }
-      );
+        setTasks(tasksData);
+        setLoading(false);
+        setIsOffline(snapshot.metadata.fromCache);
+        setHasPendingWrites(snapshot.metadata.hasPendingWrites);
+      },
+      (err) => {
+        console.error('Error in useCollectorTasks snapshot:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    );
 
-      return () => unsubscribe();
-    } catch (err) {
-      console.error('Error setting up useCollectorTasks listener:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      setLoading(false);
-    }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [uid]);
 
   /**
@@ -81,7 +82,7 @@ export function useCollectorTasks(uid: string | undefined) {
    */
   const updateTask = async (taskId: string, updatedFields: Partial<CollectorTask>) => {
     if (!db) return;
-    const taskRef = doc(db, 'waste_schedules', taskId);
+    const taskRef = doc(db, 'waste', taskId);
     return updateDoc(taskRef, {
       ...updatedFields,
       updatedAt: new Date().toISOString()

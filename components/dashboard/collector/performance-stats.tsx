@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { CollectorTask } from '@/types';
 import { Scale, Trophy, CheckCircle2, TrendingUp } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface PerformanceStatsProps {
     tasks: CollectorTask[];
@@ -21,78 +22,88 @@ export function PerformanceStats({ tasks }: PerformanceStatsProps) {
 
     const stats = [
         {
-            label: 'Job Points',
+            label: 'Total Points',
             value: totalPoints.toLocaleString(),
             icon: Trophy,
-            color: 'text-amber-400',
-            bg: 'bg-amber-400/10',
+            color: 'text-amber-600',
+            bg: 'bg-amber-50',
+            borderColor: 'border-amber-100',
         },
         {
-            label: 'Total Weight',
+            label: 'Weight',
             value: `${totalWeight.toFixed(1)}kg`,
             icon: Scale,
-            color: 'text-[#10b981]',
-            bg: 'bg-emerald-400/10',
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            borderColor: 'border-emerald-100',
         },
         {
             label: 'Completed',
             value: completedTasks.length.toString(),
             icon: CheckCircle2,
-            color: 'text-blue-400',
-            bg: 'bg-blue-400/10',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            borderColor: 'border-blue-100',
         },
         {
             label: 'Efficiency',
             value: '94%',
             icon: TrendingUp,
-            color: 'text-purple-400',
-            bg: 'bg-purple-400/10',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+            borderColor: 'border-indigo-100',
         }
     ];
 
     return (
-        <div className="space-y-8">
-            <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, index) => (
                     <motion.div
                         key={stat.label}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                     >
-                        <Card className="p-6 bg-white dark:bg-[#064e3b]/20 border-none shadow-xl flex flex-col items-center text-center rounded-[2rem] group hover:scale-[1.05] transition-transform">
-                            <div className={`p-4 rounded-2xl ${stat.bg} mb-4 group-hover:scale-110 transition-transform`}>
-                                <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                            </div>
-                            <p className="text-[10px] uppercase font-black text-slate-400 dark:text-emerald-100/40 mb-1 tracking-[0.2em]">
-                                {stat.label}
-                            </p>
-                            <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">{stat.value}</p>
+                        <Card className={`border-none shadow-sm bg-white hover:shadow-md transition-all rounded-2xl overflow-hidden`}>
+                            <CardContent className="p-5 flex flex-col items-center text-center">
+                                <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} mb-3 border ${stat.borderColor}`}>
+                                    <stat.icon size={20} />
+                                </div>
+                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">
+                                    {stat.label}
+                                </p>
+                                <p className="text-xl font-black text-slate-900 tracking-tight">{stat.value}</p>
+                            </CardContent>
                         </Card>
                     </motion.div>
                 ))}
             </div>
 
-            <Card className="p-8 bg-white dark:bg-[#064e3b]/20 border-none shadow-xl rounded-[2.5rem] relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#10b981]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex justify-between items-end mb-6 relative z-10">
-                    <div>
-                        <h4 className="text-lg font-black text-slate-900 dark:text-white mb-1 uppercase italic tracking-tighter">Weekly Target</h4>
-                        <p className="text-xs text-slate-400 dark:text-emerald-100/40 font-bold">Field-Goal Efficiency: {progress.toFixed(0)}%</p>
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden relative group">
+                <CardContent className="p-8">
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <TrendingUp size={16} className="text-emerald-600" />
+                                <h4 className="text-lg font-bold text-slate-900">Weekly Progress</h4>
+                            </div>
+                            <p className="text-sm text-slate-500 font-medium">You are on track to reach your weekly goal.</p>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-3xl font-black text-emerald-600 tabular-nums tracking-tight">{totalWeight.toFixed(1)}</span>
+                            <span className="text-sm font-bold text-slate-300 ml-2 uppercase tracking-widest">/ 50kg</span>
+                        </div>
                     </div>
-                    <div className="text-right">
-                        <span className="text-3xl font-black text-[#10b981] tabular-nums tracking-tighter">{totalWeight.toFixed(1)}</span>
-                        <span className="text-sm font-black text-slate-300 dark:text-emerald-900/50 ml-2 uppercase tracking-tighter">/ 50kg</span>
+                    
+                    <div className="space-y-3">
+                        <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span>{progress.toFixed(0)}% Completed</span>
+                            <span>Target: 50kg</span>
+                        </div>
+                        <Progress value={progress} className="h-2 bg-slate-100" />
                     </div>
-                </div>
-                <div className="relative h-3 w-full bg-slate-100 dark:bg-emerald-950/50 rounded-full overflow-hidden">
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="absolute top-0 left-0 h-full bg-[#10b981] rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]"
-                    />
-                </div>
+                </CardContent>
             </Card>
         </div>
     );

@@ -63,10 +63,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     await docRef.update(updates);
 
-    const afterState = { id, ...beforeState, ...updates };
+    const afterState = { ...beforeState, ...updates };
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'UPDATE_GREEN_TIP',
       targetType: 'GREEN_TIP',
@@ -103,7 +103,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     await docRef.delete();
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'DELETE_GREEN_TIP',
       targetType: 'GREEN_TIP',

@@ -17,11 +17,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         redirect("/admin/dashboard");
     }
 
-    // USER gets the sidebar layout; COLLECTOR manages its own internal layout
-    if (session.user.role === "USER") {
+    // USER and COLLECTOR get the sidebar layout
+    if (session.user.role === "USER" || session.user.role === "COLLECTOR") {
         return (
             <AuthStatusWrapper>
-                <div className="flex min-h-screen bg-background text-foreground transition-colors">
+                <div className="flex min-h-screen bg-background text-foreground transition-colors font-outfit">
                     <SidebarNav />
                     <div className="flex-1 pl-64 min-w-0 flex flex-col">
                         <TopNav />
@@ -33,7 +33,4 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </AuthStatusWrapper>
         );
     }
-
-    // COLLECTOR
-    return <AuthStatusWrapper>{children}</AuthStatusWrapper>;
 }

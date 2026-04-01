@@ -49,7 +49,7 @@ export function LoginForm() {
             console.log('[LoginForm] Redirecting to /dashboard via location');
             window.location.href = "/dashboard";
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         if (registered) {
@@ -139,7 +139,7 @@ export function LoginForm() {
                     {/* Password Input */}
                     <div className="grid gap-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="password" colonial-className="text-sm font-medium text-gray-200">Password</Label>
+                            <Label htmlFor="password" className="text-sm font-medium text-gray-200">Password</Label>
                             <Link
                                 href="/auth/forgot-password"
                                 className="text-sm font-medium text-green-400 hover:text-green-300 transition-colors"

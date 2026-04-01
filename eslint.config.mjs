@@ -20,6 +20,10 @@ const eslintConfig = [
       "next-env.d.ts",
       ".backup-routes/**",
       ".agents/**",
+      ".agent/**",
+      ".claude/**",
+      ".kilocode/**",
+      ".kiro/**",
       ".worktrees/**",
       "test-db.js",
       "test-*.ts",
@@ -36,6 +40,12 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+    },
+  },
+  {
+    files: ["**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ];

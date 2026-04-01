@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useWasteCalculator, WasteType } from '../use-waste-calculator';
+import { useWasteCalculator } from '../use-waste-calculator';
 import { describe, it, expect } from 'vitest';
 
 describe('useWasteCalculator', () => {

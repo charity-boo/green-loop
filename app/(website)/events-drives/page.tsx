@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Calendar, MapPin, Users, Search, ChevronLeft, ChevronRight, Clock, Ticket } from 'lucide-react';
 import { motion } from "framer-motion";
@@ -25,11 +25,7 @@ export default function EventsDrivesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 12;
 
-  useEffect(() => {
-    fetchEvents();
-  }, [selectedCategory, searchQuery, page]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -55,7 +51,11 @@ export default function EventsDrivesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const upcomingEvents = events.filter(e => isFuture(new Date(e.eventDate)));
   const pastEvents = events.filter(e => isPast(new Date(e.eventDate)));

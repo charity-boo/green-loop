@@ -48,12 +48,12 @@ All validation failures must return a `400 Bad Request` with the following struc
 
 ---
 
-## 4. Waste Assignment (`POST /api/waste/assign`)
+## 4. Waste Assignment (Auto-Managed)
 
-| Test Case | Payload | Expected HTTP | Expected Errors in Response |
+| Test Case | Method/Endpoint | Expected HTTP | Behavior |
 | :--- | :--- | :--- | :--- |
-| Valid Assignment | `{ "wasteId": "cuid1", "collectorId": "cuid2" }` | 200 | N/A |
-| Missing IDs | `{}` | 400 | `["wasteId is required", "collectorId is required"]` |
+| Manual Claim (Legacy) | `POST /api/collector/accept-job` | 409 | Returns error: manual claiming is disabled |
+| Auto-Assignment (System) | Triggered via Payment Webhook | N/A | Least-loaded active collector in region selected |
 
 ---
 

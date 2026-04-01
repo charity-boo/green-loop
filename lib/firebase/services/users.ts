@@ -86,9 +86,16 @@ export async function updateUser(
     actionType: 'UPDATE_USER',
     targetType: 'User',
     targetId: userId,
-    beforeState: { role: beforeState.role, active: beforeState.active },
-    afterState: updates,
-    reason,
+    beforeState: { 
+      role: beforeState.role, 
+      active: beforeState.active ?? true 
+    },
+    afterState: {
+      ...updates,
+      active: updates.active ?? beforeState.active ?? true,
+      role: updates.role ?? beforeState.role
+    },
+    reason: reason ?? null,
     createdAt: new Date().toISOString(),
   });
 }

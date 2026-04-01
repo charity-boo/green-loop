@@ -9,17 +9,15 @@ import {
     Users,
     Sprout,
     ArrowRight,
-    CheckCircle2,
     ShoppingBag,
     Globe,
-    TrendingUp,
     Heart,
     Zap,
     Leaf,
     ShieldCheck,
     Truck
 } from "lucide-react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const GrainyBackground = () => (
     <div className="absolute inset-0 pointer-events-none z-0">
@@ -45,7 +43,6 @@ export default function CircularEconomyPage() {
 
     const scale = useTransform(scrollYProgress, [0, 0.1], [1, 0.95]);
     const opacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
-    const loopRotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
 
     return (
         <div ref={containerRef} className="relative min-h-screen bg-[#050a09] text-white selection:bg-emerald-500/30 overflow-x-hidden">

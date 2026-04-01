@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ProfilePhotoSection } from "./profile-photo-section";
 import { Check, Loader2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import LocationSection from "@/components/user/location-section";
 
 export function AccountForm() {
     const { user, role } = useAuth();
@@ -105,6 +106,8 @@ export function AccountForm() {
                         />
                     </div>
                 </div>
+
+                {role === "COLLECTOR" && <LocationSection />}
 
                 {error && (
                     <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-center gap-3">

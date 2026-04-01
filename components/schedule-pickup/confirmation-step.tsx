@@ -152,6 +152,10 @@ export default function ConfirmationStep({ wasteDetails, pickupDetails, onConfir
             </div>
             <p className="text-green-100 text-xs">This pickup will divert approximately 5kg of waste from landfills! 🌱</p>
           </div>
+          <div className="text-right border-l border-white/20 pl-4">
+            <p className="text-[10px] font-bold text-green-200 uppercase tracking-widest">Pickup Fee</p>
+            <p className="text-2xl font-black">$5.00</p>
+          </div>
         </div>
       </div>
 
@@ -174,10 +178,10 @@ export default function ConfirmationStep({ wasteDetails, pickupDetails, onConfir
           {loading ? (
             <div className="flex items-center gap-3">
               <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Scheduling...</span>
+              <span>Processing...</span>
             </div>
           ) : (
-            "Confirm Pickup"
+            "Confirm & Pay $5.00"
           )}
         </Button>
       </div>

@@ -97,13 +97,45 @@ describe('getSession()', () => {
     expect(session!.user.role).toBe('COLLECTOR');
   });
 
+  it('returns null for expired emulator token when manual decode fallback is used', async () => {
+    const prevEmulatorHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+
+    const expiredPayload = {
+      sub: 'user-123',
+      user_id: 'user-123',
+      email: 'test@example.com',
+      role: 'ADMIN',
+      iat: Math.floor(Date.now() / 1000) - 7200,
+      exp: Math.floor(Date.now() / 1000) - 3600,
+    };
+    const token = [
+      Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url'),
+      Buffer.from(JSON.stringify(expiredPayload)).toString('base64url'),
+      '',
+    ].join('.');
+
+    mockHeaders.mockResolvedValue(makeHeadersStore({ Authorization: `Bearer ${token}` }));
+    mockCookies.mockResolvedValue(makeCookiesStore({}));
+    mockVerifyIdToken.mockRejectedValue({ code: 'auth/argument-error' });
+
+    const session = await getSession();
+    expect(session).toBeNull();
+
+    if (prevEmulatorHost === undefined) {
+      delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
+    } else {
+      process.env.FIREBASE_AUTH_EMULATOR_HOST = prevEmulatorHost;
+    }
+  });
+
   it('reads token from cookie when Authorization header is absent', async () => {
     mockHeaders.mockResolvedValue(makeHeadersStore({}));
     mockCookies.mockResolvedValue(makeCookiesStore({ 'firebase-token': 'cookie-token' }));
     mockVerifyIdToken.mockResolvedValue({ ...baseToken, role: 'user' });
 
     const session = await getSession();
-    expect(mockVerifyIdToken).toHaveBeenCalledWith('cookie-token');
+    expect(mockVerifyIdToken).toHaveBeenCalledWith('cookie-token', expect.any(Boolean));
     expect(session).not.toBeNull();
   });
 

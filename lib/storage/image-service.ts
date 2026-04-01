@@ -1,4 +1,5 @@
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase/config';
 
 /**
  * Uploads an image to Firebase Storage (Web version).
@@ -14,7 +15,6 @@ export const uploadImageAndGetURL = async (
   progressCallback?: (progress: number) => void,
   customPath?: string
 ): Promise<string> => {
-  const storage = getStorage();
   const storagePath = customPath || `waste-images/${userId}/${new Date().toISOString()}`;
   const storageRef = ref(storage, storagePath);
 

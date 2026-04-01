@@ -39,6 +39,10 @@ export async function POST(req: Request) {
       return createErrorResponse('Schedule record data is empty', undefined, 404);
     }
 
+    if (wasteData.paymentStatus === 'Paid') {
+      return createErrorResponse('This schedule is already paid', undefined, 400);
+    }
+
     if (wasteData.userId !== userId) {
       return createErrorResponse('Unauthorized: Schedule does not belong to user', undefined, 403);
     }
@@ -79,7 +83,7 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}&waste_id=${wasteId}`,
       cancel_url: `${appUrl}/dashboard`,
       metadata: {
         paymentId,

@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Loader2, AlertCircle, Search } from "lucide-react";
+import AddressAutocomplete, { type AddressSelection } from "@/components/location/address-autocomplete";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -24,10 +25,14 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
+  const [locationSelection, setLocationSelection] = useState<AddressSelection | null>(null);
 
   const handleClose = () => {
     setIsSuccess(false);
     setError(null);
+    setLocation("");
+    setLocationSelection(null);
     onClose();
   };
 
@@ -39,10 +44,16 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
     const form = e.currentTarget;
     const data = {
       propertyName: (form.elements.namedItem('hostel-name') as HTMLInputElement).value,
-      location: (form.elements.namedItem('location') as HTMLInputElement).value,
+      location,
       contactPerson: (form.elements.namedItem('contact-person') as HTMLInputElement).value,
       email: (form.elements.namedItem('email') as HTMLInputElement).value,
       tier,
+      placeId: locationSelection?.placeId ?? null,
+      latitude: locationSelection?.latitude ?? null,
+      longitude: locationSelection?.longitude ?? null,
+      county: locationSelection?.county ?? null,
+      region: locationSelection?.region ?? null,
+      source: locationSelection?.source ?? null,
     };
 
     try {
@@ -109,14 +120,32 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="hostel-name" className="text-sm font-bold text-slate-700">Property Name</Label>
               <Input id="hostel-name" placeholder="e.g. Sunset Gardens" required className="h-12 rounded-xl border-border" />
             </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-sm font-bold text-slate-700">Location</Label>
-              <Input id="location" placeholder="e.g. Ndagani" required className="h-12 rounded-xl border-border" />
+              <Label htmlFor="location" className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <Search className="h-3 w-3" /> Location
+              </Label>
+              <AddressAutocomplete
+                value={location}
+                onManualChange={(nextLocation) => {
+                  setLocation(nextLocation);
+                  setLocationSelection(null);
+                }}
+                onSelectAddress={(selection) => {
+                  setLocation(selection.address);
+                  setLocationSelection(selection);
+                }}
+                placeholder="Search for hostel location..."
+                className="h-12 rounded-xl border-border"
+              />
+              <p className="text-[10px] text-slate-400 font-medium italic">
+                Start typing to search for the location using Google.
+              </p>
             </div>
           </div>
 

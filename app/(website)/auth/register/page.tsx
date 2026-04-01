@@ -8,7 +8,8 @@ import { doc, setDoc } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import { auth, db } from "@/lib/firebase/config";
 import { useAuth } from "@/context/auth-provider";
-import { KENYA_COUNTIES } from "@/lib/constants/regions";
+import AddressAutocomplete from "@/components/location/address-autocomplete";
+import { validateCollectorLocationSelection } from "@/lib/location/collector-location-validation";
 import { Eye, EyeOff } from "lucide-react";
 
 // Import Shadcn UI Components
@@ -34,8 +35,11 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"USER" | "COLLECTOR">("USER");
+  const [address, setAddress] = useState("");
   const [county, setCounty] = useState("");
   const [region, setRegion] = useState("");
+  const [placeId, setPlaceId] = useState<string | null>(null);
+  const [locationSource, setLocationSource] = useState<"manual" | "gps" | "google_autocomplete">("manual");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<React.ReactNode | null>(null);
 
@@ -68,10 +72,19 @@ export default function RegisterPage() {
       return;
     }
 
-    if (selectedRole === 'COLLECTOR' && !region) {
-      setError("Please select your service region.");
-      setLoading(false);
-      return;
+    if (selectedRole === 'COLLECTOR') {
+      const validation = validateCollectorLocationSelection({
+        address,
+        county,
+        region,
+        placeId,
+        locationSource,
+      });
+      if (!validation.isValid) {
+        setError(validation.error ?? "Please provide a valid collector location.");
+        setLoading(false);
+        return;
+      }
     }
 
     if (!auth || !db) {
@@ -98,7 +111,15 @@ export default function RegisterPage() {
         role: 'USER', // Always start as USER for security
         requestedRole: selectedRole,
         status: selectedRole === 'COLLECTOR' ? 'PENDING_APPROVAL' : 'ACTIVE',
-        ...(selectedRole === 'COLLECTOR' && region ? { region, county } : {}),
+        ...(selectedRole === 'COLLECTOR'
+          ? {
+              address,
+              region,
+              county,
+              placeId,
+              locationSource,
+            }
+          : {}),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -232,8 +253,11 @@ export default function RegisterPage() {
                 value={selectedRole}
                 onValueChange={(val) => {
                   setSelectedRole(val as "USER" | "COLLECTOR");
+                  setAddress("");
                   setCounty("");
                   setRegion("");
+                  setPlaceId(null);
+                  setLocationSource("manual");
                 }}
               >
                 <SelectTrigger id="role" className="h-12 bg-white/5 border-white/10 text-white ring-offset-background focus:ring-2 focus:ring-green-500">
@@ -249,42 +273,51 @@ export default function RegisterPage() {
             {/* Region Selection - only for collectors */}
             {selectedRole === 'COLLECTOR' && (
               <div className="grid gap-2">
-                <Label htmlFor="county" className="text-sm font-medium text-gray-200">Service County</Label>
-                <Select
-                  value={county}
-                  onValueChange={(val) => {
-                    setCounty(val);
+                <Label htmlFor="collector-address" className="text-sm font-medium text-gray-200">
+                  Service Address
+                </Label>
+                <AddressAutocomplete
+                  value={address}
+                  onManualChange={(nextAddress) => {
+                    setAddress(nextAddress);
+                    setCounty("");
                     setRegion("");
+                    setPlaceId(null);
+                    setLocationSource("manual");
                   }}
-                >
-                  <SelectTrigger id="county" className="h-12 bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Select county..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 text-white border-white/10">
-                    {KENYA_COUNTIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onSelectAddress={(selection) => {
+                    setAddress(selection.address);
+                    setPlaceId(selection.placeId);
+                    setLocationSource(selection.source);
+                    setCounty(selection.county ?? "");
+                    setRegion(selection.region ?? "");
+                  }}
+                  placeholder="Search your base/station address"
+                  className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 ring-offset-background focus-visible:ring-2 focus-visible:ring-green-500"
+                />
+                <p className="text-xs text-gray-400">Select from Google suggestions only.</p>
               </div>
             )}
 
-            {selectedRole === 'COLLECTOR' && county && (
+            {selectedRole === 'COLLECTOR' && (
               <div className="grid gap-2">
-                <Label htmlFor="region" className="text-sm font-medium text-gray-200">Service Area</Label>
-                <Select
-                  value={region}
-                  onValueChange={(val) => setRegion(val)}
-                >
-                  <SelectTrigger id="region" className="h-12 bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Select area..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-900 text-white border-white/10">
-                    {KENYA_COUNTIES.find(c => c.value === county)?.subRegions.map((sr) => (
-                      <SelectItem key={sr.value} value={sr.value}>{sr.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium text-gray-200">Service County</Label>
+                <Input
+                  value={county || "Set from Google selection"}
+                  disabled
+                  className="h-12 bg-white/5 border-white/10 text-white"
+                />
+              </div>
+            )}
+
+            {selectedRole === 'COLLECTOR' && (
+              <div className="grid gap-2">
+                <Label className="text-sm font-medium text-gray-200">Service Area</Label>
+                <Input
+                  value={region || "Set from Google selection"}
+                  disabled
+                  className="h-12 bg-white/5 border-white/10 text-white"
+                />
                 <p className="text-xs text-gray-400">You will be assigned pickups in this area.</p>
               </div>
             )}

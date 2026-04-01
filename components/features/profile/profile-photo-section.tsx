@@ -98,7 +98,7 @@ export function ProfilePhotoSection() {
             const blob = await response.blob();
 
             // Upload to Firebase Storage
-            const path = `users/${user.uid}/profile_${Date.now()}.jpg`;
+            const path = `users/${user.uid}/profile/${Date.now()}.jpg`;
             const photoURL = await uploadImageAndGetURL(blob, user.uid, undefined, path);
 
             // Update Auth Profile
@@ -247,11 +247,7 @@ export function ProfilePhotoSection() {
                                         <Button
                                             onClick={() => { 
                                                 setCapturedImage(null); 
-                                                if (mode === 'camera') {
-                                                    startCamera();
-                                                } else {
-                                                    setMode("choice");
-                                                }
+                                                setMode("choice");
                                             }}
                                             variant="outline"
                                             className="flex-1 rounded-2xl h-12 font-black uppercase tracking-widest text-xs border-border hover:bg-muted/50"

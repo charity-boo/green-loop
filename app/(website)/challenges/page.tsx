@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Trophy, Search, ChevronLeft, ChevronRight, Users, Target, Calendar, TrendingUp } from 'lucide-react';
 import { motion } from "framer-motion";
@@ -23,11 +23,7 @@ export default function ChallengesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 12;
 
-  useEffect(() => {
-    fetchChallenges();
-  }, [selectedStatus, searchQuery, page]);
-
-  const fetchChallenges = async () => {
+  const fetchChallenges = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -53,7 +49,11 @@ export default function ChallengesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, selectedStatus, searchQuery]);
+
+  useEffect(() => {
+    fetchChallenges();
+  }, [fetchChallenges]);
 
   const activeChallenges = challenges.filter(c => c.status === 'active');
   const upcomingChallenges = challenges.filter(c => c.status === 'upcoming');

@@ -8,13 +8,10 @@ import {
   Globe, 
   Zap, 
   TrendingUp, 
-  ShieldCheck, 
-  ArrowRight,
   Sparkles,
   Building2,
   Workflow,
-  BarChart4,
-  CheckCircle2
+  BarChart4
 } from 'lucide-react';
 import { motion } from "framer-motion";
 

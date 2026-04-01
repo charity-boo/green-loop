@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   LogOut, 
@@ -68,7 +68,7 @@ export function MyHostelDashboard({ hostel, onReset }: { hostel: HostelSelection
 
   const isCustom = 'isCustom' in hostel && hostel.isCustom;
   const hostelRank = isCustom ? 0 : leaderboard.findIndex(h => h.id === hostel.id) + 1;
-  const totalWaste = isCustom ? 0 : (hostel as HostelDoc).totalWasteRecycled || 0;
+  const totalWaste = isCustom ? 0 : hostel.totalWasteRecycled || 0;
 
   return (
     <div className="space-y-10 py-6">

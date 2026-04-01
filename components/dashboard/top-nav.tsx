@@ -1,15 +1,17 @@
 'use client';
 
-import React from 'react';
 import { Bell, Search, Menu } from 'lucide-react';
 import { ProfileDropdown } from './profile-dropdown';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
 
 interface TopNavProps {
     className?: string;
 }
 
 export function TopNav({ className }: TopNavProps) {
+    const { role } = useAuth();
+    
     return (
         <header className={cn(
             "h-16 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10 transition-colors",
@@ -38,7 +40,11 @@ export function TopNav({ className }: TopNavProps) {
 
                 <div className="h-8 w-px bg-border mx-2"></div>
 
-                <ProfileDropdown variant="user" showBackToHome={true} showDashboard={false} />
+                <ProfileDropdown 
+                    variant={role === 'ADMIN' ? 'admin' : role === 'COLLECTOR' ? 'collector' : 'user'} 
+                    showBackToHome={true} 
+                    showDashboard={false} 
+                />
             </div>
         </header>
     );

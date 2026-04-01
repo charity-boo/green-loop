@@ -1,4 +1,4 @@
-import { adminAuth } from "@/lib/firebase/admin";
+import { admin, adminAuth } from "@/lib/firebase/admin";
 import { cookies, headers } from "next/headers";
 import type { Role } from '@/types/firestore';
 
@@ -82,21 +82,27 @@ export async function getSession(): Promise<AuthSession | null> {
     
     try {
       decodedToken = await adminAuth.verifyIdToken(token, !useEmulator);
-    } catch (error: any) {
+    } catch (error) {
       // In development with emulators, if verification fails with argument-error (often due to alg: none),
       // we can try to manually decode the payload if it looks like an emulator token.
-      if (useEmulator && (error.code === 'auth/argument-error' || token.startsWith('eyJhbGciOiJub25l'))) {
+      const err = error as { code?: string };
+      if (useEmulator && (err.code === 'auth/argument-error' || token.startsWith('eyJhbGciOiJub25l'))) {
         console.warn('[getSession] Admin SDK verification failed for emulator token. Attempting manual decode.');
         try {
           const parts = token.split('.');
           if (parts.length >= 2) {
             const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+            const nowSec = Math.floor(Date.now() / 1000);
+            if (typeof payload.exp !== 'number' || payload.exp <= nowSec) {
+              console.warn('[getSession] Emulator token rejected: expired or missing exp claim.');
+              return null;
+            }
             // Map the minimal fields needed for the Session object
             decodedToken = {
               ...payload,
               uid: payload.user_id || payload.sub,
               role: payload.role || 'USER',
-              exp: payload.exp || Math.floor(Date.now() / 1000) + 3600,
+              exp: payload.exp,
               iat: payload.iat || Math.floor(Date.now() / 1000),
               iss: payload.iss,
               aud: payload.aud,
@@ -137,9 +143,15 @@ export async function getSession(): Promise<AuthSession | null> {
       expires: new Date(decodedToken.exp * 1000).toISOString(),
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    const code = (error as { code?: string })?.code;
-    const stack = error instanceof Error ? error.stack : undefined;
+    // Re-throw Next.js dynamic bailout errors
+    const err = error as Error & { digest?: string; code?: string };
+    if (err.digest === 'DYNAMIC_SERVER_USAGE' || err.message?.includes('dynamic-server-usage')) {
+      throw error;
+    }
+
+    const message = err.message || String(error);
+    const code = err.code;
+    const stack = err.stack;
 
     // Expected errors (expired/invalid tokens) - don't log as errors
     const expectedCodes = [

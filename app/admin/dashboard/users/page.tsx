@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+
+export const dynamic = 'force-dynamic';
+
 import { UserDoc, Role } from '@/types/firestore';
 import { UserTable } from '@/components/admin/UserTable';
 import { 

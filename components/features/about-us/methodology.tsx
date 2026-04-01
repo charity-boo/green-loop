@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 import { Truck, Layers, Factory, Users, BarChart3 } from "lucide-react";
 
 const Methodology = () => {

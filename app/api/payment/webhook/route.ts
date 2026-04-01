@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { adminDb } from '@/lib/firebase/admin';
+import { assignScheduleAutomatically } from '@/lib/admin/assignment';
+import { writeWorkflowLog } from '@/lib/workflow-log';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -25,7 +27,9 @@ export async function POST(req: Request) {
   try {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
-      const { paymentId } = session.metadata ?? {};
+      const metadata = session.metadata ?? {};
+      const { paymentId, wasteId } = metadata;
+      console.log(`[StripeWebhook] Session completed. Payment ID: ${paymentId}, Waste ID: ${wasteId}`);
 
       if (!paymentId) {
         console.error('Missing paymentId in Stripe session metadata');
@@ -40,26 +44,75 @@ export async function POST(req: Request) {
 
       const payment = paymentDoc.data();
 
-      // Idempotency: skip if already SUCCESS
-      if (payment?.status === 'SUCCESS') {
-        return NextResponse.json({ received: true }, { status: 200 });
-      }
-
-      await adminDb.collection('payments').doc(paymentId).update({
-        status: 'SUCCESS',
-        stripeSessionId: session.id,
-        transactionId: session.payment_intent ?? null,
-        updatedAt: new Date().toISOString(),
-      });
-
-      // Sync paymentStatus back to the schedule document for dashboard display
-      const { wasteId } = session.metadata ?? {};
-      if (wasteId) {
-        await adminDb.collection('schedules').doc(wasteId).update({
-          paymentStatus: 'Paid',
+      const paymentAlreadySuccessful = payment?.status === 'SUCCESS';
+      if (!paymentAlreadySuccessful) {
+        await adminDb.collection('payments').doc(paymentId).update({
+          status: 'SUCCESS',
           stripeSessionId: session.id,
+          transactionId: session.payment_intent ?? null,
           updatedAt: new Date().toISOString(),
         });
+      }
+
+      // Sync paymentStatus back to the schedule document for dashboard display
+      if (wasteId) {
+        await writeWorkflowLog({
+          event: 'payment_succeeded',
+          scheduleId: wasteId,
+          wasteId,
+          paymentId,
+          paymentIntentId: session.payment_intent?.toString() ?? null,
+          stripeSessionId: session.id,
+          actorType: 'stripe',
+          after: { paymentStatus: 'Paid' },
+          metadata: paymentAlreadySuccessful ? { idempotent: true } : undefined,
+        });
+
+        console.log(`[StripeWebhook] Updating schedule and waste ${wasteId} to Paid`);
+        const scheduleRef = adminDb.collection('schedules').doc(wasteId);
+        const wasteRef = adminDb.collection('waste').doc(wasteId);
+        
+        const now = new Date().toISOString();
+        const updateData = {
+          paymentStatus: 'Paid',
+          stripeSessionId: session.id,
+          updatedAt: now,
+        };
+
+        // Update the schedule
+        await scheduleRef.update(updateData);
+
+        // Update the waste task if it already exists
+        const wasteDoc = await wasteRef.get();
+        if (wasteDoc.exists) {
+          await wasteRef.update({
+            paymentStatus: 'Paid',
+            updatedAt: now,
+          });
+        }
+
+        // Fetch fresh data to check region
+        const scheduleDoc = await scheduleRef.get();
+        const scheduleData = scheduleDoc.data();
+
+        if (scheduleData?.region) {
+          console.log(`[StripeWebhook] Triggering auto-assignment for wasteId: ${wasteId}`);
+          const result = await assignScheduleAutomatically(wasteId);
+          if (result.assignedCollectorId) {
+            console.log(`[StripeWebhook] Successfully auto-assigned collector ${result.assignedCollectorId} to schedule ${wasteId}`);
+          } else {
+            console.warn(`[StripeWebhook] Auto-assignment failed for schedule ${wasteId}: ${result.reason}`);
+          }
+        } else {
+          console.warn(`[StripeWebhook] Schedule ${wasteId} has no region, skipping auto-assignment`);
+          await writeWorkflowLog({
+            event: 'assignment_failed',
+            scheduleId: wasteId,
+            wasteId,
+            actorType: 'system',
+            metadata: { reason: 'missing_region' },
+          });
+        }
       }
 
       console.info(`Payment ${paymentId} marked SUCCESS`);
@@ -74,6 +127,17 @@ export async function POST(req: Request) {
           updatedAt: new Date().toISOString(),
         });
         console.info(`Payment ${paymentId} marked FAILED`);
+        const wasteId = metadata?.wasteId;
+        if (wasteId) {
+          await writeWorkflowLog({
+            event: 'payment_failed',
+            scheduleId: wasteId,
+            wasteId,
+            paymentId,
+            actorType: 'stripe',
+            metadata: { stripeEventType: event.type },
+          });
+        }
       }
     }
 

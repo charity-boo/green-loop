@@ -15,7 +15,6 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; bg:
     [WasteStatus.Pending]: { icon: Clock, color: "text-amber-600", bg: "bg-amber-50", label: "Scheduled" },
     [WasteStatus.Skipped]: { icon: AlertCircle, color: "text-slate-400", bg: "bg-slate-50", label: "Skipped" },
     [WasteStatus.Active]: { icon: Clock, color: "text-blue-600", bg: "bg-blue-50", label: "Active" },
-    [WasteStatus.Collected]: { icon: CheckCircle2, color: "text-teal-600", bg: "bg-teal-50", label: "Collected" },
 };
 
 export default function ActivityHistory({ history }: ActivityHistoryProps) {

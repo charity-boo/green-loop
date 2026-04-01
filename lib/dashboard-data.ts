@@ -4,17 +4,11 @@ import {
   PickupHistoryItem,
   CollectorTask,
   AdminDashboardData,
-  Waste,
   RewardsData,
   SocialMetrics,
 } from '@/types';
 import { WasteStatus } from '@/types/waste-status';
 import { calculateCarbonSavings } from './utils/carbon';
-
-interface FirestoreWaste extends Omit<Waste, 'createdAt' | 'updatedAt'> {
-  createdAt: string | { _seconds: number; _nanoseconds: number };
-  updatedAt: string | { _seconds: number; _nanoseconds: number };
-}
 
 interface FirestoreSchedule {
   id: string;

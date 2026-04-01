@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
+
+export const dynamic = 'force-dynamic';
+
 import { GreenTipDoc } from '@/types/firestore';
 import {
   Search,
@@ -8,14 +12,10 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Eye,
   Loader2,
   ChevronLeft,
   ChevronRight,
   Leaf,
-  Upload,
-  X,
-  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -296,7 +296,14 @@ export default function GreenTipsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {tip.imageUrl && (
-                          <img src={tip.imageUrl} alt={tip.title} className="w-10 h-10 rounded-lg object-cover" />
+                          <Image
+                            src={tip.imageUrl}
+                            alt={tip.title}
+                            width={40}
+                            height={40}
+                            className="rounded-lg object-cover"
+                            unoptimized
+                          />
                         )}
                         <div>
                           <p className="font-medium text-foreground">{tip.title}</p>

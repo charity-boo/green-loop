@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { AuthCTA } from '@/components/features/auth/auth-cta';
 import { 
-  Calendar, Activity, Award, Leaf, ArrowLeft, Home, Sparkles, 
+  Calendar, Award, Leaf, ArrowLeft, Home, Sparkles, 
   Recycle, Trash2, BatteryWarning, CheckCircle2, XCircle, 
   TrendingDown, Users, TreePine, MapPin
 } from 'lucide-react';
@@ -17,12 +17,12 @@ export default function PrivateHomesWastePage() {
     {
       icon: <Calendar className="w-6 h-6 text-emerald-600" />,
       title: "Flexible Scheduling",
-      description: "Choose weekly, bi-weekly, or on-demand pickups via our app. Tailor the schedule to your household's unique rhythm.",
+      description: "Choose weekly, bi-weekly, or on-demand pickups via our app. Tailor the schedule to your household&apos;s unique rhythm.",
     },
     {
       icon: <MapPin className="w-6 h-6 text-emerald-600" />,
       title: "Real-Time Tracking",
-      description: "Track your collector's arrival in real-time. Receive SMS or push notifications so you never miss a pickup.",
+      description: "Track your collector&apos;s arrival in real-time. Receive SMS or push notifications so you never miss a pickup.",
     },
     {
       icon: <Award className="w-6 h-6 text-emerald-600" />,
@@ -159,14 +159,13 @@ export default function PrivateHomesWastePage() {
                 </motion.h1>
 
                 <motion.p 
-                  className="text-lg md:text-xl text-slate-600 leading-relaxed mb-8 max-w-lg"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-lg md:text-xl text-slate-600 leading-relaxed mb-8 max-w-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  Simple, reliable, scheduled, and on-demand waste collection for single-family residences. Elevate your household's sustainability with zero hassle.
+                Simple, reliable, scheduled, and on-demand waste collection for single-family residences. Elevate your household&apos;s sustainability with zero hassle.
                 </motion.p>
-                
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

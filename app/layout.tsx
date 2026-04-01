@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/auth-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import DynamicNavbar from "@/components/layout/dynamic-navbar";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
           <AuthProvider>
             <DynamicNavbar />
             {children}
+            <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>
       </body>

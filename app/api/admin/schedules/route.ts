@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSession } from '@/lib/auth';
+import { assignScheduleAutomatically } from '@/lib/admin/assignment';
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -60,7 +61,27 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
-    await adminDb.collection('schedules').doc(id).update({
+    const scheduleRef = adminDb.collection('schedules').doc(id);
+    const scheduleDoc = await scheduleRef.get();
+    
+    if (!scheduleDoc.exists) {
+      return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
+    }
+
+    const currentData = scheduleDoc.data();
+
+    // If setting to assigned and no collectorId exists, try to auto-assign
+    if (status === 'assigned' && !currentData?.collectorId && currentData?.region) {
+      const result = await assignScheduleAutomatically(id);
+      if (!result.assignedCollectorId) {
+        return NextResponse.json({ 
+          error: `Auto-assignment failed: ${result.reason || 'No available collector found'}` 
+        }, { status: 400 });
+      }
+      return NextResponse.json({ success: true, assignedCollectorId: result.assignedCollectorId });
+    }
+
+    await scheduleRef.update({
       status,
       updatedAt: new Date().toISOString(),
     });

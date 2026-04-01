@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Camera, Upload, RefreshCw, CheckCircle2, AlertCircle, MapPin, 
   Trash2, X, ArrowRight, ArrowLeft, AlertTriangle, Info, 
-  ShieldCheck, EyeOff, Wind, Droplets, Trash, Plus, Navigation
+  ShieldCheck, EyeOff, Wind, Droplets, Plus, Navigation
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -403,11 +403,17 @@ const ReportIssuePage = () => {
               <div className="grid grid-cols-3 gap-3 mt-4">
                 {formData.images.map((img, idx) => (
                   <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group border shadow-sm">
-                    <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                    <Image 
+                      src={img} 
+                      alt={`Preview ${idx}`} 
+                      fill 
+                      className="object-cover" 
+                      unoptimized
+                    />
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                     >
                       <X className="h-3 w-3" />
                     </button>

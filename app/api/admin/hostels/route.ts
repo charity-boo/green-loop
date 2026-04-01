@@ -3,7 +3,7 @@ import { adminDb } from '@/lib/firebase/admin';
 import { getSession } from '@/lib/auth';
 import { HostelDoc } from '@/types/firestore';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getSession();
   if (!session || session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

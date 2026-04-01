@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
@@ -10,7 +9,6 @@ import { PhoneInput } from "@/components/features/auth/sms/phone-input";
 import { OTPInput } from "@/components/features/auth/sms/otp-input";
 
 export default function PhoneAuthPage() {
-  const router = useRouter();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);

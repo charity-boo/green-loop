@@ -129,6 +129,7 @@ export interface ChallengeDoc {
   title: string;
   description: string; // Can store rich text as HTML or markdown
   imageUrl?: string | null;
+  category: string; // e.g., "Waste Reduction", "Community Cleanup"
   startDate: string; // ISO string
   endDate: string; // ISO string
   goal: string; // e.g., "Collect 100kg waste"

@@ -28,6 +28,13 @@ service firebase.storage {
       allow write: if isOwner(userId) && isValidImageUpload();
       allow delete: if isOwner(userId) || isAdmin();
     }
+
+    // Waste classification images (temporary/pre-schedule)
+    match /waste-images/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isValidImageUpload();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
     
     // Waste images: authenticated users can upload, owner + collector + admin can read
     match /waste/{userId}/{scheduleId}/{fileName} {

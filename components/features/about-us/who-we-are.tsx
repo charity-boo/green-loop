@@ -357,7 +357,7 @@ const WhoWeAre = () => {
                 What We <span className="text-green-600">Stand For</span>
               </h2>
               <p className="text-gray-500 text-lg leading-relaxed">
-                These values aren't just words on a page — they guide every collection run, every community event, and every line of code we write.
+                These values aren&apos;t just words on a page — they guide every collection run, every community event, and every line of code we write.
               </p>
             </div>
 
@@ -507,7 +507,7 @@ const WhoWeAre = () => {
             <span className="text-green-300">Greener Ndagani</span>
           </h2>
           <p className="text-green-100 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
-            Whether you're a resident, business, school, hospital, or potential partner — there's a place for you in the Green Loop family.
+            Whether you&apos;re a resident, business, school, hospital, or potential partner — there&apos;s a place for you in the Green Loop family.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

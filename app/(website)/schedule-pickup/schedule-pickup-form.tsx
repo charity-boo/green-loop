@@ -10,6 +10,7 @@ import WasteDetailsForm from "@/components/schedule-pickup/waste-details-form";
 import PickupDetailsForm from "@/components/schedule-pickup/pickup-details-form";
 import ConfirmationStep from "@/components/schedule-pickup/confirmation-step";
 import Link from "next/link";
+import { Loader2, CreditCard } from "lucide-react";
 
 type WasteDetails = {
   type: string;
@@ -23,6 +24,9 @@ type WasteDetails = {
 type PickupDetails = {
   address: string;
   region: string;
+  county?: string;
+  placeId?: string | null;
+  locationSource?: 'manual' | 'gps' | 'google_autocomplete';
   date: Date | undefined;
   timeSlot: string;
   instructions: string;
@@ -37,9 +41,21 @@ interface SchedulePickupFormProps {
 export default function SchedulePickupForm({ userName: _userName }: SchedulePickupFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wasteDetails, setWasteDetails] = useState<WasteDetails>({ type: "", classificationSource: "manual", aiPhotoUsed: false });
-  const [pickupDetails, setPickupDetails] = useState<PickupDetails>({ address: "", region: "", date: undefined, timeSlot: "", instructions: "", latitude: undefined, longitude: undefined });
+  const [pickupDetails, setPickupDetails] = useState<PickupDetails>({
+    address: "",
+    region: "",
+    county: undefined,
+    placeId: null,
+    locationSource: 'manual',
+    date: undefined,
+    timeSlot: "",
+    instructions: "",
+    latitude: undefined,
+    longitude: undefined
+  });
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pickupId, setPickupId] = useState<string | null>(null);
 
@@ -85,6 +101,9 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
           classificationStatus: wasteDetails.aiSuggestedType ? 'classified' : 'none',
           address: pickupDetails.address,
           region: pickupDetails.region,
+          county: pickupDetails.county ?? null,
+          placeId: pickupDetails.placeId ?? null,
+          locationSource: pickupDetails.locationSource ?? 'manual',
           pickupDate: pickupDetails.date?.toISOString() ?? null,
           timeSlot: pickupDetails.timeSlot,
           instructions: pickupDetails.instructions,
@@ -95,21 +114,80 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to schedule pickup');
+        throw new Error(err.error || err.message || 'Failed to schedule pickup');
       }
 
       const { id } = await response.json();
       setPickupId(id);
+
+      // Automatically initiate payment redirect
+      try {
+        setIsRedirecting(true);
+        const payResponse = await fetch('/api/payment/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wasteId: id }),
+        });
+
+        if (payResponse.ok) {
+          const payData = await payResponse.json();
+          if (payData.url) {
+            window.location.href = payData.url;
+            return; // Exit here as we are redirecting
+          }
+        }
+      } catch (payError) {
+        console.error("Failed to initiate payment automatically:", payError);
+      } finally {
+        setIsRedirecting(false);
+      }
+
       setIsSuccessModalOpen(true);
 
       setWasteDetails({ type: "", classificationSource: "manual", aiPhotoUsed: false, disposalTips: undefined });
-      setPickupDetails({ address: "", region: "", date: undefined, timeSlot: "", instructions: "" });
+      setPickupDetails({
+        address: "",
+        region: "",
+        county: undefined,
+        placeId: null,
+        locationSource: 'manual',
+        date: undefined,
+        timeSlot: "",
+        instructions: "",
+      });
       setCurrentStep(1);
     } catch (error) {
       console.error("Error scheduling pickup:", error);
       setErrorMessage(error instanceof Error ? error.message : "Failed to schedule pickup. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInitiatePayment = async () => {
+    if (!pickupId) return;
+
+    try {
+      setIsRedirecting(true);
+      const payResponse = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wasteId: pickupId }),
+      });
+
+      if (payResponse.ok) {
+        const payData = await payResponse.json();
+        if (payData.url) {
+          window.location.href = payData.url;
+          return;
+        }
+      }
+      throw new Error("Failed to get payment URL");
+    } catch (error) {
+      console.error("Payment initiation failed:", error);
+      setErrorMessage("Could not initiate payment. Please try from your dashboard.");
+    } finally {
+      setIsRedirecting(false);
     }
   };
 
@@ -202,16 +280,34 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
               </div>
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-4 mt-6">
-            <Link
-              href="/dashboard"
-              className="px-6 py-2 border rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition"
+          <div className="flex flex-col gap-3 mt-6">
+            <Button 
+              onClick={handleInitiatePayment} 
+              disabled={isRedirecting}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl py-6 text-lg shadow-lg shadow-green-200"
             >
-              Go to Dashboard
-            </Link>
-            <Button onClick={() => setIsSuccessModalOpen(false)} className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl px-6">
-              Close
+              {isRedirecting ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-5 w-5" />
+              )}
+              {isRedirecting ? "Redirecting to Stripe..." : "Pay Now ($5.00)"}
             </Button>
+            <div className="flex gap-4">
+              <Link
+                href="/dashboard"
+                className="flex-1 px-6 py-2 border rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition text-center"
+              >
+                Go to Dashboard
+              </Link>
+              <Button 
+                variant="ghost"
+                onClick={() => setIsSuccessModalOpen(false)} 
+                className="flex-1 text-gray-400 font-bold rounded-xl px-6"
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

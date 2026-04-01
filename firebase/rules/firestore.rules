@@ -7,14 +7,20 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasUserData() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
     function hasRole(role) {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'USER') == role;
+      return hasUserData() && getUserData().get('role', 'USER') == role;
     }
     
     function isAdmin() {
@@ -52,21 +58,36 @@ service cloud.firestore {
 
     // Waste collection rules
     match /waste/{wasteId} {
-      // Users can read their own waste, collectors can read assigned waste, admins read all
+      // Users can read their own waste, collectors can read assigned waste OR unassigned ones in their region
       allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || 
-        resource.data.collectorId == request.auth.uid ||
-        isAdmin()
+        isAdmin() ||
+        resource.data.get('userId', '') == request.auth.uid || 
+        (
+          resource.data.get('collectorId', '') == request.auth.uid ||
+          resource.data.get('assignedCollectorId', '') == request.auth.uid
+        ) ||
+        (
+          isCollector() && 
+          resource.data.get('status', '') == 'pending' && 
+          resource.data.get('paymentStatus', '') == 'Paid' &&
+          resource.data.get('region', '') == getUserData().get('region', '')
+        )
       );
       
       // Only the owner can create waste reports
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.get('userId', '') == request.auth.uid;
       
       // Owner can update their own waste (before collection), collectors can update status
       allow update: if isAuthenticated() && (
-        (resource.data.userId == request.auth.uid && resource.data.status == 'pending') ||
-        (resource.data.collectorId == request.auth.uid && isCollector()) ||
-        isAdmin()
+        isAdmin() ||
+        (resource.data.get('userId', '') == request.auth.uid && resource.data.get('status', '') == 'pending') ||
+        (
+          (
+            resource.data.get('collectorId', '') == request.auth.uid ||
+            resource.data.get('assignedCollectorId', '') == request.auth.uid
+          ) &&
+          isCollector()
+        )
       );
       
       allow delete: if isAdmin();
@@ -75,15 +96,16 @@ service cloud.firestore {
     // Schedules collection rules
     match /schedules/{scheduleId} {
       allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || 
-        resource.data.collectorId == request.auth.uid || 
-        isAdmin()
+        isAdmin() ||
+        resource.data.get('userId', '') == request.auth.uid || 
+        resource.data.get('collectorId', '') == request.auth.uid ||
+        (isCollector() && resource.data.get('collectorId', null) == null)
       );
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || 
-        resource.data.collectorId == request.auth.uid || 
-        isAdmin()
+        isAdmin() ||
+        resource.data.get('userId', '') == request.auth.uid || 
+        resource.data.get('collectorId', '') == request.auth.uid
       );
       allow delete: if isAdmin();
     }
@@ -91,14 +113,15 @@ service cloud.firestore {
     // Waste Schedules collection rules (Alternative name used in some hooks)
     match /waste_schedules/{scheduleId} {
       allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || 
-        resource.data.collectorId == request.auth.uid || 
-        isAdmin()
+        isAdmin() ||
+        resource.data.get('userId', '') == request.auth.uid || 
+        resource.data.get('collectorId', '') == request.auth.uid ||
+        (isCollector() && resource.data.get('collectorId', null) == null)
       );
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
-        resource.data.collectorId == request.auth.uid || 
-        isAdmin()
+        isAdmin() ||
+        resource.data.get('collectorId', '') == request.auth.uid
       );
       allow delete: if isAdmin();
     }
@@ -108,12 +131,12 @@ service cloud.firestore {
       // Users can only list their own notifications
       allow list: if isAuthenticated() && 
         request.query.limit <= 100 && // Prevent large queries
-        (resource.data.userId == request.auth.uid || isAdmin());
+        (isAdmin() || resource.data.get('userId', '') == request.auth.uid);
       
       // Users can read their own notifications, admins can read all
       allow get: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || 
-        isAdmin()
+        isAdmin() ||
+        resource.data.get('userId', '') == request.auth.uid
       );
       
       // System/admins create notifications
@@ -121,7 +144,7 @@ service cloud.firestore {
       
       // Users can mark their own notifications as read
       allow update: if isAuthenticated() && 
-        resource.data.userId == request.auth.uid &&
+        resource.data.get('userId', '') == request.auth.uid &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
       
       allow delete: if isAdmin();
@@ -159,7 +182,7 @@ service cloud.firestore {
     }
 
     // Admin action logs - admin only
-    match /adminActionLog/{logId} {
+    match /admin_action_logs/{logId} {
       allow read, write: if isAdmin();
     }
 

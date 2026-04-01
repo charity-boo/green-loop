@@ -21,10 +21,10 @@ export async function GET(req: NextRequest) {
 
     // Apply filters
     if (status) {
-      query = query.where('status', '==', status) as any;
+      query = query.where('status', '==', status);
     }
     if (category) {
-      query = query.where('category', '==', category) as any;
+      query = query.where('category', '==', category);
     }
 
     // Get all documents (we'll handle search and pagination in memory for simplicity)
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const docRef = await db.collection('greenTips').add(newTip);
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'CREATE_GREEN_TIP',
       targetType: 'GREEN_TIP',

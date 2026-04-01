@@ -33,6 +33,18 @@ This starts Firebase emulators and runs the Next.js app in development mode. Ope
 By default, client SDK calls use local Firebase emulators in development. Set `NEXT_PUBLIC_USE_FIREBASE_EMULATORS=false` to disable emulator usage.
 Emulator data is imported from and exported to `.firebase-emulator-data/` on each `pnpm dev` run.
 
+### Google Places Autocomplete (Schedule Pickup)
+
+To enable address autocomplete in the Schedule Pickup form, set:
+
+```env
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_browser_key
+```
+
+Recommended key restrictions:
+- Application restriction: HTTP referrers (your production and localhost origins)
+- API restrictions: Maps JavaScript API + Places API
+
 ## Build
 
 To create a production build:

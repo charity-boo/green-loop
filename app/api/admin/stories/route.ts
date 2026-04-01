@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { db } from '@/lib/firebase/admin';
+import { db, admin } from '@/lib/firebase/admin';
 import { CommunityStoryDoc } from '@/types/firestore';
 
 export async function GET(req: NextRequest) {
@@ -18,17 +18,17 @@ export async function GET(req: NextRequest) {
     const featured = searchParams.get('featured');
     const search = searchParams.get('search');
 
-    let query = db.collection('communityStories').orderBy('createdAt', 'desc');
+    let query: admin.firestore.Query = db.collection('communityStories').orderBy('createdAt', 'desc');
 
     // Apply filters
     if (status) {
-      query = query.where('status', '==', status) as any;
+      query = query.where('status', '==', status);
     }
     if (category) {
-      query = query.where('category', '==', category) as any;
+      query = query.where('category', '==', category);
     }
     if (featured !== null && featured !== undefined) {
-      query = query.where('featured', '==', featured === 'true') as any;
+      query = query.where('featured', '==', featured === 'true');
     }
 
     const snapshot = await query.get();
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     const docRef = await db.collection('communityStories').add(newStory);
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'CREATE_STORY',
       targetType: 'STORY',

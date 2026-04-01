@@ -8,7 +8,7 @@ import { HostelDoc } from "@/types/firestore";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useEffect } from "react";
 
-export type HostelSelection = HostelDoc | { name: string; isCustom: boolean; id?: string; location?: string; verified?: boolean; points?: number; totalWasteRecycled?: number };
+export type HostelSelection = (HostelDoc & { isCustom: boolean }) | { name: string; isCustom: boolean; id?: string; location?: string; verified?: boolean; points?: number; totalWasteRecycled?: number };
 
 export function HostelSearch({ onSelect }: { onSelect?: (h: HostelSelection) => void }) {
   const [query, setQuery] = useState("");
@@ -48,11 +48,14 @@ export function HostelSearch({ onSelect }: { onSelect?: (h: HostelSelection) => 
     return () => controller.abort();
   }, [debouncedQuery]);
 
-  const handleSelect = useCallback((hostel: HostelSelection) => {
-    setSelectedHostel(hostel);
+  const handleSelect = useCallback((hostel: HostelDoc | { name: string; isCustom: boolean }) => {
+    const selection = 'id' in hostel 
+      ? { ...hostel, isCustom: false } 
+      : hostel;
+    setSelectedHostel(selection);
     setQuery("");
     setResults([]);
-    if (onSelect) onSelect(hostel);
+    if (onSelect) onSelect(selection);
   }, [onSelect]);
 
   return (
@@ -156,7 +159,7 @@ export function HostelSearch({ onSelect }: { onSelect?: (h: HostelSelection) => 
                 onClick={() => handleSelect({ name: query, isCustom: true })}
                 className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-100 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
              >
-                <Sparkles className="h-4 w-4" /> Create "{query}" Hub
+                <Sparkles className="h-4 w-4" /> Create &quot;{query}&quot; Hub
              </button>
           </motion.div>
         )}

@@ -45,7 +45,7 @@ function StatusButton({ task }: { task: CollectorTask }) {
         );
     }
 
-    if (task.status === WasteStatus.Active || task.status === WasteStatus.Collected) {
+    if (task.status === WasteStatus.Active) {
         return (
             <button
                 onClick={(e) => { e.stopPropagation(); router.push(`/dashboard/active/${task.id}/verify`); }}

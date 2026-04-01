@@ -17,14 +17,16 @@ const statusLabel: Record<string, string> = {
     [WasteStatus.Pending]: "Pending",
     [WasteStatus.Skipped]: "Skipped",
     [WasteStatus.Active]: "Active",
-    [WasteStatus.Collected]: "Collected",
+    assigned: "Active",
     cancelled: "Cancelled",
 };
 
 const statusStyle: Record<string, string> = {
-    [WasteStatus.Completed]: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    [WasteStatus.Completed]: "bg-green-50 text-green-700 border-green-200",
     [WasteStatus.Pending]: "bg-amber-50 text-amber-700 border-amber-200",
     [WasteStatus.Skipped]: "bg-slate-100 text-slate-500 border-slate-200",
+    [WasteStatus.Active]: "bg-blue-50 text-blue-700 border-blue-200",
+    assigned: "bg-blue-50 text-blue-700 border-blue-200",
     cancelled: "bg-red-50 text-red-600 border-red-200",
 };
 
@@ -64,7 +66,7 @@ export default function PickupTable({ history }: PickupTableProps) {
                 </div>
                 <Link
                     href="/schedule-pickup"
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all active:scale-95"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-all active:scale-95"
                 >
                     <Scan className="h-4 w-4" />
                     New Scan
@@ -130,15 +132,12 @@ export default function PickupTable({ history }: PickupTableProps) {
                                                 {statusLabel[item.status] ?? item.status}
                                             </span>
                                         </td>
-                                        <td className="py-6 text-right font-bold text-emerald-600">
+                                        <td className="py-6 text-right font-bold text-green-600">
                                             +{item.points}
                                         </td>
                                         <td className="py-6 text-right">
-                                            {item.paymentStatus === "Paid" ? (
-                                                <span className="inline-flex px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-tight bg-emerald-50 text-emerald-700 border-emerald-200">
-                                                    Paid
-                                                </span>
-                                            ) : (
+                                            {item.paymentStatus === "Unpaid" && 
+                                             (item.status === WasteStatus.Pending || item.status === WasteStatus.Active) && (
                                                 <PaymentButton wasteId={item.id} amount={item.price ?? 5} />
                                             )}
                                         </td>

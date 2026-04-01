@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getIssueReports, getWasteReports, ModerationFilters } from '@/lib/firebase/services/moderation';
+import { getIssueReports, getWasteReports, getContactMessages, ModerationFilters } from '@/lib/firebase/services/moderation';
 import { getSession } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {

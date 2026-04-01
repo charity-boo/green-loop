@@ -55,20 +55,20 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     };
 
     // Only update provided fields
-    const allowedFields = ['title', 'story', 'authorName', 'imageUrl', 'category', 'featured', 'status'];
+    const allowedFields = ['title', 'story', 'authorName', 'imageUrl', 'category', 'featured', 'status'] as const;
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        (updates as any)[field] = body[field];
+        (updates as Record<string, unknown>)[field] = body[field];
       }
     }
 
     await docRef.update(updates);
 
-    const afterState = { id, ...beforeState, ...updates };
+    const afterState = { ...beforeState, ...updates };
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'UPDATE_STORY',
       targetType: 'STORY',
@@ -105,7 +105,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     await docRef.delete();
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'DELETE_STORY',
       targetType: 'STORY',

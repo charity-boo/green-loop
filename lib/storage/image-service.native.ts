@@ -1,4 +1,5 @@
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase/config';
 
 /**
  * Uploads an image to Firebase Storage (React Native version).
@@ -13,7 +14,6 @@ export const uploadImageAndGetURL = async (
   userId: string,
   progressCallback?: (progress: number) => void
 ): Promise<string> => {
-  const storage = getStorage();
   const storageRef = ref(storage, `waste-images/${userId}/${new Date().toISOString()}`);
 
   try {

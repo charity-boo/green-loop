@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 
 interface CollectorPerformance {
@@ -40,12 +40,13 @@ function getRateColor(c: CollectorPerformance) {
 
 export default function CollectorTable({ data, meta, sortBy, sortOrder, window, search }: Props) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(search || "");
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (searchTerm !== (search || "")) {
-                const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(searchParams.toString());
                 if (searchTerm) {
                     params.set("search", searchTerm);
                 } else {
@@ -57,10 +58,10 @@ export default function CollectorTable({ data, meta, sortBy, sortOrder, window, 
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm, search, router]);
+    }, [searchTerm, search, router, searchParams]);
 
     function buildLink(params: Record<string, string | number>) {
-        const newParams = new URLSearchParams(window.location.search);
+        const newParams = new URLSearchParams(searchParams.toString());
         Object.entries(params).forEach(([key, value]) => {
             newParams.set(key, String(value));
         });

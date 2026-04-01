@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { parsePhoneNumber, getCountries, getCountryCallingCode } from "libphonenumber-js";
+import { parsePhoneNumber, getCountries, getCountryCallingCode, type CountryCode } from "libphonenumber-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,7 @@ const COUNTRY_NAMES: Record<string, string> = {
 };
 
 export function PhoneInput({ onSubmit, loading = false, error }: PhoneInputProps) {
-  const [countryCode, setCountryCode] = useState('KE'); // Default to Kenya
+  const [countryCode, setCountryCode] = useState<CountryCode>('KE'); // Default to Kenya
   const [phoneNumber, setPhoneNumber] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -50,7 +50,7 @@ export function PhoneInput({ onSubmit, loading = false, error }: PhoneInputProps
 
     try {
       // Get calling code for selected country
-      const callingCode = getCountryCallingCode(countryCode as any);
+      const callingCode = getCountryCallingCode(countryCode);
       const fullNumber = `+${callingCode}${phoneNumber}`;
 
       // Validate phone number
@@ -68,13 +68,13 @@ export function PhoneInput({ onSubmit, loading = false, error }: PhoneInputProps
     }
   };
 
-  const callingCode = getCountryCallingCode(countryCode as any);
+  const callingCode = getCountryCallingCode(countryCode);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="country">Country</Label>
-        <Select value={countryCode} onValueChange={setCountryCode}>
+        <Select value={countryCode} onValueChange={(value) => setCountryCode(value as CountryCode)}>
           <SelectTrigger id="country">
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
@@ -82,7 +82,7 @@ export function PhoneInput({ onSubmit, loading = false, error }: PhoneInputProps
             <div className="font-semibold text-xs text-gray-500 px-2 py-1">Popular</div>
             {POPULAR_COUNTRIES.map((code) => (
               <SelectItem key={code} value={code}>
-                {COUNTRY_NAMES[code] || code} (+{getCountryCallingCode(code as any)})
+                {COUNTRY_NAMES[code] || code} (+{getCountryCallingCode(code as CountryCode)})
               </SelectItem>
             ))}
             <div className="border-t my-1" />
@@ -91,7 +91,7 @@ export function PhoneInput({ onSubmit, loading = false, error }: PhoneInputProps
               .filter(code => !POPULAR_COUNTRIES.includes(code))
               .map((code) => (
                 <SelectItem key={code} value={code}>
-                  {COUNTRY_NAMES[code] || code} (+{getCountryCallingCode(code as any)})
+                  {COUNTRY_NAMES[code] || code} (+{getCountryCallingCode(code as CountryCode)})
                 </SelectItem>
               ))}
           </SelectContent>

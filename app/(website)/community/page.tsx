@@ -5,18 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { 
   Users, 
-  Trophy, 
   Calendar, 
   Heart, 
-  MessageSquare, 
   ArrowRight,
   TrendingUp,
   TreePine,
   Droplets,
   Globe,
   Quote,
-  Star,
-  CheckCircle2,
   ChevronRight,
   Sparkles,
   Zap,

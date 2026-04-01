@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     try {
       await adminAuth.getUserByEmail(email);
       userExists = true;
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       // User not found - but we don't want to reveal this to prevent email enumeration
       console.log('User not found:', email);
     }

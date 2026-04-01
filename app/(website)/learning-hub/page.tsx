@@ -5,16 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { 
   BookOpen, 
-  Video, 
   Search, 
   Leaf, 
-  ChevronRight, 
   GraduationCap,
   Lightbulb,
   Globe,
   CheckCircle2,
   FileText,
-  ArrowRight,
   Package,
   Trash2,
   Zap,
@@ -22,13 +19,9 @@ import {
   Download,
   Recycle,
   Building,
-  Clock,
   Play,
   X,
-  Loader2,
-  Filter,
-  Monitor,
-  Calendar
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -58,12 +51,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   Community:  "bg-teal-100 text-teal-800",
   Technology: "bg-blue-100 text-blue-800",
   Education:  "bg-violet-100 text-violet-800",
-};
-
-const DIFFICULTY_COLORS: Record<string, string> = {
-  Beginner:     "bg-green-50 text-green-700 border-green-200",
-  Intermediate: "bg-amber-50 text-amber-700 border-amber-200",
-  Advanced:     "bg-red-50 text-red-700 border-red-200",
 };
 
 const STATIC_VIDEOS: VideoItem[] = [
@@ -379,7 +366,7 @@ export default function LearningHubPage() {
             </div>
         ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredVideos.map((video, i) => (
+                {filteredVideos.map((video) => (
                     <motion.div
                         key={video.id}
                         initial={{ opacity: 0, y: 10 }}

@@ -8,22 +8,20 @@ import {
   BarChart3,
   MapPin,
   Clock,
-  ShieldCheck,
-  Zap,
   ArrowRight,
   ChevronRight,
-  Info,
   CheckCircle2,
   Building2,
   Calendar,
   Phone,
-  ArrowUpRight
+  ArrowUpRight,
+  type LucideIcon
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 interface ServiceCardProps {
-  icon: any;
+  icon: LucideIcon;
   title: string;
   description: string;
   features: string[];
@@ -94,7 +92,15 @@ const ServiceCard = ({ icon: Icon, title, description, features, link, stats, ta
   </motion.div>
 );
 
-const ProcessStep = ({ icon: Icon, step, title, description, isLast }: any) => (
+interface ProcessStepProps {
+  icon: LucideIcon;
+  step: string;
+  title: string;
+  description: string;
+  isLast: boolean;
+}
+
+const ProcessStep = ({ icon: Icon, step, title, description, isLast }: ProcessStepProps) => (
   <div className="relative flex gap-6 md:gap-10">
     <div className="flex flex-col items-center">
       <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-white border border-emerald-100 shadow-md shadow-emerald-900/5 flex items-center justify-center text-emerald-600 z-10 shrink-0 relative overflow-hidden group">
@@ -296,7 +302,7 @@ export default function ServicesPage() {
           
           {/* Bento layout using CSS grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {services.map((service, idx) => (
+            {services.map((service) => (
               <ServiceCard key={service.id} {...service} />
             ))}
           </div>
@@ -313,7 +319,7 @@ export default function ServicesPage() {
                   <p className="text-slate-500 text-xl leading-relaxed mb-12">We handle the heavy lifting while giving you complete transparency. Experience entirely effortless waste management.</p>
                   
                   <div className="p-8 bg-slate-50 border border-slate-200 rounded-[2rem] shadow-sm">
-                     <p className="text-slate-800 font-bold text-xl mb-4">"It was incredibly easy."</p>
+                     <p className="text-slate-800 font-bold text-xl mb-4">&quot;It was incredibly easy.&quot;</p>
                      <p className="text-slate-600 mb-6 italic">Integration with Green Loop took literally zero effort. Their team assessed our bins and we instantly saw carbon reductions on the portal.</p>
                      <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-emerald-200 rounded-full border-2 border-white shadow-sm overflow-hidden"><Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" width={40} height={40}/></div>
@@ -386,7 +392,7 @@ export default function ServicesPage() {
                 href="/contact-us"
                 className="w-full sm:w-auto px-10 py-5 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all hover:scale-[1.02] shadow-xl shadow-emerald-500/20 text-lg"
               >
-                Let's Talk Numbers
+                Let&apos;s Talk Numbers
                 <ChevronRight className="w-5 h-5" />
               </Link>
             </div>

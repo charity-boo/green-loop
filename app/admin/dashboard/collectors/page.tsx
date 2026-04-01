@@ -2,6 +2,8 @@ import { getCollectorPerformance } from "@/lib/firebase/services/analytics";
 import CollectorTable from "./collector-table";
 import { subDays } from "date-fns";
 
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
     searchParams: Promise<{
         page?: string;

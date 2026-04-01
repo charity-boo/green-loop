@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     // Apply filters
     if (status) {
-      query = query.where('status', '==', status) as any;
+      query = query.where('status', '==', status);
     }
 
     const snapshot = await query.get();
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, description, imageUrl, startDate, endDate, goal, status } = body;
+    const { title, description, category, imageUrl, startDate, endDate, goal, status } = body;
 
     // Validation
-    if (!title || !description || !startDate || !endDate || !goal) {
+    if (!title || !description || !category || !startDate || !endDate || !goal) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, description, startDate, endDate, goal' },
+        { error: 'Missing required fields: title, description, category, startDate, endDate, goal' },
         { status: 400 }
       );
     }
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
     const newChallenge: Omit<ChallengeDoc, 'id'> = {
       title,
       description,
+      category,
       imageUrl: imageUrl || null,
       startDate,
       endDate,
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
     const docRef = await db.collection('challenges').add(newChallenge);
 
     // Log admin action
-    await db.collection('adminActionLogs').add({
+    await db.collection('admin_action_logs').add({
       adminId: session.user.id,
       actionType: 'CREATE_CHALLENGE',
       targetType: 'CHALLENGE',

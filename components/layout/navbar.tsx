@@ -20,15 +20,13 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const GreenLoopNavBar = () => {
   const router = useRouter();
-  const { user, role, status, signOut } = useAuth();
-  const isLoading = status === "loading";
+  const { user, role, signOut } = useAuth();
   const isAdmin = role === "ADMIN";
   const isCollector = role === "COLLECTOR";
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   // States for hover dropdowns
-  const [learningOpen, setLearningOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
 
   useEffect(() => {

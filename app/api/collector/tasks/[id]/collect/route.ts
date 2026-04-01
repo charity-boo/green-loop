@@ -5,11 +5,12 @@ import { adminDb } from '@/lib/firebase/admin';
 import { WasteStatus } from '@/types/waste-status';
 import { createErrorResponse } from '@/lib/api-response';
 import { handleApiError } from '@/lib/api-handler';
+import { writeWorkflowLog } from '@/lib/workflow-log';
 
 /**
- * POST /api/collector/tasks/[id]/collect - Mark a task as collected
+ * POST /api/collector/tasks/[id]/collect - Mark a task as completed
  * Protected: Requires "collector" role
- * Scoped: Collector can only collect tasks assigned to them
+ * Scoped: Collector can only complete tasks assigned to them
  */
 export async function POST(
   _request: NextRequest,
@@ -33,7 +34,7 @@ export async function POST(
       return createErrorResponse('Waste item data is empty', undefined, 404);
     }
 
-    // Ensure collector can only collect their own assigned tasks
+    // Ensure collector can only complete their own assigned tasks
     if (wasteItem.assignedCollectorId !== collectorId && session!.user.role !== 'ADMIN') {
       return createErrorResponse('Forbidden: You are not assigned to this task', undefined, 403);
     }
@@ -43,11 +44,25 @@ export async function POST(
     }
 
     const updateData = {
-      status: WasteStatus.Collected,
+      status: WasteStatus.Completed,
       updatedAt: new Date().toISOString()
     };
 
     await adminDb.collection('waste').doc(id).update(updateData);
+
+    await writeWorkflowLog({
+      event: 'collector_task_collected',
+      scheduleId: typeof wasteItem.scheduleId === 'string' ? wasteItem.scheduleId : id,
+      wasteId: id,
+      actorType: 'collector',
+      actorId: collectorId,
+      before: {
+        status: typeof wasteItem.status === 'string' ? wasteItem.status : null,
+      },
+      after: {
+        status: WasteStatus.Completed,
+      },
+    });
 
     const updatedWasteItem = {
       id,

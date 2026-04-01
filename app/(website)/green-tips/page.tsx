@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Leaf, Search, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { motion } from "framer-motion";
@@ -22,11 +22,7 @@ export default function GreenTipsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 12;
 
-  useEffect(() => {
-    fetchTips();
-  }, [selectedCategory, searchQuery, page]);
-
-  const fetchTips = async () => {
+  const fetchTips = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -52,7 +48,11 @@ export default function GreenTipsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    fetchTips();
+  }, [fetchTips]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

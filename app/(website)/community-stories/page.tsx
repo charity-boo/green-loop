@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Heart, Search, ChevronLeft, ChevronRight, User, Star, BookOpen } from 'lucide-react';
 import { motion } from "framer-motion";
@@ -23,11 +23,7 @@ export default function CommunityStoriesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 12;
 
-  useEffect(() => {
-    fetchStories();
-  }, [selectedCategory, searchQuery, page]);
-
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -53,7 +49,11 @@ export default function CommunityStoriesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
 
   const featuredStories = stories.filter(s => s.featured);
   const regularStories = stories.filter(s => !s.featured);
