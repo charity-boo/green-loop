@@ -50,14 +50,32 @@ export async function classifyWasteImage(imageUrl: string): Promise<Classificati
   ]);
 
   const text = result.response.text().trim();
+  console.log('Gemini raw response:', text);
 
   try {
-    const parsed = JSON.parse(text) as ClassificationResult;
+    // Attempt to extract JSON if it's wrapped in markdown blocks
+    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/{[\s\S]*}/);
+    const jsonString = jsonMatch ? jsonMatch[0] : text;
+    
+    const parsed = JSON.parse(jsonString) as ClassificationResult;
+    
+    // Defensive normalization
+    parsed.detectedItem = parsed.detectedItem?.trim() || 'Unknown Item';
+    parsed.wasteCategory = parsed.wasteCategory?.trim() || 'General';
+    
+    const validValues = ['organic', 'plastic', 'metal', 'general', 'mixed'];
+    if (!validValues.includes(parsed.formValue?.toLowerCase())) {
+      parsed.formValue = 'general';
+    } else {
+      parsed.formValue = parsed.formValue.toLowerCase() as any;
+    }
+
     if (!parsed.detectedItem || !parsed.formValue || !parsed.disposalTips) {
       throw new Error('Missing required fields in Gemini response');
     }
     return parsed;
-  } catch {
-    throw new Error(`Failed to parse Gemini response: ${text}`);
+  } catch (parseError) {
+    console.error('Failed to parse Gemini response:', text, parseError);
+    throw new Error(`Failed to parse AI response. Please try again or select manually.`);
   }
 }

@@ -10,7 +10,7 @@ import WasteDetailsForm from "@/components/schedule-pickup/waste-details-form";
 import PickupDetailsForm from "@/components/schedule-pickup/pickup-details-form";
 import ConfirmationStep from "@/components/schedule-pickup/confirmation-step";
 import Link from "next/link";
-import { Loader2, CreditCard } from "lucide-react";
+import { Loader2, CreditCard, CalendarClock, ArrowRight } from "lucide-react";
 
 type WasteDetails = {
   type: string;
@@ -19,6 +19,7 @@ type WasteDetails = {
   classificationSource: "manual" | "ai-assisted";
   aiPhotoUsed?: boolean;
   disposalTips?: string;
+  imageUrl?: string;
 };
 
 type PickupDetails = {
@@ -36,9 +37,10 @@ type PickupDetails = {
 
 interface SchedulePickupFormProps {
   userName: string;
+  hasActivePickup?: boolean;
 }
 
-export default function SchedulePickupForm({ userName: _userName }: SchedulePickupFormProps) {
+export default function SchedulePickupForm({ userName: _userName, hasActivePickup }: SchedulePickupFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wasteDetails, setWasteDetails] = useState<WasteDetails>({ type: "", classificationSource: "manual", aiPhotoUsed: false });
   const [pickupDetails, setPickupDetails] = useState<PickupDetails>({
@@ -61,6 +63,49 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
 
   const totalSteps = 3;
   const progressValue = (currentStep / totalSteps) * 100;
+
+  if (hasActivePickup) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[80vh] bg-green-50 p-4">
+        <Card className="w-full max-w-lg shadow-2xl border-t-4 border-t-green-600">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CalendarClock className="w-8 h-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-900">Pickup Already Scheduled</CardTitle>
+            <CardDescription className="text-gray-600 mt-2">
+              You already have an active pickup in progress. To keep our service efficient, we only allow one active pickup at a time per user.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex gap-3 items-start">
+              <div className="bg-amber-100 p-1.5 rounded-full mt-0.5">
+                <ArrowRight className="w-4 h-4 text-amber-700" />
+              </div>
+              <p className="text-sm text-amber-800">
+                You can schedule a new pickup once your current one is completed, cancelled, or skipped.
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              <Link 
+                href="/dashboard"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl py-4 text-center shadow-lg shadow-green-200 transition-all flex items-center justify-center gap-2"
+              >
+                View Current Pickup in Dashboard
+              </Link>
+              <Link 
+                href="/dashboard/active"
+                className="w-full bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl py-4 text-center border transition-all"
+              >
+                Track Active Pickup
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleNext = () => {
     setErrorMessage(null);
@@ -98,6 +143,7 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
           aiPhotoUsed: wasteDetails.aiPhotoUsed ?? false,
           aiWasteType: wasteDetails.aiSuggestedType ?? null,
           disposalTips: wasteDetails.disposalTips ?? null,
+          imageUrl: wasteDetails.imageUrl ?? null,
           classificationStatus: wasteDetails.aiSuggestedType ? 'classified' : 'none',
           address: pickupDetails.address,
           region: pickupDetails.region,
@@ -144,7 +190,7 @@ export default function SchedulePickupForm({ userName: _userName }: SchedulePick
 
       setIsSuccessModalOpen(true);
 
-      setWasteDetails({ type: "", classificationSource: "manual", aiPhotoUsed: false, disposalTips: undefined });
+      setWasteDetails({ type: "", classificationSource: "manual", aiPhotoUsed: false, disposalTips: undefined, imageUrl: undefined });
       setPickupDetails({
         address: "",
         region: "",

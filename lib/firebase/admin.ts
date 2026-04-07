@@ -10,6 +10,12 @@ if (process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_USE_FIREBAS
   if (!process.env.FIRESTORE_EMULATOR_HOST) {
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
   }
+  if (!process.env.FIREBASE_STORAGE_EMULATOR_HOST) {
+    process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
+  }
+  if (!process.env.FIREBASE_DATABASE_EMULATOR_HOST) {
+    process.env.FIREBASE_DATABASE_EMULATOR_HOST = '127.0.0.1:9000';
+  }
 }
 
 if (!admin.apps.length) {

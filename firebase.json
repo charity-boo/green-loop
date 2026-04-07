@@ -45,6 +45,17 @@
     },
     "singleProjectMode": true
   },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "africa-south1"
+    }
+  },
   "storage": {
     "rules": "firebase/rules/storage.rules"
   },

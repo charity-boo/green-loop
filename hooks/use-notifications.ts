@@ -8,12 +8,14 @@ import {
  * Hook for subscribing to real-time notifications
  * Automatically cleans up listeners on unmount
  */
-export function useNotifications(userRole: UserRole, userId?: string) {
+export function useNotifications(userRole: UserRole | null, userId?: string) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!userRole) return;
+
     try {
       setLoading(true);
       // The getNotificationListener function retrieves a singleton instance of our real-time
@@ -23,7 +25,7 @@ export function useNotifications(userRole: UserRole, userId?: string) {
       // Subscribe to role-based and personal notifications. This method uses Firestore's
       // onSnapshot functionality under the hood, which pushes real-time updates from the
       // database to the client.
-      listener.subscribeToPersonalNotifications(userId || '', userRole);
+      listener.subscribeToPersonalNotifications(userId, userRole);
 
       // Register a callback that fires whenever the onSnapshot listener in Firebase detects
       // a change (e.g., a new AI classification notification). The new array of notifications
@@ -54,7 +56,7 @@ export function useNotifications(userRole: UserRole, userId?: string) {
 /**
  * Hook for subscribing to unread notifications only
  */
-export function useUnreadNotifications(userRole: UserRole, userId?: string) {
+export function useUnreadNotifications(userRole: UserRole | null, userId?: string) {
   const [unreadNotifications, setUnreadNotifications] = useState<
     Notification[]
   >([]);
@@ -62,6 +64,7 @@ export function useUnreadNotifications(userRole: UserRole, userId?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!userRole) return;
     try {
       setLoading(true);
       const listener = getNotificationListener();
@@ -94,12 +97,13 @@ export function useUnreadNotifications(userRole: UserRole, userId?: string) {
  * Useful for badge displays
  */
 export function useUnreadNotificationCount(
-  userRole: UserRole,
+  userRole: UserRole | null,
   userId?: string
 ) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
+    if (!userRole) return;
     try {
       const listener = getNotificationListener();
       listener.subscribeToUnreadNotifications(userRole, userId);

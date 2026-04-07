@@ -22,13 +22,21 @@ trap clean_up EXIT
 if [ "$MODE" == "--online" ]; then
     echo "🚀 Starting Green Loop in ONLINE mode (Live Firebase)..."
     export NEXT_PUBLIC_USE_FIREBASE_EMULATORS=false
-    next dev
+    pnpm exec next dev
 else
     echo "plug: Starting Green Loop in OFFLINE mode (Firebase Emulators)..."
     export NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true
     
-    # We use emulators:exec to run next dev within the emulator environment
-    # The --export-on-exit ensures our local data persists
-    # We use pnpm dotenv -o to ensure the .env file is loaded and OVERRIDES any poisoned shell env
-    pnpm dotenv -e .env -o -- firebase emulators:exec --ui --import="$DATA_DIR" --export-on-exit="$DATA_DIR" "next dev"
+    # Use absolute path for DATA_DIR to ensure Firebase finds it reliably
+    ABS_DATA_DIR="$(pwd)/$DATA_DIR"
+    
+    # We use pnpm exec firebase to ensure we use the project's local version
+    # The --import and --export-on-exit ensure our local data persists
+    # Removed pnpm dotenv wrapper as it can interfere with signal handling (Ctrl+C)
+    # Next.js will load its own .env files automatically.
+    pnpm exec firebase emulators:exec \
+        --ui \
+        --import="$ABS_DATA_DIR" \
+        --export-on-exit="$ABS_DATA_DIR" \
+        "pnpm exec next dev"
 fi

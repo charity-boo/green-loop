@@ -14,11 +14,13 @@ import { writeWorkflowLog } from '@/lib/workflow-log';
  * Scoped: Collector can only complete tasks assigned to them
  */
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const body = await request.json().catch(() => ({}));
+    const weight = body.weight;
     const session = await getSession();
     await authorize(session, ['COLLECTOR', 'ADMIN']);
     const collectorId = session!.user.id;
@@ -67,20 +69,38 @@ export async function POST(
         throw new Error('USER_NOT_FOUND');
       }
 
+      const isAiClassified = wasteItem.classificationStatus === 'classified';
+      const wasteType = wasteItem.wasteItem?.formValue || wasteItem.wasteType || 'general';
+      const probability = wasteItem.wasteItem?.probability || wasteItem.aiConfidence || 0;
+
       // Calculate points earned
       const pointsEarned = calculateRewardPoints(
-        wasteItem.wasteItem?.formValue || wasteItem.wasteType || 'general',
-        wasteItem.wasteItem?.probability || wasteItem.aiConfidence || 0
+        wasteType,
+        probability,
+        isAiClassified
       );
 
       const updateData = {
         status: WasteStatus.Completed,
         pointsEarned,
+        isAiClassified, // Explicitly track for dashboard
+        weight: weight || wasteItem.weight || 0,
         updatedAt: new Date().toISOString()
       };
 
       // Update waste document
       transaction.update(wasteRef, updateData);
+
+      // Update related schedule if it exists
+      if (relatedScheduleId) {
+        const scheduleRef = adminDb.collection('schedules').doc(relatedScheduleId);
+        transaction.update(scheduleRef, {
+          status: 'completed',
+          updatedAt: new Date().toISOString(),
+          weight: weight || wasteItem.weight || 0,
+          pointsEarned
+        });
+      }
 
       // Award points to user
       transaction.update(userRef, {

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
     Leaf, Recycle, Box, MapPin, CheckCircle2,
-    Image as ImageIcon, User, PlusCircle, Loader2
+    Image as ImageIcon, User, PlusCircle, Loader2, ShieldCheck
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -42,13 +42,13 @@ export function AvailableJobs({ jobs, onAccept }: AvailableJobsProps) {
 
     if (jobs.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-emerald-800/20">
-                <div className="w-14 h-14 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mb-4">
-                    <CheckCircle2 className="text-[#10b981]" size={28} />
+            <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-emerald-800/20 bg-muted/30">
+                <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                    <CheckCircle2 className="text-[#10b981]" size={32} />
                 </div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white">No Jobs Available</h3>
-                <p className="text-sm text-slate-400 dark:text-emerald-100/40 mt-1 font-medium max-w-[200px]">
-                    All requests in your region are currently assigned.
+                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Pool is Clear!</h3>
+                <p className="text-sm text-slate-500 dark:text-emerald-100/40 mt-2 font-medium max-w-[280px]">
+                    All requests in your region are currently assigned. Stay on duty and we&apos;ll notify you as soon as new jobs arrive.
                 </p>
             </div>
         );
@@ -139,8 +139,8 @@ export function AvailableJobs({ jobs, onAccept }: AvailableJobsProps) {
                                         </button>
                                     ) : (
                                         <div className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
-                                            <Loader2 size={14} className="animate-spin text-emerald-500" />
-                                            Auto-Assigning
+                                            <ShieldCheck size={14} className="text-emerald-500" />
+                                            Managed by System
                                         </div>
                                     )}
                                 </div>

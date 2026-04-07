@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { 
     Activity, 
-    Box, 
     Scale, 
     TrendingUp,
     Trophy,
@@ -12,23 +11,21 @@ import {
     AlertCircle,
     MapPin,
     Zap,
-    Clock
+    Clock,
+    Truck,
+    ShieldCheck
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import { CollectorTask } from "@/types";
-
 interface StatusCardsProps {
-    type: 'available' | 'history' | 'earnings' | 'issues' | 'default';
+    type: 'active' | 'history' | 'earnings' | 'issues' | 'default';
     data: {
         totalWeight?: number;
         completionRate?: number;
         activeTasks?: number;
-        availableJobsCount?: number;
         completedTasksCount?: number;
         totalPoints?: number;
-        jobs?: CollectorTask[];
     };
 }
 
@@ -40,51 +37,47 @@ export function StatusCards({
         totalWeight = 0,
         completionRate = 0,
         activeTasks = 0,
-        availableJobsCount = 0,
         completedTasksCount = 0,
-        totalPoints = 0,
-        jobs = []
+        totalPoints = 0
     } = data;
 
     const getStats = () => {
-        switch (type) {
-            case 'available':
-                const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-                const urgentCount = jobs.filter(job => new Date(job.createdAt) < oneDayAgo).length;
+        const createStat = (label: string, value: string, icon?: any, color?: string, bg?: string) => ({
+            label, value, icon, color, bg
+        });
 
+        switch (type) {
+            case 'active':
                 return [
-                    { label: 'Jobs Open', value: availableJobsCount.toString(), icon: Box, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Urgent', value: urgentCount.toString(), icon: Zap, color: 'text-red-600', bg: 'bg-red-50' },
-                    { label: 'Region', value: 'Ndagani', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Network', value: 'Stable', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    createStat('Active Tasks', activeTasks.toString(), Truck, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Region', 'Ndagani', MapPin, 'text-blue-600', 'bg-blue-50'),
+                    createStat('Efficiency', `${completionRate}%`, TrendingUp, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Status', 'On Duty', Zap, 'text-amber-600', 'bg-amber-50'),
                 ];
             case 'history':
                 return [
-                    { label: 'Total Tasks', value: (completedTasksCount + activeTasks).toString(), icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Weight', value: `${totalWeight.toFixed(1)}kg`, icon: Scale, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'Completed', value: completedTasksCount.toString(), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Efficiency', value: `${completionRate}%`, icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    createStat('Total Tasks', (completedTasksCount + activeTasks).toString(), Calendar, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Weight', `${totalWeight.toFixed(1)}kg`, Scale, 'text-blue-600', 'bg-blue-50'),
+                    createStat('Completed', completedTasksCount.toString(), CheckCircle2, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Efficiency', `${completionRate}%`, TrendingUp, 'text-indigo-600', 'bg-indigo-50'),
                 ];
             case 'earnings':
                 return [
-                    { label: 'Total Points', value: totalPoints.toString(), icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Weight Sum', value: `${totalWeight.toFixed(1)}kg`, icon: Scale, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Success', value: `${completionRate}%`, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'Status', value: 'Verified', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    createStat('Total Points', totalPoints.toString()),
                 ];
             case 'issues':
                 return [
-                    { label: 'Open Issues', value: '0', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
-                    { label: 'Resolved', value: '12', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Response', value: '< 2h', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'Rating', value: '4.9', icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    createStat('Open Issues', '0', AlertCircle, 'text-red-600', 'bg-red-50'),
+                    createStat('Resolved', '12', CheckCircle2, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Response', '< 2h', Clock, 'text-blue-600', 'bg-blue-50'),
+                    createStat('Rating', '4.9', Trophy, 'text-amber-600', 'bg-amber-50'),
                 ];
             default:
                 return [
-                    { label: 'Weight', value: `${totalWeight.toFixed(1)}kg`, icon: Scale, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Jobs', value: availableJobsCount.toString(), icon: Box, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Active', value: activeTasks.toString(), icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50' },
-                    { label: 'Efficiency', value: `${completionRate}%`, icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    createStat('Weight', `${totalWeight.toFixed(1)}kg`, Scale, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Active', activeTasks.toString(), Activity, 'text-blue-600', 'bg-blue-50'),
+                    createStat('Completed', completedTasksCount.toString(), CheckCircle2, 'text-emerald-600', 'bg-emerald-50'),
+                    createStat('Efficiency', `${completionRate}%`, TrendingUp, 'text-indigo-600', 'bg-indigo-50'),
                 ];
         }
     };
@@ -102,9 +95,11 @@ export function StatusCards({
                 >
                     <Card className="border border-border shadow-sm bg-card hover:border-emerald-200 transition-all duration-300 rounded-2xl overflow-hidden">
                         <CardContent className="p-4 flex items-center gap-4">
-                            <div className={cn("p-2 rounded-xl shrink-0", stat.bg, stat.color)}>
-                                <stat.icon size={18} />
-                            </div>
+                            {stat.icon && (
+                                <div className={cn("p-2 rounded-xl shrink-0", stat.bg, stat.color)}>
+                                    <stat.icon size={18} />
+                                </div>
+                            )}
                             <div>
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">
                                     {stat.label}

@@ -4,13 +4,19 @@ import { Bell, Search, Menu } from 'lucide-react';
 import { ProfileDropdown } from './profile-dropdown';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
+import Link from 'next/link';
+import { useUnreadNotificationCount } from '@/hooks/use-notifications';
 
 interface TopNavProps {
     className?: string;
 }
 
 export function TopNav({ className }: TopNavProps) {
-    const { role } = useAuth();
+    const { user, role } = useAuth();
+    const unreadCount = useUnreadNotificationCount(
+        (role as 'USER' | 'COLLECTOR' | 'ADMIN') ?? 'USER',
+        user?.uid
+    );
     
     return (
         <header className={cn(
@@ -33,10 +39,17 @@ export function TopNav({ className }: TopNavProps) {
             </div>
 
             <div className="flex items-center gap-4">
-                <button className="p-2 hover:bg-accent rounded-full relative group transition-colors">
+                <Link 
+                    href="/dashboard/notifications"
+                    className="p-2 hover:bg-accent rounded-full relative group transition-colors"
+                >
                     <Bell className="w-5 h-5 text-muted-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full border-2 border-background"></span>
-                </button>
+                    {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-bold text-white border-2 border-background">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                    )}
+                </Link>
 
                 <div className="h-8 w-px bg-border mx-2"></div>
 

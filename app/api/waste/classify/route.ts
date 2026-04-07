@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       const result = await classifyWasteImage(imageUrl);
       return NextResponse.json(result);
     } catch (aiError) {
+      console.error('AI Classification API Error:', aiError);
       let message = aiError instanceof Error ? aiError.message : 'AI classification failed';
 
       // Improve quota error message

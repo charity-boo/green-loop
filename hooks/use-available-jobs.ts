@@ -34,7 +34,7 @@ export function useAvailableJobs(uid: string | undefined, region: string | undef
     // Query for paid pending jobs in the region
     // We filter for unassigned ones in the snapshot listener to avoid complex indexing
     const q = query(
-      collection(db, 'waste'),
+      collection(db, 'schedules'),
       where('status', '==', 'pending'),
       where('paymentStatus', '==', 'Paid'),
       where('region', '==', region),
@@ -45,11 +45,15 @@ export function useAvailableJobs(uid: string | undefined, region: string | undef
       q,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const jobsData = snapshot.docs
-          .map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
-          .filter((job: any) => !job.assignedCollectorId && !job.collectorId) as unknown as CollectorTask[];
+          .map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              type: data.type ?? data.wasteType ?? 'Recyclable',
+            };
+          })
+          .filter((job) => !job.assignedCollectorId && !job.collectorId) as unknown as CollectorTask[];
 
         setAvailableJobs(jobsData);
         setLoading(false);

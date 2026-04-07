@@ -33,39 +33,7 @@ export class NotificationListener {
       console.warn('Firestore is not initialized. Skipping subscription.');
       return;
     }
-    const notificationsRef = collection(db, 'notifications');
-
-    // Query for role-based notifications, ordered by newest first
-    const q = query(
-      notificationsRef,
-      where('role', '==', userRole),
-      orderBy('createdAt', 'desc'),
-      limit(maxResults)
-    );
-
-    this.unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const notifications: Notification[] = [];
-
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          // Include if it's for their role or specifically for their userId
-          if (!data.userId || data.userId === userId) {
-            notifications.push({
-              id: doc.id,
-              ...data,
-            } as Notification);
-          }
-        });
-
-        // Notify all listeners
-        this.listeners.forEach((listener) => listener(notifications));
-      },
-      (error) => {
-        console.error('Error listening to notifications:', error);
-      }
-    );
+    this.subscribeToPersonalNotifications(userId, userRole, maxResults);
   }
 
   /**
@@ -75,8 +43,8 @@ export class NotificationListener {
    * @param maxResults - Optional: limit number of results (default: 50)
    */
   subscribeToPersonalNotifications(
-    userId: string,
-    userRole: UserRole,
+    userId?: string,
+    userRole: UserRole = 'USER',
     maxResults: number = 50
   ): void {
     if (!db) {
@@ -85,19 +53,11 @@ export class NotificationListener {
     }
     const notificationsRef = collection(db, 'notifications');
 
-    // Query for both role-based AND personal notifications
-    // Note: Firestore doesn't support OR queries, so we use two separate listeners
+    // Query for role-based notifications (where userId is explicitly null)
     const roleQuery = query(
       notificationsRef,
       where('role', '==', userRole),
       where('userId', '==', null),
-      orderBy('createdAt', 'desc'),
-      limit(maxResults)
-    );
-
-    const personalQuery = query(
-      notificationsRef,
-      where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
       limit(maxResults)
     );
@@ -114,30 +74,42 @@ export class NotificationListener {
           ...doc.data(),
         } as Notification));
 
-        this.notifyListeners([...roleNotifications, ...personalNotifications]);
+        this.updateAndNotify(roleNotifications, personalNotifications);
       },
       (error) => {
         console.error('Error listening to role notifications:', error);
       }
     );
 
-    // Subscribe to personal notifications
-    const unsubscribePersonal = onSnapshot(
-      personalQuery,
-      (snapshot) => {
-        personalNotifications = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Notification));
+    let unsubscribePersonal = () => {};
 
-        this.notifyListeners([...roleNotifications, ...personalNotifications]);
-      },
-      (error) => {
-        console.error('Error listening to personal notifications:', error);
-      }
-    );
+    if (userId) {
+      // Query for personal notifications (specifically for this user)
+      const personalQuery = query(
+        notificationsRef,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(maxResults)
+      );
 
-    // Store unsubscribe function
+      // Subscribe to personal notifications
+      unsubscribePersonal = onSnapshot(
+        personalQuery,
+        (snapshot) => {
+          personalNotifications = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          } as Notification));
+
+          this.updateAndNotify(roleNotifications, personalNotifications);
+        },
+        (error) => {
+          console.error('Error listening to personal notifications:', error);
+        }
+      );
+    }
+
+    // Store combined unsubscribe function
     this.unsubscribe = () => {
       unsubscribeRole();
       unsubscribePersonal();
@@ -145,13 +117,27 @@ export class NotificationListener {
   }
 
   /**
+   * Helper to merge and sort notifications from two different queries
+   */
+  private updateAndNotify(roleNotes: Notification[], personalNotes: Notification[]): void {
+    const combined = [...roleNotes, ...personalNotes].sort((a, b) => {
+      const timeA = a.createdAt?.toMillis() || 0;
+      const timeB = b.createdAt?.toMillis() || 0;
+      return timeB - timeA;
+    });
+    this.listeners.forEach((listener) => listener(combined));
+  }
+
+  /**
    * Subscribe to unread notifications only
    * @param userRole - User's role
    * @param userId - Optional: user's UID
+   * @param maxResults - Optional: limit number of results (default: 50)
    */
   subscribeToUnreadNotifications(
     userRole: UserRole,
-    userId?: string
+    userId?: string,
+    maxResults: number = 50
   ): void {
     if (!db) {
       console.warn('Firestore is not initialized. Skipping subscription.');
@@ -159,34 +145,64 @@ export class NotificationListener {
     }
     const notificationsRef = collection(db, 'notifications');
 
-    const q = query(
+    // Role-based unread
+    const roleQuery = query(
       notificationsRef,
       where('role', '==', userRole),
+      where('userId', '==', null),
       where('status', '==', 'unread'),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limit(maxResults)
     );
 
-    this.unsubscribe = onSnapshot(
-      q,
+    let roleUnread: Notification[] = [];
+    let personalUnread: Notification[] = [];
+
+    const unsubscribeRole = onSnapshot(
+      roleQuery,
       (snapshot) => {
-        const notifications: Notification[] = [];
-
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          if (!data.userId || data.userId === userId) {
-            notifications.push({
-              id: doc.id,
-              ...data,
-            } as Notification);
-          }
-        });
-
-        this.listeners.forEach((listener) => listener(notifications));
+        roleUnread = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        } as Notification));
+        this.updateAndNotify(roleUnread, personalUnread);
       },
       (error) => {
-        console.error('Error listening to unread notifications:', error);
+        console.error('Error listening to role unread notifications:', error);
       }
     );
+
+    let unsubscribePersonal = () => {};
+
+    if (userId) {
+      // Personal unread
+      const personalQuery = query(
+        notificationsRef,
+        where('userId', '==', userId),
+        where('status', '==', 'unread'),
+        orderBy('createdAt', 'desc'),
+        limit(maxResults)
+      );
+
+      unsubscribePersonal = onSnapshot(
+        personalQuery,
+        (snapshot) => {
+          personalUnread = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          } as Notification));
+          this.updateAndNotify(roleUnread, personalUnread);
+        },
+        (error) => {
+          console.error('Error listening to personal unread notifications:', error);
+        }
+      );
+    }
+
+    this.unsubscribe = () => {
+      unsubscribeRole();
+      unsubscribePersonal();
+    };
   }
 
   /**

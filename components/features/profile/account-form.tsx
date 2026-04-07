@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-provider";
 import { updateProfile } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { UserDoc } from "@/types/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +21,25 @@ export function AccountForm() {
     const router = useRouter();
     const [displayName, setDisplayName] = useState(user?.displayName || "");
     const [loading, setLoading] = useState(false);
+    const [fullUserData, setFullUserData] = useState<Partial<UserDoc> | null>(null);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!user?.uid) return;
+            try {
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setFullUserData(docSnap.data() as UserDoc);
+                }
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+            }
+        };
+        fetchUserData();
+    }, [user?.uid]);
 
     const handleSave = async () => {
         if (!user) return;
@@ -107,7 +125,16 @@ export function AccountForm() {
                     </div>
                 </div>
 
-                {role === "COLLECTOR" && <LocationSection />}
+                {role === "COLLECTOR" && fullUserData && (
+                    <LocationSection 
+                        key={fullUserData.updatedAt || 'initial'}
+                        initialAddress={fullUserData.address}
+                        initialCounty={fullUserData.county}
+                        initialRegion={fullUserData.region}
+                        initialPlaceId={fullUserData.placeId}
+                        initialLocationSource={fullUserData.locationSource}
+                    />
+                )}
 
                 {error && (
                     <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-bold flex items-center gap-3">

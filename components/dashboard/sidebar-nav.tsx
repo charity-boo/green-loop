@@ -16,39 +16,49 @@ import {
     Coins,
     ChevronRight,
     Clock,
-    ClipboardList,
     TrendingUp,
     AlertTriangle,
-    History
+    History,
+    ClipboardList,
+    Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const USER_NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Notifications", icon: Bell, href: "/dashboard/notifications" },
     { label: "Schedule Pickup", icon: CalendarPlus, href: "/schedule-pickup" },
     { label: "Green Points", icon: Coins, href: "/dashboard/green-points" },
-    { label: "AI Sorting", icon: Scan, href: "/learning-hub" },
-    { label: "Maps & Sites", icon: MapPin, href: "/service-areas" },
+    { label: "AI Sorting", icon: Scan, href: "/dashboard/ai-classification" },
     { label: "Settings/Support", icon: Settings, href: "/report" },
 ];
 
 const COLLECTOR_NAV_ITEMS = [
     { label: "Overview", icon: LayoutDashboard, href: "/dashboard/collector" },
-    { label: "Auto Assignment", icon: ClipboardList, href: "/dashboard/collector/available" },
+    { label: "Notifications", icon: Bell, href: "/dashboard/notifications" },
+    { label: "Active Tasks", icon: ClipboardList, href: "/dashboard/collector/active" },
     { label: "Earnings", icon: TrendingUp, href: "/dashboard/collector/earnings" },
     { label: "Report Issue", icon: AlertTriangle, href: "/dashboard/collector/issues" },
     { label: "Job History", icon: History, href: "/dashboard/collector/history" },
-    { label: "Maps & Sites", icon: MapPin, href: "/service-areas" },
     { label: "Settings", icon: Settings, href: "/profile?tab=settings" },
 ];
 
 export default function SidebarNav() {
     const pathname = usePathname();
     const { signOut, role } = useAuth();
-    const { nextPickup, loading } = useUserData();
+    const { nextPickup, loading, points, aiStats } = useUserData();
 
     const isCollector = role === 'COLLECTOR';
-    const navItems = isCollector ? COLLECTOR_NAV_ITEMS : USER_NAV_ITEMS;
+    const navItems = isCollector ? COLLECTOR_NAV_ITEMS : USER_NAV_ITEMS.map(item => {
+        if (item.label === "AI Sorting") {
+            return {
+                ...item,
+                label: `AI Sorting (${aiStats?.totalClassified || 0})`,
+                subLabel: `+${aiStats?.totalAiPoints || 0} pts`
+            };
+        }
+        return item;
+    });
 
     return (
         <aside className={cn(
@@ -89,7 +99,7 @@ export default function SidebarNav() {
                     "text-[10px] font-black uppercase tracking-[0.25em] px-4 mb-4",
                     isCollector ? "text-emerald-200/50" : "text-green-400/50"
                 )}>Operations</p>
-                {navItems.map(({ label, icon: Icon, href }) => {
+                {navItems.map(({ label, icon: Icon, href, subLabel }: any) => {
                     const isActive = pathname === href || (href !== '/dashboard' && href !== '/dashboard/collector' && pathname.startsWith(href));
                     return (
                         <Link
@@ -114,31 +124,19 @@ export default function SidebarNav() {
                                         ? "text-emerald-300 group-hover:text-white"
                                         : "text-slate-500 group-hover:text-green-400"
                             )} />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">{label}</span>
+                            <div className="flex flex-col">
+                                <span className="text-[11px] font-bold uppercase tracking-widest leading-tight">{label}</span>
+                                {subLabel && (
+                                    <span className="text-[8px] font-black text-green-400/80 uppercase tracking-widest leading-none">
+                                        {subLabel}
+                                    </span>
+                                )}
+                            </div>
                         </Link>
                     );
                 })}
 
-                {/* Role Specific Section */}
-                {!isCollector && (
-                    <div className="mt-6 px-2">
-                        <div className="bg-green-600/10 rounded-2xl p-4 border border-green-500/20">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Clock className="w-3 h-3 text-green-500" />
-                                <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Next Pickup</span>
-                            </div>
-                            <p className="text-[11px] font-bold text-white mb-3">
-                                {loading ? '---' : (nextPickup || 'None Scheduled')}
-                            </p>
-                            <Link 
-                                href="/schedule-pickup" 
-                                className="text-[9px] font-bold text-green-400 hover:text-green-300 transition-colors flex items-center gap-1 uppercase tracking-widest"
-                            >
-                                {nextPickup ? 'Manage' : 'Schedule Now'} <ChevronRight className="w-2.5 h-2.5" />
-                            </Link>
-                        </div>
-                    </div>
-                )}
+                {/* Role Specific Section Removed as per request */}
             </nav>
 
             {/* Bottom: User & Sign Out */}

@@ -86,7 +86,7 @@ export default function PhoneAuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+      <Card className="w-full max-w-lg shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl text-gray-800">
             {step === 'phone' ? 'Sign In with Phone' : 'Verify Your Number'}

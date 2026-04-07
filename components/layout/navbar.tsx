@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import RegisterDialog from "@/components/features/auth/register-dialog";
 import { ProfileDropdown } from "@/components/dashboard/profile-dropdown";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -151,7 +150,9 @@ const GreenLoopNavBar = () => {
                 {user ? (
                   <ProfileDropdown variant={(role?.toLowerCase() as 'user' | 'admin' | 'collector') || 'user'} />
                 ) : (
-                  <RegisterDialog />
+                  <Button asChild className="bg-green-600 hover:bg-green-700 text-white shadow-md transition duration-200">
+                    <Link href="/auth/login">Sign In</Link>
+                  </Button>
                 )}
               </div>
             </div>
@@ -214,9 +215,9 @@ const GreenLoopNavBar = () => {
                     <Button variant="outline" onClick={() => { signOut(); setIsMobileOpen(false); }}>Sign Out</Button>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-3">
-                    <RegisterDialog />
-                  </div>
+                  <Button asChild className="bg-green-600 hover:bg-green-700 text-white shadow-md transition duration-200">
+                    <Link href="/auth/login" onClick={() => setIsMobileOpen(false)}>Sign In</Link>
+                  </Button>
                 )}
               </div>
             </div>

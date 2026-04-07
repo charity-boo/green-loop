@@ -2,5 +2,7 @@ export enum WasteStatus {
     Pending = "pending",
     Active = "active",
     Completed = "completed",
-    Skipped = "skipped"
+    Skipped = "skipped",
+    Cancelled = "cancelled",
+    Missed = "missed"
 }

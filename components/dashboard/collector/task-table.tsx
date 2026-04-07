@@ -102,8 +102,8 @@ export function TaskTable({ tasks }: TaskTableProps) {
     return (
         <div>
             {/* Desktop table header */}
-            <div className="hidden lg:grid grid-cols-[56px_1fr_150px_130px] gap-4 px-3 pb-2 border-b border-slate-100 dark:border-emerald-800/10 mb-2">
-                {['AI Preview', 'Resident / Location', 'Waste Category', 'Action'].map(col => (
+            <div className="hidden lg:grid grid-cols-[56px_1fr_1.5fr_150px_130px] gap-4 px-3 pb-2 border-b border-slate-100 dark:border-emerald-800/10 mb-2">
+                {['AI Preview', 'Resident / Location', 'Collection Details', 'Waste Category', 'Action'].map(col => (
                     <p key={col} className="text-[9px] font-black text-slate-400 dark:text-emerald-100/30 uppercase tracking-[0.2em]">{col}</p>
                 ))}
             </div>
@@ -164,7 +164,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
                             </div>
 
                             {/* ── Desktop table row ── */}
-                            <div className="hidden lg:grid grid-cols-[56px_1fr_150px_130px] gap-4 items-center">
+                            <div className="hidden lg:grid grid-cols-[56px_1fr_1.5fr_150px_130px] gap-4 items-center">
                                 {/* AI Preview */}
                                 <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-emerald-900/30 flex-shrink-0 group-hover:ring-2 ring-[#10b981]/20 transition-all">
                                     {task.imageUrl ? (
@@ -189,6 +189,22 @@ export function TaskTable({ tasks }: TaskTableProps) {
                                     <div className="flex items-center gap-1 mt-1 text-[11px] text-slate-400 dark:text-emerald-100/40 pl-7">
                                         <MapPin size={10} />
                                         <span className="truncate">{task.location || 'Near Chuka University'}</span>
+                                    </div>
+                                </div>
+
+                                {/* Collection Details */}
+                                <div className="min-w-0">
+                                    <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                        {task.description || 'Unclassified Collection'}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
+                                            {task.confidence ? `${Math.round(task.confidence * 100)}% Conf.` : 'N/A'}
+                                        </span>
+                                        <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
+                                            {task.weight ? `${task.weight}kg` : (task.price > 0 ? `${task.price}kg` : 'Pending')}
+                                        </span>
                                     </div>
                                 </div>
 

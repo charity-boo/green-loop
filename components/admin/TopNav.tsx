@@ -9,8 +9,17 @@ import {
 } from 'lucide-react';
 import { ProfileDropdown } from '@/components/dashboard/profile-dropdown';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useUnreadNotificationCount } from '@/hooks/use-notifications';
+import { useAuth } from '@/hooks/use-auth';
 
 export function TopNav() {
+    const { user, role } = useAuth();
+    const unreadCount = useUnreadNotificationCount(
+        (role as 'USER' | 'COLLECTOR' | 'ADMIN') ?? 'ADMIN',
+        user?.uid
+    );
+
     return (
         <header className="h-16 border-b border-border bg-background/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-50 transition-colors">
             <div className="flex items-center gap-6 flex-1">
@@ -36,10 +45,17 @@ export function TopNav() {
                     Add New Bin
                 </Button>
 
-                <button className="p-2 hover:bg-accent rounded-lg relative transition-colors text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400">
+                <Link 
+                    href="/admin/dashboard/notifications"
+                    className="p-2 hover:bg-accent rounded-lg relative transition-colors text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 group"
+                >
                     <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-emerald-500 rounded-full border-2 border-background"></span>
-                </button>
+                    {unreadCount > 0 && (
+                        <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-bold text-white border-2 border-background">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                    )}
+                </Link>
 
                 <div className="h-6 w-px bg-border"></div>
 

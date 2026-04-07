@@ -111,16 +111,16 @@ export function LoginForm() {
     };
 
     return (
-        <div className="w-full max-w-md space-y-8 bg-black/40 lg:bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl p-8 lg:p-12 animate-in zoom-in-95 duration-700">
+        <div className="w-full space-y-6 bg-black/40 lg:bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl p-6 lg:p-10 animate-in zoom-in-95 duration-700">
             <div className="text-center lg:text-left">
-                <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Sign In</h2>
+                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-white mb-1">Sign In</h2>
                 <p className="text-sm text-gray-300">
                     Access your Smart Waste Pickup schedule.
                 </p>
             </div>
             
             <div>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email Input */}
                     <div className="grid gap-2">
                         <Label htmlFor="email" className="text-sm font-medium text-gray-200">Email Address</Label>
@@ -202,11 +202,11 @@ export function LoginForm() {
                     </Button>
 
                     {/* Divider */}
-                    <div className="relative my-4">
+                    <div className="relative my-3">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-white/10" />
                         </div>
-                        <div className="relative flex justify-center text-sm">
+                        <div className="relative flex justify-center text-xs">
                             <span className="bg-transparent px-2 text-gray-400">Or continue with</span>
                         </div>
                     </div>
@@ -215,7 +215,7 @@ export function LoginForm() {
                     <Button
                         type="button"
                         variant="outline"
-                        className="w-full flex items-center justify-center gap-3 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                        className="w-full h-11 flex items-center justify-center gap-3 border-white/10 bg-white/5 text-white hover:bg-white/10"
                         onClick={handleGoogleSignIn}
                     >
                         <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -239,18 +239,8 @@ export function LoginForm() {
                         Sign in with Google
                     </Button>
 
-                    {/* Alternative sign-in */}
-                    <div className="mt-4 text-center">
-                        <Link 
-                            href="/auth/phone" 
-                            className="text-sm font-medium text-green-400 hover:text-green-300 underline-offset-4 hover:underline"
-                        >
-                            Sign in with phone number instead
-                        </Link>
-                    </div>
-
                     {/* Register Link */}
-                    <div className="mt-6 text-center">
+                    <div className="mt-4 text-center">
                         <p className="text-sm text-gray-400">
                             Don&apos;t have an account?{" "}
                             <Link href="/auth/register" className="font-medium text-green-400 hover:text-green-300 underline-offset-4 hover:underline">

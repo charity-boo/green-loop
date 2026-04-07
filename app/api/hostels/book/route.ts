@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { handleApiError } from '@/lib/api-handler';
+import { sendEmail } from '@/lib/email';
+import { generateBookingConfirmationEmail } from '@/lib/email-templates';
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +41,40 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    // Send confirmation email to the manager
+    const emailData = generateBookingConfirmationEmail({
+      propertyName,
+      contactPerson,
+      email,
+      tier,
+      location
+    });
+
+    try {
+      await sendEmail({
+        to: email,
+        ...emailData
+      });
+
+      // Also notify the admin
+      await sendEmail({
+        to: process.env.SMTP_USER || 'admin@greenloop.co.ke',
+        subject: `New Booking Request: ${propertyName} (${tier})`,
+        text: `New booking request from ${contactPerson} (${email}) for ${propertyName}. Tier: ${tier}. Location: ${location}.`,
+        html: `
+          <h3>New Booking Request</h3>
+          <p><strong>Property:</strong> ${propertyName}</p>
+          <p><strong>Contact:</strong> ${contactPerson} (${email})</p>
+          <p><strong>Plan:</strong> ${tier}</p>
+          <p><strong>Location:</strong> ${location}</p>
+          <p><strong>Booking ID:</strong> ${docRef.id}</p>
+        `
+      });
+    } catch (emailErr) {
+      console.error('Email notification failed but booking was saved:', emailErr);
+      // We don't fail the request if email fails, as the booking is in the database
+    }
 
     return NextResponse.json({ success: true, bookingId: docRef.id }, { status: 201 });
   } catch (error) {

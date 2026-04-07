@@ -177,14 +177,14 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side (Form Container) - Floating on Desktop, Centered on Mobile */}
-      <div className="relative z-10 w-full max-w-lg px-6 lg:px-24 h-screen flex flex-col items-center justify-center animate-in fade-in slide-in-from-right-12 duration-1000">
+      <div className="relative z-10 w-full max-w-xl px-6 lg:px-12 h-screen flex flex-col items-center justify-center animate-in fade-in slide-in-from-right-12 duration-1000">
         {/* Mobile Header (Hidden on Desktop) */}
         <div className="lg:hidden mb-12 text-center text-white">
           <h1 className="text-4xl font-bold tracking-tight mb-2">Create Account</h1>
           <p className="text-gray-200">Start your journey with Green Loop</p>
         </div>
 
-        <div className="w-full space-y-8 bg-black/40 lg:bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl p-8 lg:p-12 animate-in zoom-in-95 duration-700 overflow-y-auto max-h-[90vh] custom-scrollbar">
+        <div className="w-full space-y-6 bg-black/40 lg:bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-3xl p-8 lg:p-10 animate-in zoom-in-95 duration-700">
           <div className="text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Join the Loop</h2>
             <p className="text-sm text-gray-300">

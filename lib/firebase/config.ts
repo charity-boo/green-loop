@@ -54,11 +54,21 @@ const globalForEmulatorConnection = globalThis as typeof globalThis & {
   __firebaseEmulatorsConnected?: boolean;
 };
 
-if (typeof window !== 'undefined' && app && firebaseConfig.apiKey && useFirebaseEmulators && !globalForEmulatorConnection.__firebaseEmulatorsConnected) {
+if (app && firebaseConfig.apiKey && useFirebaseEmulators && !globalForEmulatorConnection.__firebaseEmulatorsConnected) {
+  // Authentication Emulator
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  
+  // Firestore Emulator
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  
+  // Storage Emulator
   connectStorageEmulator(storage, '127.0.0.1', 9199);
+  
   globalForEmulatorConnection.__firebaseEmulatorsConnected = true;
+  
+  if (typeof window === 'undefined') {
+    console.log('[Firebase] Connected to emulators on server-side');
+  }
 }
 
 // Initialize analytics only on the client and in production

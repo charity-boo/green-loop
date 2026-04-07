@@ -91,6 +91,50 @@ describe('getUserDashboardData', () => {
     expect(data.rewards.tier).toBe('Silver');
   });
 
+  it('includes assigned pickups as next pickup', async () => {
+    const mockSchedulesSnapshot = {
+      docs: [
+        {
+          id: 's1',
+          data: () => ({
+            userId: 'user-123',
+            status: 'assigned',
+            pickupDate: '2024-12-25',
+            createdAt: '2024-12-20T10:00:00Z',
+            wasteType: 'Plastic',
+            address: '123 Main St',
+          }),
+        },
+      ],
+    };
+    const mockUnpaidSchedulesSnapshot = { empty: true };
+    const mockUserDoc = { data: () => ({ rewardPoints: 100 }) };
+
+    const collectionMock = vi.mocked(adminDb.collection);
+    
+    collectionMock.mockReturnValueOnce({
+      where: vi.fn().mockReturnThis(),
+      get: vi.fn().mockResolvedValue(mockSchedulesSnapshot),
+    } as any);
+
+    collectionMock.mockReturnValueOnce({
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      get: vi.fn().mockResolvedValue(mockUnpaidSchedulesSnapshot),
+    } as any);
+
+    collectionMock.mockReturnValueOnce({
+      doc: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue(mockUserDoc),
+      }),
+    } as any);
+
+    const data = await getUserDashboardData(userId);
+    
+    expect(data.metrics.nextPickup).toBe('2024-12-25');
+    expect(data.metrics.nextPickupId).toBe('s1');
+  });
+
   it('throws an error when Firestore call fails', async () => {
     const collectionMock = vi.mocked(adminDb.collection);
     

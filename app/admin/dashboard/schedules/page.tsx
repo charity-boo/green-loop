@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Calendar,
   MapPin,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ClassificationBadge from '@/components/user/classification-badge';
@@ -48,6 +49,7 @@ interface Meta {
 
 const STATUS_OPTIONS = [
   { label: 'All', value: 'ALL', icon: Layers },
+  { label: 'Unassigned', value: 'unassigned', icon: AlertCircle },
   { label: 'Pending', value: 'pending', icon: Clock },
   { label: 'Assigned', value: 'assigned', icon: Truck },
   { label: 'Completed', value: 'completed', icon: CheckCircle2 },
@@ -55,6 +57,7 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_STYLES: Record<string, string> = {
+  unassigned: 'bg-rose-50 text-rose-700 border-rose-200',
   pending: 'bg-amber-50 text-amber-700 border-amber-200',
   assigned: 'bg-blue-50 text-blue-700 border-blue-200',
   completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -250,7 +253,25 @@ export default function AdminSchedulesPage() {
                         )}
                       </div>
                     </td>
-                    <td className="py-4 px-5 text-slate-600">{s.pickupDate || '—'}</td>
+                    <td className="py-4 px-5">
+                      <div className="flex flex-col">
+                        <span className="text-slate-900 font-bold text-xs">
+                          {s.pickupDate && s.pickupDate !== '—' && s.pickupDate !== 'N/A'
+                            ? new Date(s.pickupDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              })
+                            : '—'}
+                        </span>
+                        <span className="text-slate-400 text-[10px] font-medium">
+                          {s.pickupDate && s.pickupDate !== '—' && s.pickupDate !== 'N/A'
+                            ? new Date(s.pickupDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                              })
+                            : ''}
+                        </span>
+                      </div>
+                    </td>
                     <td className="py-4 px-5 text-slate-600">{s.timeSlot}</td>
                     <td className="py-4 px-5">
                       <span

@@ -86,15 +86,9 @@ export default function RecyclingGuidesPage() {
                 <div className="relative z-10">
                     <h2 className="text-3xl font-black mb-6">Need a physical copy?</h2>
                     <p className="text-green-200 text-lg mb-10 font-medium">
-                        Visit our Ndagani collection center to pick up printed waterproof 
+                        Visit our Ndagani collection center to pick up printed waterproof
                         guides to stick on your recycling bins.
                     </p>
-                    <Link 
-                        href="/learning-hub/videos"
-                        className="inline-flex items-center gap-2 font-black hover:text-green-400 transition"
-                    >
-                        Prefer video tutorials? View our Library <ChevronRight className="w-5 h-5" />
-                    </Link>
                 </div>
             </div>
         </section>

@@ -20,15 +20,15 @@ service cloud.firestore {
     }
     
     function hasRole(role) {
-      return hasUserData() && getUserData().get('role', 'USER') == role;
+      return isAuthenticated() && (request.auth.token.get('role', 'USER') == role || getUserData().get('role', 'USER') == role);
     }
     
     function isAdmin() {
-      return hasRole('ADMIN');
+      return isAuthenticated() && (request.auth.token.get('role', 'USER') == 'ADMIN' || getUserData().get('role', 'ADMIN') == 'ADMIN');
     }
     
     function isCollector() {
-      return hasRole('COLLECTOR');
+      return isAuthenticated() && (request.auth.token.get('role', 'USER') == 'COLLECTOR' || getUserData().get('role', 'USER') == 'COLLECTOR');
     }
 
     // Users collection rules
@@ -128,15 +128,20 @@ service cloud.firestore {
     
     // Notifications collection rules
     match /notifications/{notificationId} {
-      // Users can only list their own notifications
+      // Users can list notifications for their role or specifically for them
       allow list: if isAuthenticated() && 
-        request.query.limit <= 100 && // Prevent large queries
-        (isAdmin() || resource.data.get('userId', '') == request.auth.uid);
+        (!('limit' in request.query) || request.query.limit <= 100) &&
+        (
+          request.auth.token.get('role', 'USER') == 'ADMIN' || 
+          resource.data.userId == request.auth.uid ||
+          (resource.data.role == request.auth.token.get('role', 'USER') && (resource.data.userId == null || !('userId' in resource.data)))
+        );
       
       // Users can read their own notifications, admins can read all
       allow get: if isAuthenticated() && (
-        isAdmin() ||
-        resource.data.get('userId', '') == request.auth.uid
+        request.auth.token.get('role', 'USER') == 'ADMIN' ||
+        resource.data.userId == request.auth.uid ||
+        (resource.data.role == request.auth.token.get('role', 'USER') && (resource.data.userId == null || !('userId' in resource.data)))
       );
       
       // System/admins create notifications

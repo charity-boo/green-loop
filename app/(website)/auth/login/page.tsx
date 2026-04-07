@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 // Loading Fallback for Suspense
 function LoginFormFallback() {
   return (
-    <div className="w-full max-w-md animate-pulse">
+    <div className="w-full max-w-lg animate-pulse">
       <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4" />
       <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-8" />
       <div className="space-y-4">
@@ -79,11 +79,11 @@ export default async function LoginPage({
       </div>
 
       {/* Right Side (Form Container) - Floating on Desktop, Centered on Mobile */}
-      <div className="relative z-10 w-full max-w-lg px-6 lg:px-24 h-screen flex flex-col items-center justify-center animate-in fade-in slide-in-from-right-12 duration-1000">
+      <div className="relative z-10 w-full max-w-xl px-6 lg:px-12 h-screen flex flex-col items-center justify-center animate-in fade-in slide-in-from-right-12 duration-1000">
         {/* Mobile Header (Hidden on Desktop) */}
-        <div className="lg:hidden mb-12 text-center text-white">
-          <h1 className="text-4xl font-bold tracking-tight mb-2">Welcome Back</h1>
-          <p className="text-gray-200">Continue your journey with Green Loop</p>
+        <div className="lg:hidden mb-8 text-center text-white">
+          <h1 className="text-3xl font-bold tracking-tight mb-1">Welcome Back</h1>
+          <p className="text-gray-200 text-sm">Continue your journey with Green Loop</p>
         </div>
 
         <div className="w-full">

@@ -19,77 +19,9 @@ import {
   Download,
   Recycle,
   Building,
-  Play,
-  X,
   Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// --- Types for Videos ---
-interface VideoItem {
-  id: string;
-  title: string;
-  description: string;
-  youtubeId: string;
-  youtubeUrl: string;
-  embedUrl: string;
-  thumbnailUrl: string;
-  category: string;
-  duration: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  tags: string[];
-  featured: boolean;
-  order: number;
-}
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Recycling:  "bg-green-100 text-green-800",
-  Composting: "bg-lime-100 text-lime-800",
-  Sorting:    "bg-emerald-100 text-emerald-800",
-  Safety:     "bg-amber-100 text-amber-800",
-  "Food Waste": "bg-orange-100 text-orange-800",
-  Community:  "bg-teal-100 text-teal-800",
-  Technology: "bg-blue-100 text-blue-800",
-  Education:  "bg-violet-100 text-violet-800",
-};
-
-const STATIC_VIDEOS: VideoItem[] = [
-  {
-    id: "video-001",
-    title: "How Recycling Works: The TED-Ed Guide",
-    description: "A deep dive into the mechanical and chemical processes of recycling various materials.",
-    youtubeId: "5ceG-v6f_kI",
-    youtubeUrl: "https://www.youtube.com/watch?v=5ceG-v6f_kI",
-    embedUrl: "https://www.youtube.com/embed/5ceG-v6f_kI",
-    thumbnailUrl: "https://img.youtube.com/vi/5ceG-v6f_kI/maxresdefault.jpg",
-    category: "Recycling", duration: "4:07", difficulty: "Beginner",
-    tags: ["recycling", "science"], featured: true, order: 1,
-  },
-  {
-    id: "video-002",
-    title: "Composting 101: Beginners Guide",
-    description: "Everything you need to know to start your first compost pile today.",
-    youtubeId: "q_6tY0Kj0W8",
-    youtubeUrl: "https://www.youtube.com/watch?v=q_6tY0Kj0W8",
-    embedUrl: "https://www.youtube.com/embed/q_6tY0Kj0W8",
-    thumbnailUrl: "https://img.youtube.com/vi/q_6tY0Kj0W8/maxresdefault.jpg",
-    category: "Composting", duration: "18:41", difficulty: "Beginner",
-    tags: ["composting", "garden"], featured: true, order: 2,
-  },
-  {
-    id: "video-005",
-    title: "Food Waste & Its Climate Impact",
-    description: "How food loss drives climate change and what we can do to stop it.",
-    youtubeId: "ejh4NVS7fPM",
-    youtubeUrl: "https://www.youtube.com/watch?v=ejh4NVS7fPM",
-    embedUrl: "https://www.youtube.com/embed/ejh4NVS7fPM",
-    thumbnailUrl: "https://img.youtube.com/vi/ejh4NVS7fPM/maxresdefault.jpg",
-    category: "Food Waste", duration: "4:30", difficulty: "Beginner",
-    tags: ["food waste", "climate"], featured: true, order: 5,
-  }
-];
-
-const ALL_VIDEO_CATEGORIES = ["All", "Recycling", "Composting", "Sorting", "Safety", "Food Waste", "Community", "Technology", "Education"];
 
 // --- Waste Categories ---
 const wasteCategories = [
@@ -157,34 +89,8 @@ const guides = [
 
 export default function LearningHubPage() {
   const [activeWasteCategory, setActiveWasteCategory] = useState('recyclables');
-  const [videos, setVideos] = useState<VideoItem[]>([]);
-  const [loadingVideos, setLoadingVideos] = useState(true);
-  const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
-  const [selectedVideoCategory, setSelectedVideoCategory] = useState("All");
-  const [videoSearchQuery, setVideoSearchQuery] = useState("");
 
   const selectedWasteCategory = wasteCategories.find(cat => cat.id === activeWasteCategory) || wasteCategories[0];
-
-  useEffect(() => {
-    fetch('/api/educational-videos')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.videos && data.videos.length > 0) {
-          setVideos(data.videos);
-        } else {
-          setVideos(STATIC_VIDEOS);
-        }
-      })
-      .catch(() => setVideos(STATIC_VIDEOS))
-      .finally(() => setLoadingVideos(false));
-  }, []);
-
-  const filteredVideos = videos.filter((v) => {
-    const matchCat = selectedVideoCategory === "All" || v.category === selectedVideoCategory;
-    const q = videoSearchQuery.toLowerCase();
-    const matchSearch = !q || v.title.toLowerCase().includes(q) || v.description.toLowerCase().includes(q);
-    return matchCat && matchSearch;
-  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -318,86 +224,7 @@ export default function LearningHubPage() {
         </div>
       </section>
 
-      {/* --- 3. EDUCATIONAL VIDEOS SECTION --- */}
-      <section id="videos" className="py-24 max-w-7xl mx-auto px-6 scroll-mt-20">
-        <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-black text-green-950 mb-4">🎥 Video Tutorials</h2>
-            <p className="text-green-700 text-xl font-medium">Visual walkthroughs of waste sorting & sustainability.</p>
-        </div>
-
-        {/* Video Filters */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-12 bg-white p-4 border border-green-100 rounded-3xl">
-            <div className="relative w-full md:w-64">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Search videos..."
-                    value={videoSearchQuery}
-                    onChange={(e) => setVideoSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-green-400"
-                />
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1">
-                {ALL_VIDEO_CATEGORIES.map((cat) => (
-                    <button
-                        key={cat}
-                        onClick={() => setSelectedVideoCategory(cat)}
-                        className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all ${
-                            selectedVideoCategory === cat
-                                ? "bg-green-600 text-white border-green-600"
-                                : "bg-white text-gray-500 border-gray-200 hover:border-green-300"
-                        }`}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
-        </div>
-
-        {loadingVideos ? (
-            <div className="flex items-center justify-center py-20 gap-3 text-green-600">
-                <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="font-medium">Loading videos...</span>
-            </div>
-        ) : filteredVideos.length === 0 ? (
-            <div className="text-center py-20 text-gray-400">
-                <Play className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium">No videos found.</p>
-            </div>
-        ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredVideos.map((video) => (
-                    <motion.div
-                        key={video.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        onClick={() => setActiveVideo(video)}
-                        className="group cursor-pointer bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all"
-                    >
-                        <div className="relative h-40 overflow-hidden">
-                            <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
-                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-xl">
-                                    <Play className="w-4 h-4 text-green-700 fill-current ml-0.5" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-[10px] font-black rounded-full px-2 py-0.5 uppercase tracking-wide ${CATEGORY_COLORS[video.category] || "bg-gray-100 text-gray-700"}`}>
-                                    {video.category}
-                                </span>
-                            </div>
-                            <h3 className="font-black text-sm text-green-950 group-hover:text-green-700 transition-colors line-clamp-2">{video.title}</h3>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-        )}
-      </section>
-
-      {/* --- 4. QUICK TIPS SECTION --- */}
+      {/* --- 3. QUICK TIPS SECTION --- */}
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
             <h2 className="text-4xl font-black text-green-950 mb-4">Quick Wins for the Planet</h2>
@@ -443,44 +270,6 @@ export default function LearningHubPage() {
             </div>
         </div>
       </section>
-
-      {/* --- VIDEO MODAL --- */}
-      <AnimatePresence>
-        {activeVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-            onClick={() => setActiveVideo(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-                  title={activeVideo.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="absolute inset-0 w-full h-full"
-                />
-              </div>
-              <div className="p-6 flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-black text-green-950 mb-1">{activeVideo.title}</h3>
-                  <p className="text-gray-600 text-sm">{activeVideo.description}</p>
-                </div>
-                <button onClick={() => setActiveVideo(null)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><X className="w-4 h-4" /></button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

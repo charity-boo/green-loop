@@ -36,12 +36,19 @@ vi.mock('@/lib/workflow-log', () => ({
 vi.mock('@/lib/firebase/admin', () => {
   const mockDoc = {
     get: vi.fn().mockResolvedValue({
+      exists: true,
       data: () => ({ phoneNumber: '1234567890' }),
     }),
+  };
+  const mockQuery = {
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    get: vi.fn().mockResolvedValue({ empty: true, docs: [] }),
   };
   const mockCollection = {
     doc: vi.fn().mockReturnValue(mockDoc),
     add: vi.fn().mockResolvedValue({ id: 'schedule-123' }),
+    where: vi.fn().mockReturnValue(mockQuery),
   };
   return {
     adminDb: {
@@ -85,6 +92,34 @@ describe('POST /api/schedule-pickup', () => {
     
     // Verify adminDb.collection('schedules').add was called
     expect(adminDb.collection).toHaveBeenCalledWith('schedules');
+  });
+
+  it('fails to schedule when the user already has an active pickup', async () => {
+    vi.mocked(getSession).mockResolvedValue(userSession as any);
+
+    // Mock active schedules check to return a non-empty result
+    const mockQuery = {
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      get: vi.fn().mockResolvedValue({ empty: false, docs: [{ id: 'existing-123' }] }),
+    };
+    
+    // We need to ensure the first call to collection('schedules').where() returns this mockQuery
+    vi.mocked(adminDb.collection).mockReturnValueOnce({
+      where: vi.fn().mockReturnValue(mockQuery),
+    } as any);
+
+    const req = new Request('http://localhost/api/schedule-pickup', {
+      method: 'POST',
+      body: JSON.stringify(validBody),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.error).toContain('already have an active pickup');
   });
 
   it('returns 400 when validation fails', async () => {

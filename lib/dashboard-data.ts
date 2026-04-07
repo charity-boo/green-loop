@@ -22,6 +22,7 @@ interface FirestoreSchedule {
   paymentStatus?: string;
   weight?: number;
   points?: number;
+  pointsEarned?: number;
   aiWasteType?: string | null;
   disposalTips?: string | null;
   classificationStatus?: string;
@@ -38,10 +39,13 @@ function parseFirestoreDate(
 }
 
 function scheduleStatusToWaste(status: string): WasteStatus {
-  switch (status) {
+  const lowerStatus = status.toLowerCase();
+  switch (lowerStatus) {
     case 'completed': return WasteStatus.Completed;
     case 'assigned': return WasteStatus.Active;
-    case 'cancelled': return WasteStatus.Skipped;
+    case 'cancelled': return WasteStatus.Cancelled;
+    case 'skipped': return WasteStatus.Skipped;
+    case 'missed': return WasteStatus.Missed;
     default: return WasteStatus.Pending;
   }
 }
@@ -50,6 +54,9 @@ function scheduleStatusToWaste(status: string): WasteStatus {
 export async function getUserDashboardData(
   userId: string
 ): Promise<UserDashboardData> {
+  if (!userId) {
+    throw new Error('UserId is required for getUserDashboardData');
+  }
   // Development Bypass
   if (!adminDb.collection && process.env.NODE_ENV === 'development') {
     console.log('Generating mock user dashboard data for development...');
@@ -138,7 +145,7 @@ export async function getUserDashboardData(
       weight: item.weight || 0,
       wasteType: item.wasteType || 'Unknown',
       location: item.address || 'Unknown',
-      points: item.points || 0,
+      points: item.pointsEarned || item.points || 0,
       price: item.price || 0,
       paymentStatus: item.paymentStatus || 'Unpaid',
       aiWasteType: item.aiWasteType ?? null,
@@ -147,8 +154,10 @@ export async function getUserDashboardData(
     }));
 
     const completedPickups = scheduleItems.filter((item) => item.status === 'completed');
-    const pendingPickups = scheduleItems
-      .filter((item) => item.status === 'pending')
+    
+    const terminalStatuses = ['completed', 'cancelled', 'skipped', 'missed'];
+    const activePickups = scheduleItems
+      .filter((item) => !terminalStatuses.includes(item.status.toLowerCase()))
       .sort((a, b) => {
         const aDate = a.pickupDate || parseFirestoreDate(a.createdAt);
         const bDate = b.pickupDate || parseFirestoreDate(b.createdAt);
@@ -161,9 +170,11 @@ export async function getUserDashboardData(
     }
 
     let nextPickupDateStr = 'N/A';
-    if (pendingPickups.length > 0) {
-      const nextItem = pendingPickups[0];
+    let nextPickupId = undefined;
+    if (activePickups.length > 0) {
+      const nextItem = activePickups[0];
       nextPickupDateStr = nextItem.pickupDate || parseFirestoreDate(nextItem.createdAt);
+      nextPickupId = nextItem.id;
     }
 
     // Fetch user rewards data
@@ -194,7 +205,10 @@ export async function getUserDashboardData(
       materialMap[type] = (materialMap[type] || 0) + weight;
     });
 
-    const skippedPickupsCount = scheduleItems.filter((item) => item.status === 'cancelled').length;
+    const skippedPickupsCount = scheduleItems.filter((item) => {
+      const s = item.status.toLowerCase();
+      return s === 'cancelled' || s === 'skipped' || s === 'missed';
+    }).length;
 
     const totalWeight = Object.values(materialMap).reduce((a, b) => a + b, 0);
     const materialBreakdown = Object.entries(materialMap).map(([type, weight]) => ({
@@ -208,6 +222,15 @@ export async function getUserDashboardData(
       Object.entries(materialMap).map(([type, weight]) => ({ type, weight }))
     );
 
+    // Calculate AI Stats from completed pickups that used AI
+    const classifiedPickups = pickupHistory.filter(
+      item => item.status === WasteStatus.Completed && item.classificationStatus === 'classified'
+    );
+    const totalClassified = classifiedPickups.length;
+    
+    // Sum the points earned from these specific pickups
+    const totalAiPoints = classifiedPickups.reduce((sum, item) => sum + (item.points || 0), 0);
+
     const metrics = {
       totalPickups: completedPickups.length,
       totalWeight,
@@ -215,9 +238,14 @@ export async function getUserDashboardData(
       rewardPoints,
       lastPickup: lastPickupDateStr,
       nextPickup: nextPickupDateStr,
+      nextPickupId,
       skippedPickups: skippedPickupsCount,
       materialBreakdown,
       carbonImpact,
+      aiStats: {
+        totalClassified,
+        totalAiPoints,
+      }
     };
 
     const rewards: RewardsData = {

@@ -130,9 +130,14 @@ export interface UserMetrics {
   rewardPoints: number;
   lastPickup: string; // ISO date string
   nextPickup?: string;
+  nextPickupId?: string;
   skippedPickups?: number;
   materialBreakdown: Array<{ type: string; weight: number; percentage: number }>;
   carbonImpact: { totalCo2Saved: number; treesEquivalent: number };
+  aiStats?: {
+    totalClassified: number;
+    totalAiPoints: number;
+  };
 }
 
 /**

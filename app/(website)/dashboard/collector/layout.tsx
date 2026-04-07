@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { useCollectorTasks } from "@/hooks/use-collector-tasks";
-import { useAvailableJobs } from "@/hooks/use-available-jobs";
 import { useUserData } from "@/hooks/use-user-data";
 import { DashboardStats } from "@/components/dashboard/collector/dashboard-stats";
 import { StatusCards } from "@/components/dashboard/collector/status-cards";
@@ -12,10 +11,9 @@ import { usePathname } from "next/navigation";
 
 export default function CollectorLayout({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
-    const { region, loading: userLoading } = useUserData();
+    const { loading: userLoading } = useUserData();
     const pathname = usePathname();
     const { tasks, loading: tasksLoading } = useCollectorTasks(user?.uid || '');
-    const { availableJobs, loading: availableLoading } = useAvailableJobs(user?.uid || '', region || undefined);
 
     const activeTasks = useMemo(() => tasks.filter(t => t.status !== 'completed'), [tasks]);
     const completedTasks = useMemo(() => tasks.filter(t => t.status === 'completed'), [tasks]);
@@ -23,14 +21,15 @@ export default function CollectorLayout({ children }: { children: React.ReactNod
     const totalWeight = completedTasks.reduce((acc, t) => acc + (t.weight ?? 0), 0);
     const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
 
-    const loading = tasksLoading || availableLoading || userLoading;
+    const loading = tasksLoading || userLoading;
 
     const isHome = pathname === '/dashboard/collector';
-    
+    const isActivePage = pathname.includes('/active');
+    const isHistoryPage = pathname.includes('/history');
+
     // Determine the type for StatusCards based on the current path
     const getStatusType = () => {
-        if (pathname.includes('/available')) return 'available';
-        if (pathname.includes('/history')) return 'history';
+        if (pathname.includes('/active')) return 'active';
         if (pathname.includes('/earnings')) return 'earnings';
         if (pathname.includes('/issues')) return 'issues';
         return 'default';
@@ -58,26 +57,22 @@ export default function CollectorLayout({ children }: { children: React.ReactNod
                         collectorZone="Ndagani"
                         totalWeight={totalWeight}
                         completionRate={completionRate}
-                        activeTasks={activeTasks.length}
                         completedTasksCount={completedTasks.length}
-                        availableJobsCount={availableJobs.length}
                     />
-                ) : (
+                ) : (!isActivePage && !isHistoryPage) ? (
                     <StatusCards 
                         type={getStatusType()}
                         data={{
                             totalWeight,
                             completionRate,
                             activeTasks: activeTasks.length,
-                            availableJobsCount: availableJobs.length,
                             completedTasksCount: completedTasks.length,
-                            totalPoints,
-                            jobs: availableJobs
+                            totalPoints
                         }}
                     />
-                )}
+                ) : null}
                 {children}
             </div>
         </div>
     );
-}
+    }

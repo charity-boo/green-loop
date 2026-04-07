@@ -3,8 +3,17 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { CollectorTask } from '@/types';
-import { Scale, Trophy, CheckCircle2, TrendingUp } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { 
+    BarChart, 
+    Bar, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    ResponsiveContainer, 
+    Cell 
+} from 'recharts';
+import { format, startOfWeek, addDays, isSameDay, parseISO } from 'date-fns';
 
 interface PerformanceStatsProps {
     tasks: CollectorTask[];
@@ -16,42 +25,40 @@ export function PerformanceStats({ tasks }: PerformanceStatsProps) {
     const totalWeight = completedTasks.reduce((acc, t) => acc + (t.weight || 0), 0);
     const totalPoints = completedTasks.length * 50 + Math.floor(totalWeight * 2);
 
-    // Weekly goal: 50kg
-    const weeklyGoal = 50;
-    const progress = Math.min((totalWeight / weeklyGoal) * 100, 100);
+    // Weekly Progress Chart Data
+    const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const weeklyData = Array.from({ length: 7 }, (_, i) => {
+        const day = addDays(startOfCurrentWeek, i);
+        const dayTasks = completedTasks.filter(t => {
+            const taskDate = t.updatedAt ? parseISO(t.updatedAt) : (t.createdAt ? parseISO(t.createdAt) : new Date());
+            return isSameDay(taskDate, day);
+        });
+        const weight = dayTasks.reduce((acc, t) => acc + (t.weight || 0), 0);
+        return {
+            day: format(day, 'EEE'),
+            weight: weight,
+            fullDate: format(day, 'MMM dd'),
+        };
+    });
+
+    const thisWeekWeight = weeklyData.reduce((acc, d) => acc + d.weight, 0);
 
     const stats = [
         {
             label: 'Total Points',
             value: totalPoints.toLocaleString(),
-            icon: Trophy,
-            color: 'text-amber-600',
-            bg: 'bg-amber-50',
-            borderColor: 'border-amber-100',
         },
         {
             label: 'Weight',
             value: `${totalWeight.toFixed(1)}kg`,
-            icon: Scale,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            borderColor: 'border-emerald-100',
         },
         {
             label: 'Completed',
             value: completedTasks.length.toString(),
-            icon: CheckCircle2,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            borderColor: 'border-blue-100',
         },
         {
             label: 'Efficiency',
             value: '94%',
-            icon: TrendingUp,
-            color: 'text-indigo-600',
-            bg: 'bg-indigo-50',
-            borderColor: 'border-indigo-100',
         }
     ];
 
@@ -67,9 +74,6 @@ export function PerformanceStats({ tasks }: PerformanceStatsProps) {
                     >
                         <Card className={`border-none shadow-sm bg-white hover:shadow-md transition-all rounded-2xl overflow-hidden`}>
                             <CardContent className="p-5 flex flex-col items-center text-center">
-                                <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} mb-3 border ${stat.borderColor}`}>
-                                    <stat.icon size={20} />
-                                </div>
                                 <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">
                                     {stat.label}
                                 </p>
@@ -82,26 +86,75 @@ export function PerformanceStats({ tasks }: PerformanceStatsProps) {
 
             <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden relative group">
                 <CardContent className="p-8">
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <TrendingUp size={16} className="text-emerald-600" />
-                                <h4 className="text-lg font-bold text-slate-900">Weekly Progress</h4>
+                                <h4 className="text-lg font-bold text-slate-900">Weekly Performance</h4>
                             </div>
-                            <p className="text-sm text-slate-500 font-medium">You are on track to reach your weekly goal.</p>
+                            <p className="text-sm text-slate-500 font-medium">Daily weight collection for the current week</p>
                         </div>
-                        <div className="text-right">
-                            <span className="text-3xl font-black text-emerald-600 tabular-nums tracking-tight">{totalWeight.toFixed(1)}</span>
-                            <span className="text-sm font-bold text-slate-300 ml-2 uppercase tracking-widest">/ 50kg</span>
+                        <div className="flex items-center gap-6">
+                            <div className="text-right">
+                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">Weekly Total</p>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-black text-emerald-600 tabular-nums tracking-tight">{thisWeekWeight.toFixed(1)}</span>
+                                    <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">kg</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            <span>{progress.toFixed(0)}% Completed</span>
-                            <span>Target: 50kg</span>
-                        </div>
-                        <Progress value={progress} className="h-2 bg-slate-100" />
+                    <div className="h-[240px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis 
+                                    dataKey="day" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }}
+                                    dy={10}
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }}
+                                    tickFormatter={(value) => `${value}`}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#f8fafc' }}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="bg-white p-3 shadow-xl border border-slate-100 rounded-2xl">
+                                                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">
+                                                        {payload[0].payload.fullDate}
+                                                    </p>
+                                                    <p className="text-lg font-black text-emerald-600">
+                                                        {payload[0].value.toFixed(1)} <span className="text-xs font-bold text-slate-300 ml-1">kg</span>
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                />
+                                <Bar 
+                                    dataKey="weight" 
+                                    fill="#10b981" 
+                                    radius={[6, 6, 0, 0]} 
+                                    barSize={32}
+                                >
+                                    {weeklyData.map((entry, index) => (
+                                        <Cell 
+                                            key={`cell-${index}`} 
+                                            fill={isSameDay(addDays(startOfCurrentWeek, index), new Date()) ? '#059669' : '#10b981'}
+                                            fillOpacity={entry.weight > 0 ? 1 : 0.3}
+                                        />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </CardContent>
             </Card>

@@ -18,7 +18,11 @@ export async function GET(req: NextRequest) {
     let query: FirebaseFirestore.Query = adminDb.collection('schedules').orderBy('createdAt', 'desc');
 
     if (status && status !== 'ALL') {
-      query = query.where('status', '==', status);
+      if (status === 'unassigned') {
+        query = query.where('status', '==', 'pending').where('paymentStatus', '==', 'Paid');
+      } else {
+        query = query.where('status', '==', status);
+      }
     }
 
     const totalSnap = await query.count().get();

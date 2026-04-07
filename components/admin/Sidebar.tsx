@@ -16,6 +16,9 @@ import {
     BookOpen,
     ChevronDown,
     ChevronRight,
+    Building2,
+    Building,
+    Bell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,6 +27,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 const menuItems = [
     { icon: LayoutDashboard, label: 'Overview', href: '/admin/dashboard' },
+    { icon: Bell, label: 'Notifications', href: '/admin/dashboard/notifications' },
     { icon: CalendarPlus, label: 'Pickups', href: '/admin/dashboard/schedules' },
     { icon: ShieldAlert, label: 'Collectors', href: '/admin/dashboard/collectors' },
     { icon: Users, label: 'Users', href: '/admin/dashboard/users' },
@@ -38,6 +42,12 @@ const contentMenuItems = [
     { label: 'Challenges', href: '/admin/dashboard/content/challenges' },
 ];
 
+const propertyMenuItems = [
+    { label: 'Hostels', href: '/admin/dashboard/properties/hostels' },
+    { label: 'Apartments', href: '/admin/dashboard/properties/apartments' },
+    { label: 'Inquiries', href: '/admin/dashboard/inquiries' },
+];
+
 export function Sidebar() {
     const pathname = usePathname();
     const { logout: signOut } = useAuth();
@@ -45,6 +55,9 @@ export function Sidebar() {
     const [signingOut, setSigningOut] = useState(false);
     const [contentExpanded, setContentExpanded] = useState(
         pathname.startsWith('/admin/dashboard/content')
+    );
+    const [propertiesExpanded, setPropertiesExpanded] = useState(
+        pathname.startsWith('/admin/dashboard/properties')
     );
 
     const handleSignOut = async () => {
@@ -54,6 +67,7 @@ export function Sidebar() {
     };
 
     const isContentActive = contentMenuItems.some(item => pathname === item.href);
+    const isPropertiesActive = propertyMenuItems.some(item => pathname === item.href);
 
     return (
         <div className="flex flex-col h-full w-64 bg-emerald-700 text-emerald-50 border-r border-emerald-800 transition-colors">
@@ -123,6 +137,59 @@ export function Sidebar() {
                                 className="ml-6 mt-1 border-l border-emerald-600/50 pl-4 space-y-1 overflow-hidden"
                             >
                                 {contentMenuItems.map((item) => {
+                                    const isActive = pathname === item.href;
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                "flex items-center h-9 px-3 rounded-lg transition-colors text-xs font-medium",
+                                                isActive 
+                                                    ? "text-white bg-emerald-600/80" 
+                                                    : "text-emerald-200 hover:text-white hover:bg-emerald-600/40"
+                                            )}
+                                        >
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    );
+                                })}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                <div className="pt-4">
+                    <p className="text-[10px] font-bold text-emerald-200/50 uppercase tracking-widest px-4 mb-2">Operations</p>
+                    <button
+                        onClick={() => setPropertiesExpanded(!propertiesExpanded)}
+                        className={cn(
+                            "flex items-center h-11 px-4 gap-3 rounded-lg transition-all font-medium text-sm w-full group",
+                            isPropertiesActive 
+                                ? "bg-emerald-600 text-white shadow-md shadow-emerald-900/20" 
+                                : "text-emerald-100 hover:bg-emerald-600/50 hover:text-white"
+                        )}
+                    >
+                        <Building2 className={cn(
+                            "w-4 h-4 transition-colors",
+                            isPropertiesActive ? "text-white" : "text-emerald-300"
+                        )} />
+                        <span className="flex-1 text-left">Properties</span>
+                        {propertiesExpanded ? (
+                            <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                        ) : (
+                            <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                        )}
+                    </button>
+
+                    <AnimatePresence>
+                        {propertiesExpanded && (
+                            <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="ml-6 mt-1 border-l border-emerald-600/50 pl-4 space-y-1 overflow-hidden"
+                            >
+                                {propertyMenuItems.map((item) => {
                                     const isActive = pathname === item.href;
                                     return (
                                         <Link

@@ -55,49 +55,7 @@ export default function GreenPointsClient({ data }: GreenPointsClientProps) {
 
     return (
         <div className="px-6 py-8 max-w-[1400px] mx-auto space-y-12">
-            {/* --- Hero Section: Points & Tier --- */}
-            <div className="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-12 text-white shadow-2xl">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl -ml-32 -mb-32"></div>
-
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
-                            <Zap className="w-3.5 h-3.5 text-emerald-400 fill-current" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                                {tier} Status Active
-                            </span>
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-4 leading-none">
-                            {points.toLocaleString()}
-                            <span className="text-emerald-500 ml-4 text-2xl md:text-3xl">PTS</span>
-                        </h1>
-                        <p className="text-slate-400 text-lg max-w-md font-medium leading-relaxed">
-                            Your recycling efforts are powering a cleaner Ndagani. Redeem your points for exclusive rewards below.
-                        </p>
-                    </div>
-
-                    <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/10">
-                        <div className="flex justify-between items-end mb-4">
-                            <div>
-                                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Next Milestone</p>
-                                <p className="text-2xl font-black tracking-tight text-white">{data.rewards.nextMilestone.toLocaleString()} PTS</p>
-                            </div>
-                            <span className="text-4xl font-black text-emerald-500/50">{Math.round(milestoneProgress)}%</span>
-                        </div>
-                        <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                            <div 
-                                className="h-full bg-gradient-to-r from-emerald-600 to-teal-400 rounded-full transition-all duration-1000 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                                style={{ width: `${milestoneProgress}%` }}
-                            />
-                        </div>
-                        <p className="mt-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <Award className="w-4 h-4 text-emerald-500" />
-                            {data.rewards.nextMilestone - points} points to reach your next reward tier
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/* --- Hero Section Removed as per request --- */}
 
             {/* --- Global Redemption Lock Warning --- */}
             {!canRedeem && (
@@ -118,6 +76,60 @@ export default function GreenPointsClient({ data }: GreenPointsClientProps) {
                     </div>
                 </div>
             )}
+
+            {/* --- Points Summary Summary --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col justify-between shadow-2xl shadow-slate-900/20">
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                                <Award className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Total Balance</span>
+                        </div>
+                        <h1 className="text-6xl font-black tracking-tight mb-2">{points.toLocaleString()} <span className="text-2xl text-slate-500 uppercase tracking-widest ml-2">PTS</span></h1>
+                        <p className="text-slate-400 font-medium mb-8">Current Tier: <span className="text-emerald-400 font-bold uppercase tracking-widest ml-2">{tier}</span></p>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-500">Progress to Next Tier</span>
+                            <span className="text-sm font-black text-emerald-400 tracking-tight">{Math.round(milestoneProgress)}%</span>
+                        </div>
+                        <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-emerald-500 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all duration-1000"
+                                style={{ width: `${milestoneProgress}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-xl shadow-slate-200/50 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 mb-4 text-emerald-600">
+                            <Zap className="w-5 h-5 fill-current" />
+                            <span className="text-xs font-black uppercase tracking-[0.2em]">AI Intelligence Bonus</span>
+                        </div>
+                        <h2 className="text-5xl font-black text-slate-900 tracking-tight mb-2">
+                            {data.metrics.aiStats?.totalAiPoints.toLocaleString() || '0'}
+                        </h2>
+                        <p className="text-slate-500 font-medium leading-relaxed max-w-xs">
+                            Total points earned through our Smart AI Waste Classification system.
+                        </p>
+                    </div>
+                    <div className="pt-8 border-t border-slate-50 mt-auto">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                                <span className="text-lg font-black">{data.metrics.aiStats?.totalClassified || 0}</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 leading-tight">
+                                Items successfully identified <br />
+                                <span className="text-xs text-slate-400 font-medium tracking-normal">Using local & cloud AI</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* --- Rewards Grid --- */}
             <div>
@@ -222,9 +234,17 @@ export default function GreenPointsClient({ data }: GreenPointsClientProps) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 bg-slate-50 group-hover:bg-emerald-50/50 transition-colors">
-                                        <span className="px-2.5 py-1 rounded-full bg-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
-                                            {item.wasteType}
-                                        </span>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="px-2.5 py-1 rounded-full bg-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest w-fit">
+                                                {item.wasteType}
+                                            </span>
+                                            {item.classificationStatus === 'classified' && (
+                                                <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 uppercase tracking-tight">
+                                                    <Zap className="w-2.5 h-2.5 fill-current" />
+                                                    AI Bonus Included
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-5 bg-slate-50 rounded-r-2xl text-right group-hover:bg-emerald-50/50 transition-colors">
                                         <div className="flex items-center justify-end gap-1.5 text-emerald-600">

@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import {
   Truck,
   Leaf,
@@ -8,13 +5,15 @@ import {
   BarChart3,
   MapPin,
   Clock,
-  ArrowRight,
   ChevronRight,
   CheckCircle2,
   Building2,
   Calendar,
   Phone,
   ArrowUpRight,
+  Shield,
+  Zap,
+  Globe,
   type LucideIcon
 } from "lucide-react";
 import Link from "next/link";
@@ -28,69 +27,108 @@ interface ServiceCardProps {
   link: string;
   stats?: string;
   target?: string;
-  delay: number;
   className?: string;
+  accentColor?: string;
 }
 
-const ServiceCard = ({ icon: Icon, title, description, features, link, stats, target, delay, className }: ServiceCardProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, delay }}
-    whileHover={{ y: -4 }}
-    className={`bg-white rounded-[2rem] p-8 md:p-10 border border-emerald-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300 flex flex-col group relative overflow-hidden ${className || ''}`}
-  >
-    {/* Subtle Glow */}
-    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-bl-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl" />
-    
-    <div className="flex justify-between items-start mb-8 relative z-10">
-      <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-500 transition-all duration-300 shadow-sm">
-        <Icon className="w-8 h-8" />
-      </div>
-      {target && (
-        <span className="px-4 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-widest rounded-full border border-emerald-100">
-          {target}
-        </span>
-      )}
-    </div>
-    
-    <div className="relative z-10 flex-1 flex flex-col">
-      <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">{title}</h3>
-      <p className="text-slate-500 mb-10 leading-relaxed text-lg max-w-lg">{description}</p>
-      
-      <div className="mt-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 mb-10 pb-8 border-b border-slate-100">
-          {features.map((feature, idx) => (
-            <div key={idx} className="flex items-start gap-3 text-slate-700 font-medium">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-              <span>{feature}</span>
-            </div>
-          ))}
-        </div>
+const accentColorMap = {
+  emerald: {
+    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    text: "text-emerald-600",
+    hoverText: "group-hover:text-emerald-600",
+    dot: "bg-emerald-500",
+    glow: "bg-emerald-50 dark:bg-emerald-950/20"
+  },
+  blue: {
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    text: "text-blue-600",
+    hoverText: "group-hover:text-blue-600",
+    dot: "bg-blue-500",
+    glow: "bg-blue-50 dark:bg-blue-950/20"
+  },
+  teal: {
+    bg: "bg-teal-50 dark:bg-teal-900/20",
+    text: "text-teal-600",
+    hoverText: "group-hover:text-teal-600",
+    dot: "bg-teal-500",
+    glow: "bg-teal-50 dark:bg-teal-950/20"
+  },
+  indigo: {
+    bg: "bg-indigo-50 dark:bg-indigo-900/20",
+    text: "text-indigo-600",
+    hoverText: "group-hover:text-indigo-600",
+    dot: "bg-indigo-500",
+    glow: "bg-indigo-50 dark:bg-indigo-950/20"
+  }
+};
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          {stats && (
-             <div className="flex items-center gap-2.5">
-               <div className="relative flex h-3 w-3">
-                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+const ServiceCard = ({ 
+  icon: Icon, 
+  title, 
+  description, 
+  features, 
+  link, 
+  stats, 
+  target, 
+  className,
+  accentColor = "emerald"
+}: ServiceCardProps) => {
+  const colors = accentColorMap[accentColor as keyof typeof accentColorMap];
+
+  return (
+    <div
+      className={`group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 md:p-12 border border-zinc-100 dark:border-zinc-800 transition-all duration-500 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden ${className || ''}`}
+    >
+      {/* Decorative Background Element */}
+      <div className={`absolute -right-16 -top-16 w-64 h-64 rounded-full ${colors.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+      
+      <div className="flex justify-between items-start mb-12 relative z-10">
+        <div className={`w-16 h-16 rounded-2xl ${colors.bg} ${colors.text} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+          <Icon className="w-8 h-8" />
+        </div>
+        {target && (
+          <span className="px-4 py-1.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full border border-zinc-100 dark:border-zinc-700">
+            {target}
+          </span>
+        )}
+      </div>
+      
+      <div className="relative z-10 flex-1 flex flex-col">
+        <h3 className={`text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-4 tracking-tight ${colors.hoverText} transition-colors`}>{title}</h3>
+        <p className="text-zinc-500 dark:text-zinc-400 mb-10 leading-relaxed text-lg">{description}</p>
+        
+        <div className="mt-auto">
+          <div className="space-y-4 mb-10">
+            {features.map((feature, idx) => (
+              <div key={idx} className="flex items-center gap-3 text-zinc-600 dark:text-zinc-300 font-medium text-sm">
+                <div className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+                <span>{feature}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-8 border-t border-zinc-100 dark:border-zinc-800">
+            {stats && (
+               <div className="flex items-center gap-2.5">
+                 <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{stats}</span>
                </div>
-               <span className="text-sm font-bold text-slate-600">{stats}</span>
-             </div>
-          )}
-          <Link 
-            href={link}
-            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-slate-900 text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 group/btn w-full sm:w-auto"
-          >
-            Explore Solution
-            <ArrowUpRight className="w-5 h-5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-          </Link>
+            )}
+            <Link 
+              href={link}
+              className="inline-flex items-center justify-center gap-2 text-zinc-900 dark:text-zinc-50 font-bold group/link transition-all"
+            >
+              <span className="relative">
+                Explore Solution
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover/link:w-full" />
+              </span>
+              <ArrowUpRight className="w-4 h-4 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
-  </motion.div>
-);
+  );
+};
 
 interface ProcessStepProps {
   icon: LucideIcon;
@@ -101,18 +139,17 @@ interface ProcessStepProps {
 }
 
 const ProcessStep = ({ icon: Icon, step, title, description, isLast }: ProcessStepProps) => (
-  <div className="relative flex gap-6 md:gap-10">
+  <div className="relative flex gap-8 md:gap-12">
     <div className="flex flex-col items-center">
-      <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-white border border-emerald-100 shadow-md shadow-emerald-900/5 flex items-center justify-center text-emerald-600 z-10 shrink-0 relative overflow-hidden group">
-        <div className="absolute inset-0 bg-emerald-50 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-        <Icon className="w-8 h-8 md:w-10 md:h-10 relative z-10" />
+      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-zinc-900 dark:bg-emerald-600 text-white flex items-center justify-center z-10 shrink-0 shadow-xl shadow-zinc-900/20">
+        <Icon className="w-5 h-5 md:w-7 md:h-7" />
       </div>
-      {!isLast && <div className="w-0.5 h-full bg-gradient-to-b from-emerald-100 to-transparent my-3" />}
+      {!isLast && <div className="w-px h-full bg-zinc-200 dark:bg-zinc-800 my-4" />}
     </div>
-    <div className="pt-2 pb-16">
-      <div className="text-sm font-bold text-emerald-500 mb-2 uppercase tracking-widest">Phase {step}</div>
-      <h4 className="text-2xl md:text-3xl font-black text-slate-900 mb-4">{title}</h4>
-      <p className="text-slate-500 leading-relaxed text-lg max-w-lg">{description}</p>
+    <div className="pt-1 pb-16">
+      <div className="text-xs font-bold text-emerald-600 dark:text-emerald-500 mb-3 uppercase tracking-[0.3em]">Step {step}</div>
+      <h4 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">{title}</h4>
+      <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed text-lg max-w-xl">{description}</p>
     </div>
   </div>
 );
@@ -122,186 +159,131 @@ export default function ServicesPage() {
     {
       id: "pickup",
       icon: Truck,
-      title: "Smart Collection",
-      target: "Residential & SME",
-      description: "On-demand and seamlessly scheduled waste collection powered by our AI-optimized routing engine for flawless reliability.",
+      title: "Smart Logistics",
+      target: "Residential",
+      description: "AI-optimized waste collection that adapts to your neighborhood's rhythm, ensuring zero missed pickups and maximum efficiency.",
       features: [
-        "Predictive routing",
-        "Live GPS tracking",
-        "Dynamic scheduling",
-        "Photo verified completion"
+        "Real-time Fleet Tracking",
+        "Dynamic Path Optimization",
+        "Verified Pickup Confirmation",
+        "Community Waste Heatmaps"
       ],
       link: "/schedule-pickup",
-      stats: "Operating at 98% Efficiency",
-      delay: 0.1,
-      className: "md:col-span-2"
+      stats: "99.2% Reliability Rate",
+      accentColor: "emerald"
     },
     {
       id: "commercial",
       icon: Building2,
-      title: "Enterprise Solutions",
-      target: "Hospitals & Institutions",
-      description: "Rigorous, regulation-compliant waste protocols for large facilities and medical centers.",
+      title: "Enterprise Ecosystems",
+      target: "Commercial",
+      description: "Professional-grade waste infrastructure for hospitals, schools, and corporate campuses with full regulatory compliance.",
       features: [
-        "Hazardous compliance",
-        "Dedicated accounts",
-        "High-capacity bins",
-        "Certified destruction"
+        "Hazardous Waste Handling",
+        "Regulatory Compliance Reporting",
+        "Dedicated Logistics Support",
+        "High-Volume Infrastructure"
       ],
       link: "/waste/commercial/hospitals",
-      stats: "NEMA Certified",
-      delay: 0.2,
-      className: "md:col-span-1 border-emerald-600 border-2 shadow-emerald-600/10" // highlight card
+      stats: "NEMA & ISO Certified",
+      accentColor: "blue",
+      className: "md:translate-y-12"
     },
     {
       id: "hub",
       icon: Recycle,
-      title: "Circular Economy Hub",
+      title: "Circular Economy",
       target: "Community",
-      description: "Digital tools and educational resources to participate actively in material recovery and upcycling ecosystems.",
+      description: "Empowering communities with tools for material recovery, upcycling, and sustainable lifecycle management.",
       features: [
-        "AI waste classifier",
-        "Recovery guidelines",
-        "Lifecycle mapping",
-        "Local workshops"
+        "Digital Resource Hub",
+        "Material Lifecycle Mapping",
+        "Upcycling Workshops",
+        "Community Rewards Program"
       ],
       link: "/learning-hub",
-      stats: "15,000+ educated",
-      delay: 0.3,
-      className: "md:col-span-1"
+      stats: "20k+ Active Participants",
+      accentColor: "teal"
     },
     {
       id: "analytics",
       icon: BarChart3,
-      title: "Impact Analytics",
+      title: "Precision Analytics",
       target: "Data Portal",
-      description: "Quantifiable, transparent ESG data reporting. Track your precise carbon footprint offset and waste diversion metrics in real-time.",
+      description: "Transform your waste data into actionable insights with our comprehensive ESG reporting and carbon footprint tracking.",
       features: [
-        "Live diversion rates",
-        "Carbon offsets",
-        "Exportable ESG reports",
-        "Automated auditing"
+        "Live ESG Dashboards",
+        "Carbon Offset Verification",
+        "Automated Compliance Logs",
+        "Predictive Waste Modeling"
       ],
       link: "/auth/login",
-      stats: "Real-time Telemetry Enabled",
-      delay: 0.4,
-      className: "md:col-span-2"
+      stats: "Real-time Telemetry",
+      accentColor: "indigo",
+      className: "md:translate-y-12"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-emerald-200 selection:text-emerald-900">
+    <div className="min-h-screen bg-white dark:bg-black selection:bg-emerald-100 selection:text-emerald-900">
       
-      {/* Modern Split Hero Section */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-white">
-        {/* Dynamic background artifacts */}
-        <div className="absolute top-0 right-0 w-full h-[800px] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/40 via-white to-transparent -z-10" />
-        <div className="absolute top-20 right-10 w-[500px] h-[500px] bg-emerald-400/5 rounded-full blur-[100px] -z-10" />
+      {/* Editorial Hero Section */}
+      <section className="relative pt-32 pb-20 md:pt-56 md:pb-40 overflow-hidden border-b border-zinc-100 dark:border-zinc-900">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(16,185,129,0.05),transparent_50%)]" />
+        <div className="absolute -left-24 top-1/4 w-96 h-96 bg-emerald-500/5 blur-[120px] rounded-full" />
         
         <div className="max-w-[85rem] mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="max-w-2xl"
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold uppercase tracking-widest mb-8 shadow-sm">
-                <Leaf className="w-4 h-4 text-emerald-500 fill-emerald-500" />
-                Comprehensive Solutions
-              </div>
-              
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 mb-8 tracking-tight leading-[1.1]">
-                Smart waste services for a <span className="text-transparent bg-clip-text bg-gradient-to-br from-emerald-500 to-teal-600">cleaner tomorrow.</span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-slate-500 leading-relaxed mb-10 max-w-xl">
-                We blend intelligent logistics, real-time data, and deep sustainability practices to solve your toughest waste challenges seamlessly.
-              </p>
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-3 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-10">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Service Portfolio 2024
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl font-bold text-zinc-900 dark:text-zinc-50 mb-10 tracking-tighter leading-[0.9]">
+              Engineering a <span className="text-emerald-600">Zero-Waste</span> Future.
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 leading-relaxed mb-12 max-w-2xl">
+              We provide the digital and physical infrastructure required to transition society towards a truly circular economy.
+            </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                  <a href="#services-grid" className="w-full sm:w-auto px-8 py-5 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2 text-lg">
-                    View Solutions
-                    <ArrowRight className="w-5 h-5" />
-                  </a>
-                  <a href="#how-it-works" className="w-full sm:w-auto px-8 py-5 bg-white border-2 border-slate-200 hover:borderColor-emerald-200 text-slate-700 rounded-xl font-bold transition-all flex items-center justify-center text-lg">
-                    Discover our Process
-                  </a>
-              </div>
-            </motion.div>
-
-            {/* Right side floating feature graphics to make layout appealing */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-              className="relative lg:h-[600px] hidden md:flex items-center justify-center lg:justify-end"
-            >
-               {/* Decorative Abstract UI Blocks */}
-               <div className="relative w-full max-w-lg aspect-square">
-                  <div className="absolute inset-0 bg-emerald-50 rounded-[3rem] rotate-3 opacity-60"></div>
-                  <div className="absolute inset-0 bg-white rounded-[3rem] border border-emerald-100 shadow-2xl p-8 flex flex-col justify-between">
-                     <div className="flex items-center justify-between border-b border-slate-100 pb-6 mb-6">
-                        <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center"><Truck className="w-6 h-6" /></div>
-                           <div>
-                              <p className="font-bold text-slate-900">Active Routing</p>
-                              <p className="text-sm text-slate-500">Fleet ID: GL-922</p>
-                           </div>
-                        </div>
-                        <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold">In Transit</div>
-                     </div>
-                     <div className="flex-1 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden relative mb-6">
-                        {/* Fake map/grid lines */}
-                        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:14px_24px]"></div>
-                        <div className="absolute top-1/2 left-1/4 w-4 h-4 bg-blue-500 rounded-full border-4 border-white shadow-md animate-pulse"></div>
-                        <div className="absolute top-1/3 right-1/4 w-4 h-4 bg-emerald-500 rounded-full border-4 border-white shadow-md z-1"></div>
-                        <div className="absolute top-[45%] left-[30%] w-32 h-1 bg-emerald-200 -rotate-12 origin-left"></div>
-                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                           <p className="text-sm text-slate-500 mb-1">Diverted Today</p>
-                           <p className="text-2xl font-black text-emerald-600">4.2<span className="text-sm text-slate-400 ml-1">Tons</span></p>
-                        </div>
-                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                           <p className="text-sm text-slate-500 mb-1">Efficiency Ratio</p>
-                           <p className="text-2xl font-black text-slate-900">98.5%</p>
-                        </div>
-                     </div>
-                  </div>
-                  
-                  {/* Floating smaller card */}
-                  <motion.div 
-                     animate={{ y: [0, -10, 0] }}
-                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                     className="absolute -right-12 top-1/4 bg-white p-5 py-6 rounded-2xl shadow-xl border border-slate-100 w-64"
-                  >
-                     <div className="flex gap-4 items-center">
-                        <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
-                           <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                        </div>
-                        <div>
-                           <p className="text-sm font-bold text-slate-900">Pickup Confirmed</p>
-                           <p className="text-xs text-slate-500">10 mins ago</p>
-                        </div>
-                     </div>
-                  </motion.div>
-               </div>
-            </motion.div>
+            <div className="flex flex-wrap gap-6">
+                <Link href="#services" className="px-10 py-5 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-full font-bold transition-all hover:scale-105 hover:shadow-2xl active:scale-95 text-lg">
+                  Explore Services
+                </Link>
+                <Link href="/contact-us" className="px-10 py-5 bg-transparent border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-50 rounded-full font-bold transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900 text-lg">
+                  Request Consultation
+                </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Services Bento Grid */}
-      <section id="services-grid" className="py-24 md:py-32 relative z-10 border-t border-slate-200/60">
+      {/* Trust Bar */}
+      <section className="py-12 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20">
         <div className="max-w-[85rem] mx-auto px-6">
-          <div className="max-w-3xl mb-16 lg:mb-24">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Our Core Ecosystem</h2>
-            <p className="text-slate-500 text-xl leading-relaxed">Whether you manage a single household or a multi-facility enterprise, we provide specific tools designed entirely for your scale.</p>
+          <div className="flex flex-wrap items-center justify-between gap-12 opacity-40 grayscale">
+            <div className="flex items-center gap-2 font-bold text-xl"><Globe className="w-6 h-6"/> Global Standards</div>
+            <div className="flex items-center gap-2 font-bold text-xl"><Shield className="w-6 h-6"/> ISO Certified</div>
+            <div className="flex items-center gap-2 font-bold text-xl"><Zap className="w-6 h-6"/> AI Powered</div>
+            <div className="flex items-center gap-2 font-bold text-xl text-emerald-600"><Leaf className="w-6 h-6"/> Eco-First</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Grid with Staggered Layout */}
+      <section id="services" className="py-32 md:py-48">
+        <div className="max-w-[85rem] mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-end mb-32">
+            <div>
+              <h2 className="text-4xl md:text-6xl font-bold text-zinc-900 dark:text-zinc-50 mb-8 tracking-tighter">Scalable solutions for every scale.</h2>
+            </div>
+            <div className="lg:pb-4">
+              <p className="text-zinc-500 dark:text-zinc-400 text-xl leading-relaxed max-w-lg">From residential pickups to complex industrial waste ecosystems, our services are built on a foundation of technology and transparency.</p>
+            </div>
           </div>
           
-          {/* Bento layout using CSS grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {services.map((service) => (
               <ServiceCard key={service.id} {...service} />
             ))}
@@ -309,56 +291,60 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* Modern Process Section */}
-      <section id="how-it-works" className="py-24 md:py-32 bg-white relative overflow-hidden border-t border-slate-100">
+      {/* Process Section - Dark Mode Focus */}
+      <section className="py-32 md:py-48 bg-zinc-900 text-white overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+        </div>
+
         <div className="max-w-[85rem] mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
             <div>
-               <div className="sticky top-32">
-                  <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">An elegant, frictionless process.</h2>
-                  <p className="text-slate-500 text-xl leading-relaxed mb-12">We handle the heavy lifting while giving you complete transparency. Experience entirely effortless waste management.</p>
+               <div className="lg:sticky lg:top-40">
+                  <div className="w-20 h-1 bg-emerald-500 mb-10" />
+                  <h2 className="text-5xl md:text-7xl font-bold mb-10 tracking-tighter leading-tight">The Lifecycle of Impact.</h2>
+                  <p className="text-zinc-400 text-xl leading-relaxed mb-16 max-w-lg">We&apos;ve distilled complex waste management into a four-step digital process that guarantees results and provides peace of mind.</p>
                   
-                  <div className="p-8 bg-slate-50 border border-slate-200 rounded-[2rem] shadow-sm">
-                     <p className="text-slate-800 font-bold text-xl mb-4">&quot;It was incredibly easy.&quot;</p>
-                     <p className="text-slate-600 mb-6 italic">Integration with Green Loop took literally zero effort. Their team assessed our bins and we instantly saw carbon reductions on the portal.</p>
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-200 rounded-full border-2 border-white shadow-sm overflow-hidden"><Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar" width={40} height={40}/></div>
-                        <div>
-                           <p className="font-bold text-sm text-slate-900">David M.</p>
-                           <p className="text-xs text-slate-500">Facility Manager</p>
-                        </div>
-                     </div>
+                  <div className="flex items-center gap-12 border-t border-zinc-800 pt-12">
+                    <div>
+                      <p className="text-4xl font-bold text-emerald-500 mb-2">98%</p>
+                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Diversion Rate</p>
+                    </div>
+                    <div>
+                      <p className="text-4xl font-bold text-emerald-500 mb-2">24/7</p>
+                      <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Active Monitoring</p>
+                    </div>
                   </div>
                </div>
             </div>
 
-            <div className="pt-8">
+            <div className="pt-12 lg:pt-0">
                <ProcessStep 
                  icon={MapPin}
-                 step="1"
-                 title="Enroll & Assess"
-                 description="Sign up through our portal. For enterprise, we deploy an expert team to audit your current system and recommend precise deployment bins."
+                 step="01"
+                 title="Intelligent Enrollment"
+                 description="Our AI assesses your waste profile and location to create a custom logistics plan tailored to your specific needs."
                  isLast={false}
                />
                <ProcessStep 
                  icon={Truck}
-                 step="2"
-                 title="Intelligent Collection"
-                 description="Our digitally connected fleet is dispatched precisely when your bins hit capacity, minimizing traffic and carbon footprint per pickup."
+                 step="02"
+                 title="Precision Collection"
+                 description="Fleet dispatch is triggered by data-driven demand, minimizing emissions and maximizing reliability."
                  isLast={false}
                />
                <ProcessStep 
                  icon={Recycle}
-                 step="3"
-                 title="Recovery & Sort"
-                 description="Materials enter our specialized logistics centers where recyclables are rigorously segregated to guarantee zero cross-contamination."
+                 step="03"
+                 title="Advanced Recovery"
+                 description="Materials are processed in our specialized facilities where sorting accuracy exceeds industry standards."
                  isLast={false}
                />
                <ProcessStep 
                  icon={BarChart3}
-                 step="4"
-                 title="Data & Reporting"
-                 description="Real-time compliance certificates, carbon offsets, and detailed ESG data are pushed straight to your dashboard for verified sustainability."
+                 step="04"
+                 title="Impact Verification"
+                 description="Every gram is tracked. Receive verified ESG reports and carbon credits directly to your dashboard."
                  isLast={true}
                />
             </div>
@@ -366,76 +352,68 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* Premium Dark CTA Section */}
-      <section className="py-8 md:py-16 bg-white">
-        <div className="max-w-[85rem] mx-auto px-6">
-          <div className="bg-slate-900 rounded-[3rem] p-10 md:p-16 lg:p-24 relative overflow-hidden flex flex-col items-center text-center shadow-2xl">
-            {/* Dark mode glowing background artifacts */}
-            <div className="absolute top-0 right-1/4 w-full h-[800px] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/20 via-transparent to-transparent opacity-60 blur-2xl -z-10" />
-            <div className="absolute -bottom-48 -right-48 w-96 h-96 bg-emerald-500/30 blur-[100px] rounded-full" />
-            
-            <div className="relative z-10 max-w-3xl">
-              <div className="inline-flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest mb-6 border border-emerald-800/60 bg-emerald-950/50 px-4 py-2 rounded-full">
-                <Building2 className="w-4 h-4" />
-                Specialized Enterprise Programs
-              </div>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-8 tracking-tight leading-[1.1]">
-                Scale your impact.<br /> Automate compliance.
-              </h2>
-              <p className="text-slate-400 text-xl leading-relaxed mb-12 max-w-2xl mx-auto">
-                Discover custom corporate waste programs crafted to boost your facilities ESG rating while guaranteeing total peace of mind.
-              </p>
-            </div>
-
-            <div className="relative z-10 flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md">
-              <Link
-                href="/contact-us"
-                className="w-full sm:w-auto px-10 py-5 bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-emerald-400 transition-all hover:scale-[1.02] shadow-xl shadow-emerald-500/20 text-lg"
-              >
-                Let&apos;s Talk Numbers
-                <ChevronRight className="w-5 h-5" />
-              </Link>
-            </div>
+      {/* Minimalist CTA */}
+      <section className="py-32 md:py-56 bg-white dark:bg-black">
+        <div className="max-w-[85rem] mx-auto px-6 text-center">
+          <h2 className="text-5xl md:text-8xl font-bold text-zinc-900 dark:text-zinc-50 mb-12 tracking-tighter leading-none">
+            Ready to close <br className="hidden md:block"/> the loop?
+          </h2>
+          <p className="text-zinc-500 dark:text-zinc-400 text-xl md:text-2xl mb-16 max-w-2xl mx-auto">
+            Join 500+ enterprises and thousands of households building a cleaner future with Green Loop.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Link
+              href="/auth/register"
+              className="px-12 py-6 bg-emerald-600 text-white rounded-full font-bold text-xl hover:bg-emerald-500 transition-all hover:shadow-[0_20px_50px_rgba(16,185,129,0.3)]"
+            >
+              Get Started Now
+            </Link>
+            <Link
+              href="/contact-us"
+              className="px-12 py-6 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 rounded-full font-bold text-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all"
+            >
+              Talk to Sales
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Refined Footer Info Strip */}
-      <section className="py-12 bg-white border-t border-slate-100">
+      {/* Refined Info Strip */}
+      <footer className="py-20 border-t border-zinc-100 dark:border-zinc-900">
         <div className="max-w-[85rem] mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-            <div className="flex items-center gap-4 w-full md:w-1/3 pt-4 md:pt-0">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-emerald-600 border border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-900 dark:text-zinc-50">
                 <Clock className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 mb-0.5">Operating Hours</p>
-                <p className="text-sm text-slate-500">08:00 AM - 18:00 PM</p>
-              </div>
+              <h4 className="font-bold text-lg">Availability</h4>
+              <p className="text-zinc-500 dark:text-zinc-400">Standard pickups operate Monday through Saturday, 08:00 AM to 18:00 PM. Emergency services 24/7.</p>
             </div>
-            
-            <div className="flex items-center gap-4 w-full md:w-1/3 pt-4 md:pt-0 md:pl-8 lg:pl-16">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-emerald-600 border border-slate-100">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-900 dark:text-zinc-50">
                 <Calendar className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 mb-0.5">Standard Pickups</p>
-                <p className="text-sm text-slate-500">Monday - Saturday</p>
-              </div>
+              <h4 className="font-bold text-lg">Scheduling</h4>
+              <p className="text-zinc-500 dark:text-zinc-400">Managed via our digital portal. Residential pickups are bi-weekly; commercial is on-demand or daily.</p>
             </div>
-            
-            <div className="flex items-center gap-4 w-full md:w-1/3 pt-4 md:pt-0 md:pl-8 lg:pl-16">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-emerald-600 border border-slate-100">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-900 dark:text-zinc-50">
                 <Phone className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 mb-0.5">Commercial Hotline</p>
-                <p className="text-sm text-slate-500">24/7 Priority Support</p>
-              </div>
+              <h4 className="font-bold text-lg">Support</h4>
+              <p className="text-zinc-500 dark:text-zinc-400">Priority support line available for enterprise clients. Residential support via in-app chat.</p>
+            </div>
+          </div>
+          <div className="mt-32 pt-12 border-t border-zinc-100 dark:border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-8">
+            <p className="text-zinc-400 text-sm">© 2024 Green Loop Technologies. All rights reserved.</p>
+            <div className="flex gap-8 text-sm font-bold text-zinc-400">
+              <Link href="/privacy" className="hover:text-emerald-500 transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-emerald-500 transition-colors">Terms</Link>
+              <Link href="/cookies" className="hover:text-emerald-500 transition-colors">Cookies</Link>
             </div>
           </div>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }

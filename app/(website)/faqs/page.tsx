@@ -20,7 +20,7 @@ const FAQsPage = () => {
     },
     {
       question: 'Does Green Loop offer educational resources for schools?',
-      answer: 'Yes, we are passionate about educating the next generation! Our Learning Hub features resources, videos, and guides suitable for various age groups. We also collaborate with schools for workshops and eco-projects. Please contact us for more information on school programs.',
+      answer: 'Yes, we are passionate about educating the next generation! Our Learning Hub features resources and guides suitable for various age groups. We also collaborate with schools for workshops and eco-projects. Please contact us for more information on school programs.',
     },
     {
       question: 'How can my business partner with Green Loop?',

@@ -204,13 +204,15 @@ export default function CollectorDashboard() {
                                     {/* Panel Header */}
                                     <div className="px-8 py-6 border-b border-border flex items-center justify-between bg-muted/30">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl shadow-sm border border-emerald-100/50 text-emerald-600">
-                                                {(() => {
-                                                    const item = navItems.find(n => n.id === activeView) || navItems[1];
-                                                    const Icon = item.icon;
-                                                    return <Icon className="w-5 h-5" />;
-                                                })()}
-                                            </div>
+                                            {activeView !== 'earnings' && (
+                                                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl shadow-sm border border-emerald-100/50 text-emerald-600">
+                                                    {(() => {
+                                                        const item = navItems.find(n => n.id === activeView) || navItems[1];
+                                                        const Icon = item.icon;
+                                                        return <Icon className="w-5 h-5" />;
+                                                    })()}
+                                                </div>
+                                            )}
                                             <div>
                                                 <h2 className="text-lg font-bold text-foreground tracking-tight">
                                                     {navItems.find(n => n.id === activeView)?.label || activeView}

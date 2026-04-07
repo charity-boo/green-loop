@@ -79,14 +79,14 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
   if (isSuccess) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md text-center py-12">
+        <DialogContent className="sm:max-w-md text-center py-12 bg-white">
           <div className="flex flex-col items-center gap-4">
-            <div className="p-4 bg-emerald-100 rounded-full">
-              <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+            <div className="p-4 bg-green-100 rounded-full">
+              <CheckCircle2 className="h-12 w-12 text-green-600" />
             </div>
             <div className="space-y-2">
-              <DialogTitle className="text-2xl font-black text-foreground">Request Received!</DialogTitle>
-              <DialogDescription className="text-lg font-medium">
+              <DialogTitle className="text-2xl font-black text-green-950">Request Received!</DialogTitle>
+              <DialogDescription className="text-lg font-medium text-green-800/60">
                 We&apos;ve received your booking for the{" "}
                 <span className="text-green-600 font-bold">{tier}</span> tier. Our team will
                 contact you within 24 hours to finalise the setup.
@@ -94,7 +94,7 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
             </div>
             <Button
               onClick={handleClose}
-              className="mt-4 bg-slate-900 hover:bg-slate-800 text-white font-bold px-8 rounded-xl h-12"
+              className="mt-4 bg-green-900 hover:bg-green-800 text-white font-bold px-8 rounded-xl h-12"
             >
               Done
             </Button>
@@ -106,15 +106,15 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg rounded-3xl p-8 border-border shadow-2xl">
+      <DialogContent className="sm:max-w-lg rounded-3xl p-8 border-green-100 shadow-2xl bg-white">
         <DialogHeader className="space-y-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-green-50 text-green-600 mb-2">
             <CheckCircle2 className="h-6 w-6" />
           </div>
-          <DialogTitle className="text-3xl font-black text-foreground tracking-tight">
+          <DialogTitle className="text-3xl font-black text-green-950 tracking-tight">
             Book {tier} Service
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground font-medium text-lg">
+          <DialogDescription className="text-green-800/60 font-medium text-lg">
             Fill in the form below and our team will contact you within 24 hours to finalise setup.
           </DialogDescription>
         </DialogHeader>
@@ -122,12 +122,12 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="hostel-name" className="text-sm font-bold text-slate-700">Property Name</Label>
-              <Input id="hostel-name" placeholder="e.g. Sunset Gardens" required className="h-12 rounded-xl border-border" />
+              <Label htmlFor="hostel-name" className="text-sm font-bold text-green-900">Property Name</Label>
+              <Input id="hostel-name" placeholder="e.g. Sunset Gardens" required className="h-12 rounded-xl border-green-100 focus:border-green-500 focus:ring-green-500" />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-sm font-bold text-slate-700 flex items-center gap-2">
+              <Label htmlFor="location" className="text-sm font-bold text-green-900 flex items-center gap-2">
                 <Search className="h-3 w-3" /> Location
               </Label>
               <AddressAutocomplete
@@ -141,22 +141,22 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
                   setLocationSelection(selection);
                 }}
                 placeholder="Search for hostel location..."
-                className="h-12 rounded-xl border-border"
+                className="h-12 rounded-xl border-green-100 focus:border-green-500 focus:ring-green-500"
               />
-              <p className="text-[10px] text-slate-400 font-medium italic">
+              <p className="text-[10px] text-green-600/40 font-medium italic">
                 Start typing to search for the location using Google.
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact-person" className="text-sm font-bold text-slate-700">Contact Person</Label>
-            <Input id="contact-person" placeholder="Your full name" required className="h-12 rounded-xl border-border" />
+            <Label htmlFor="contact-person" className="text-sm font-bold text-green-900">Contact Person</Label>
+            <Input id="contact-person" placeholder="Your full name" required className="h-12 rounded-xl border-green-100 focus:border-green-500 focus:ring-green-500" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-bold text-slate-700">Email Address</Label>
-            <Input id="email" type="email" placeholder="manager@hostel.com" required className="h-12 rounded-xl border-border" />
+            <Label htmlFor="email" className="text-sm font-bold text-green-900">Email Address</Label>
+            <Input id="email" type="email" placeholder="manager@hostel.com" required className="h-12 rounded-xl border-green-100 focus:border-green-500 focus:ring-green-500" />
           </div>
 
           {error && (
@@ -167,13 +167,13 @@ export function BookingModal({ isOpen, onClose, tier }: BookingModalProps) {
           )}
 
           <DialogFooter className="pt-4 gap-3 sm:gap-0">
-            <Button type="button" variant="ghost" onClick={handleClose} className="rounded-xl h-12 font-bold text-muted-foreground">
+            <Button type="button" variant="ghost" onClick={handleClose} className="rounded-xl h-12 font-bold text-green-600 hover:bg-green-50">
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl h-12 bg-green-600 hover:bg-green-700 text-white font-black px-8 flex-grow sm:flex-grow-0 shadow-lg shadow-green-200"
+              className="rounded-xl h-12 bg-green-600 hover:bg-green-700 text-white font-black px-8 flex-grow sm:flex-grow-0 shadow-lg shadow-green-100"
             >
               {isSubmitting && <Loader2 className="h-5 w-5 animate-spin mr-2" />}
               Confirm Booking

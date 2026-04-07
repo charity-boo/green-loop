@@ -2,9 +2,10 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PickupHistoryItem } from "@/types";
 import { WasteStatus } from "@/types/waste-status";
-import { Scan } from "lucide-react";
+import { Scan, XCircle, Loader2 } from "lucide-react";
 import PaymentButton from "@/components/user/payment-button";
 import ClassificationBadge from "@/components/user/classification-badge";
 
@@ -17,6 +18,7 @@ const statusLabel: Record<string, string> = {
     [WasteStatus.Pending]: "Pending",
     [WasteStatus.Skipped]: "Skipped",
     [WasteStatus.Active]: "Active",
+    [WasteStatus.Cancelled]: "Cancelled",
     assigned: "Active",
     cancelled: "Cancelled",
 };
@@ -26,6 +28,7 @@ const statusStyle: Record<string, string> = {
     [WasteStatus.Pending]: "bg-amber-50 text-amber-700 border-amber-200",
     [WasteStatus.Skipped]: "bg-slate-100 text-slate-500 border-slate-200",
     [WasteStatus.Active]: "bg-blue-50 text-blue-700 border-blue-200",
+    [WasteStatus.Cancelled]: "bg-red-50 text-red-600 border-red-200",
     assigned: "bg-blue-50 text-blue-700 border-blue-200",
     cancelled: "bg-red-50 text-red-600 border-red-200",
 };
@@ -40,7 +43,9 @@ const typeStyle: Record<string, string> = {
 };
 
 export default function PickupTable({ history }: PickupTableProps) {
+    const router = useRouter();
     const [reclassifyingIds, setReclassifyingIds] = useState<Set<string>>(new Set());
+    const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
 
     const handleReclassify = useCallback(async (scheduleId: string) => {
         setReclassifyingIds((prev) => new Set(prev).add(scheduleId));
@@ -56,6 +61,35 @@ export default function PickupTable({ history }: PickupTableProps) {
         }
     }, []);
 
+    const handleCancel = useCallback(async (scheduleId: string) => {
+        if (!confirm("Are you sure you want to cancel this pickup?")) return;
+
+        setCancellingIds((prev) => new Set(prev).add(scheduleId));
+        try {
+            const res = await fetch("/api/schedule-pickup", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ scheduleId }),
+            });
+
+            if (res.ok) {
+                router.refresh();
+            } else {
+                const error = await res.json();
+                alert(error.error || "Failed to cancel pickup");
+            }
+        } catch (error) {
+            console.error("Error cancelling pickup:", error);
+            alert("An error occurred while cancelling the pickup");
+        } finally {
+            setCancellingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(scheduleId);
+                return next;
+            });
+        }
+    }, [router]);
+
     return (
         <div className="bg-white flex flex-col min-h-[300px]">
             {/* Header */}
@@ -64,13 +98,6 @@ export default function PickupTable({ history }: PickupTableProps) {
                     <h3 className="text-xl font-bold text-slate-900 tracking-tight">Pickup History</h3>
                     <p className="text-xs text-slate-500 mt-1">{history.length} total records</p>
                 </div>
-                <Link
-                    href="/schedule-pickup"
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-all active:scale-95"
-                >
-                    <Scan className="h-4 w-4" />
-                    New Scan
-                </Link>
             </div>
 
             {/* Table Container */}
@@ -108,8 +135,24 @@ export default function PickupTable({ history }: PickupTableProps) {
                                         <td className="py-6 font-mono text-[10px] text-slate-400">
                                             #{item.id.slice(-6).toUpperCase()}
                                         </td>
-                                        <td className="py-6 text-slate-700 font-medium whitespace-nowrap">
-                                            {item.date}
+                                        <td className="py-6 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span className="text-slate-900 font-bold text-sm">
+                                                    {item.date && item.date !== 'N/A' 
+                                                        ? new Date(item.date).toLocaleDateString('en-US', { 
+                                                            month: 'short', 
+                                                            day: 'numeric'
+                                                        }) 
+                                                        : 'N/A'}
+                                                </span>
+                                                <span className="text-slate-400 text-[10px] font-medium">
+                                                    {item.date && item.date !== 'N/A' 
+                                                        ? new Date(item.date).toLocaleDateString('en-US', { 
+                                                            year: 'numeric'
+                                                        }) 
+                                                        : ''}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="py-6">
                                             <span className={`inline-flex px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-tight ${tStyle}`}>
@@ -136,10 +179,26 @@ export default function PickupTable({ history }: PickupTableProps) {
                                             +{item.points}
                                         </td>
                                         <td className="py-6 text-right">
-                                            {item.paymentStatus === "Unpaid" && 
-                                             (item.status === WasteStatus.Pending || item.status === WasteStatus.Active) && (
-                                                <PaymentButton wasteId={item.id} amount={item.price ?? 5} />
-                                            )}
+                                            <div className="flex items-center justify-end gap-2">
+                                                {item.paymentStatus === "Unpaid" && 
+                                                (item.status === WasteStatus.Pending || item.status === WasteStatus.Active) && (
+                                                    <PaymentButton wasteId={item.id} amount={item.price ?? 5} />
+                                                )}
+                                                {(item.status === WasteStatus.Pending || item.status === WasteStatus.Active) && (
+                                                    <button
+                                                        onClick={() => handleCancel(item.id)}
+                                                        disabled={cancellingIds.has(item.id)}
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                                        title="Cancel Pickup"
+                                                    >
+                                                        {cancellingIds.has(item.id) ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <XCircle className="h-4 w-4" />
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 );

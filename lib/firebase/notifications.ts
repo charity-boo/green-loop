@@ -18,7 +18,7 @@ export type UserRole = 'ADMIN' | 'COLLECTOR' | 'USER';
 
 export interface Notification {
   id: string;
-  userId?: string; // Optional - for individual notifications
+  userId: string | null; // Explicitly null for broadcasts
   role: UserRole; // admin, collector, user
   title: string;
   message: string;
@@ -35,6 +35,7 @@ export async function addNotification(
   const notificationsRef = collection(db, 'notifications');
   const docRef = await addDoc(notificationsRef, {
     ...notification,
+    userId: notification.userId || null,
     createdAt: serverTimestamp(),
   });
   return docRef.id;
@@ -48,27 +49,44 @@ export async function getUserNotifications(
   if (!db) return [];
   const notificationsRef = collection(db, 'notifications');
 
-  // Query for notifications that match user's role OR are specifically for this user
-  const q = query(
-    notificationsRef,
-    where('role', '==', userRole)
-  );
+  // We need to fetch both role-based (broadcast) and personal notifications.
+  // Since Firestore doesn't support 'OR' on different fields easily, we do two queries.
+  const queries = [
+    getDocs(query(
+      notificationsRef, 
+      where('role', '==', userRole), 
+      where('userId', '==', null)
+    ))
+  ];
 
-  const querySnapshot = await getDocs(q);
+  if (userId) {
+    queries.push(
+      getDocs(query(
+        notificationsRef, 
+        where('userId', '==', userId)
+      ))
+    );
+  }
+
+  const snapshots = await Promise.all(queries);
+
   const notifications: Notification[] = [];
-
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    // Include if it's for their role or specifically for their userId
-    if (!data.userId || data.userId === userId) {
+  
+  snapshots.forEach(snap => {
+    snap.forEach(doc => {
       notifications.push({
         id: doc.id,
-        ...data,
+        ...doc.data(),
       } as Notification);
-    }
+    });
   });
 
-  return notifications;
+  // Sort by date manually if needed, or let the caller handle it
+  return notifications.sort((a, b) => {
+    const timeA = a.createdAt?.toMillis() || 0;
+    const timeB = b.createdAt?.toMillis() || 0;
+    return timeB - timeA;
+  });
 }
 
 // Mark notification as read
@@ -101,6 +119,7 @@ export async function broadcastNotification(
   type: NotificationType
 ): Promise<void> {
   await addNotification({
+    userId: null,
     role,
     title,
     message,

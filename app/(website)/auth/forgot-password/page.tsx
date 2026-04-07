@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4 sm:px-6 lg:px-8 bg-gray-50/50">
-            <Card className="w-full max-w-md shadow-2xl">
+            <Card className="w-full max-w-lg shadow-2xl">
                 <CardHeader className="text-center space-y-2">
                     <CardTitle className="text-3xl font-bold text-gray-900">Reset Password</CardTitle>
                     <CardDescription className="text-gray-500">

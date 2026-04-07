@@ -82,6 +82,22 @@ export function useActiveJob(jobId: string | undefined) {
         });
     };
 
+    const completeJob = async (weight: number) => {
+        if (!jobId) return;
+        const response = await fetch(`/api/collector/tasks/${jobId}/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ weight }),
+        });
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Failed to complete job' }));
+            throw new Error(error.message || 'Failed to complete job');
+        }
+        
+        return response.json();
+    };
+
     return {
         job,
         loading,
@@ -89,6 +105,7 @@ export function useActiveJob(jobId: string | undefined) {
         isOffline,
         hasPendingWrites,
         startJob,
-        updateJob
+        updateJob,
+        completeJob
     };
 }

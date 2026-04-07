@@ -8,15 +8,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CameraIcon, UploadIcon, Cross1Icon, CheckIcon, ResetIcon } from "@radix-ui/react-icons";
 import type { ClassificationResult } from "@/lib/ai/gemini";
+import { useAuth } from "@/hooks/use-auth";
+import { uploadImageAndGetURL } from "@/lib/storage/image-service";
+import { classifyImageElement } from "@/lib/ai/classification-service";
 
 interface AIClassificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAccept: (wasteType: string, aiSuggestedType: string, aiConfidence: number, aiPhotoUsed: boolean, disposalTips: string) => void;
+  onAccept: (wasteType: string, aiSuggestedType: string, aiConfidence: number, aiPhotoUsed: boolean, disposalTips: string, imageUrl?: string) => void;
   onOverride: () => void;
 }
 
+/**
+ * Converts a data URL to a Blob.
+ */
+function dataURLtoBlob(dataurl: string) {
+  const arr = dataurl.split(",");
+  const mime = arr[0].match(/:(.*?);/)![1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
+
 export default function AIClassificationModal({ isOpen, onClose, onAccept, onOverride }: AIClassificationModalProps) {
+  const { user } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -93,35 +112,71 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
     setError(null);
 
     try {
+      // 1. Try Gemini Cloud API first (Smartest)
       const res = await fetch('/api/waste/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageUrl: photoTaken }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { message?: string }).message || 'Classification failed');
+      
+      if (res.ok) {
+        const result: ClassificationResult = await res.json();
+        setAiSuggestion(result);
+        setMode("result");
+        return;
       }
-      const result: ClassificationResult = await res.json();
-      setAiSuggestion(result);
+      
+      // If we're here, Gemini failed (429, 502, etc.)
+      console.warn("Gemini classification failed, falling back to local AI...");
+      
+      // 2. Fallback to Local Browser-Based AI (Transformers.js)
+      const localResult = await classifyImageElement(photoTaken);
+      
+      // Map local result to the expected Gemini-like structure
+      setAiSuggestion({
+        detectedItem: localResult.detectedItem,
+        wasteCategory: localResult.wasteCategory,
+        formValue: localResult.formValue as any,
+        probability: localResult.probability,
+        disposalTips: localResult.disposalTips,
+        didYouKnow: localResult.didYouKnow
+      });
       setMode("result");
+
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to classify waste.");
+      console.error("All AI classification methods failed:", err);
+      setError("AI classification failed. Please try again or select waste type manually.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAccept = () => {
-    if (aiSuggestion) {
-      onAccept(
-        aiSuggestion.formValue,
-        aiSuggestion.wasteCategory,
-        aiSuggestion.probability,
-        selectedFile === null,
-        aiSuggestion.disposalTips
-      );
-      handleCloseModal();
+  const handleAccept = async () => {
+    if (aiSuggestion && photoTaken) {
+      setLoading(true);
+      let imageUrl: string | undefined;
+
+      try {
+        if (user?.id) {
+          const imageBlob = dataURLtoBlob(photoTaken);
+          imageUrl = await uploadImageAndGetURL(imageBlob, user.id);
+        }
+        
+        onAccept(
+          aiSuggestion.formValue,
+          aiSuggestion.wasteCategory,
+          aiSuggestion.probability,
+          selectedFile === null,
+          aiSuggestion.disposalTips,
+          imageUrl
+        );
+        handleCloseModal();
+      } catch (err) {
+        console.error("Upload failed:", err);
+        setError("Failed to upload the waste photo. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

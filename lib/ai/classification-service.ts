@@ -1,8 +1,20 @@
 import { pipeline, env } from '@huggingface/transformers';
 import { addNotification } from '../firebase/notifications';
 
-// Disable local models to fetch from Hugging Face Hub, or configure appropriately
+// Configure Transformers.js for remote model fetching
 env.allowLocalModels = false;
+env.allowRemoteModels = true;
+
+// Ensure we use the browser's standard cache.
+// In some environments, disabling this can lead to "Unauthorized" (401) errors.
+env.useBrowserCache = true;
+
+// Explicitly set the remote configuration to ensure reliable fetches from Hugging Face Hub.
+env.remoteHost = 'https://huggingface.co';
+env.remotePathTemplate = '{model}/resolve/{revision}/';
+
+// Ensure no invalid authentication token is sent, which can cause 401 Unauthorized errors.
+env.token = null;
 
 export interface ClassificationResult {
   className: string;
@@ -32,7 +44,9 @@ const WASTE_CATEGORIES: {
     keywords: ['banana', 'apple', 'orange', 'lemon', 'pear', 'pineapple', 'strawberry', 'fig',
       'broccoli', 'carrot', 'corn', 'mushroom', 'cauliflower', 'cucumber', 'artichoke',
       'pizza', 'burger', 'sandwich', 'hotdog', 'meat', 'fish', 'egg', 'bread', 'rice',
-      'cake', 'cookie', 'waffle', 'pretzel', 'cheese', 'fruit', 'vegetable', 'food'],
+      'cake', 'cookie', 'waffle', 'pretzel', 'cheese', 'fruit', 'vegetable', 'food',
+      'compost', 'scrap', 'peel', 'shell', 'ground', 'husks', 'rinds', 'stems', 'seeds',
+      'meal', 'dish', 'plate', 'leftover'],
     disposalTips: (item) =>
       `Your ${item} is organic waste — the most compostable type of waste there is. Place it in a compost bin or your council's green organics bin. Home composting works best: mix food scraps with dry material like cardboard or garden clippings in a 1:3 ratio to keep the pile balanced and odour-free. Avoid composting meat, dairy, or oily food at home as they attract pests — use a sealed bokashi system instead. Compost juice or liquid by diluting with water before adding to the heap. If you generate large volumes, a worm farm turns food scraps into excellent garden fertiliser within weeks.`,
     didYouKnow: `Food waste in landfills produces methane, a greenhouse gas 25× more potent than CO₂. In Kenya, food waste accounts for over 50% of organic waste — yet most households still don't compost.`,
@@ -121,7 +135,11 @@ const mapMobileNetToWasteCategory = (
   for (const pred of predictions) {
     const lower = pred.className.toLowerCase();
     for (const cat of WASTE_CATEGORIES) {
-      if (cat.keywords.some((kw) => lower.includes(kw))) {
+      if (cat.keywords.some((kw) => {
+        const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedKw}\\b`, 'i');
+        return regex.test(lower);
+      })) {
         const item = pred.className.split(',')[0].trim().toLowerCase();
         return {
           detectedItem: pred.className.split(',')[0].trim(),
@@ -153,11 +171,14 @@ let imageClassificationPipeline: any = null;
 
 // Helper to load the model
 export const loadClassificationModel = async (progressCallback?: (info: unknown) => void) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
   if (imageClassificationPipeline) {
     return;
   }
   try {
-    imageClassificationPipeline = await pipeline('image-classification', 'Xenova/mobilenet_v2_1.0_224', {
+    imageClassificationPipeline = await pipeline('image-classification', 'onnx-community/mobilenet_v2_1.0_224', {
       progress_callback: progressCallback,
     });
   } catch (error) {
