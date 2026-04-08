@@ -288,7 +288,7 @@ export default function SchoolsWastePage() {
 
         {/* CTA (Single Login area as requested format) */}
         <section id="contact" className="py-32 bg-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-5 mix-blend-overlay"></div>
           
           <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
             <h2 className="text-4xl md:text-5xl font-black text-green-950 mb-8 leading-tight">

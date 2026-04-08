@@ -12,8 +12,7 @@ import {
     MapPin,
     Zap,
     Clock,
-    Truck,
-    ShieldCheck
+    Truck
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -42,6 +41,7 @@ export function StatusCards({
     } = data;
 
     const getStats = () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const createStat = (label: string, value: string, icon?: any, color?: string, bg?: string) => ({
             label, value, icon, color, bg
         });

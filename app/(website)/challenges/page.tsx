@@ -63,7 +63,7 @@ export default function ChallengesPage() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-amber-500 to-orange-600 py-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+        <div className="absolute inset-0 bg-[url(/grid.svg)] opacity-10"></div>
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

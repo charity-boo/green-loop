@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Phone, MapPin, User, Tag, Clock, Building, AlertTriangle } from 'lucide-react';
+import { Mail, Clock, Building, AlertTriangle } from 'lucide-react';
 
 interface InquiriesTableProps {
   inquiries: Inquiry[];

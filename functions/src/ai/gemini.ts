@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import * as logger from "firebase-functions/logger";
 
 export interface ClassificationResult {
   wasteType: string;
@@ -60,7 +59,7 @@ export async function classifyWaste(imageUrl: string): Promise<ClassificationRes
     
     return parsed;
   } catch (error) {
-    logger.error("Error in Gemini classification:", error);
+    console.error("Error in Gemini classification:", error);
     throw error;
   }
 }

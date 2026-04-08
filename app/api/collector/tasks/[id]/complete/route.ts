@@ -72,12 +72,14 @@ export async function POST(
       const isAiClassified = wasteItem.classificationStatus === 'classified';
       const wasteType = wasteItem.wasteItem?.formValue || wasteItem.wasteType || 'general';
       const probability = wasteItem.wasteItem?.probability || wasteItem.aiConfidence || 0;
+      const finalWeight = weight || wasteItem.weight || 0;
 
       // Calculate points earned
       const pointsEarned = calculateRewardPoints(
         wasteType,
         probability,
-        isAiClassified
+        isAiClassified,
+        finalWeight
       );
 
       const updateData = {

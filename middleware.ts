@@ -68,16 +68,17 @@ async function verifyFirebaseToken(token: string): Promise<TokenClaims | null> {
     if (!payload.exp || payload.exp < nowSec) return null;
 
     const isProduction = process.env.NODE_ENV === 'production';
+    const isEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS?.trim() === 'true';
 
     // In production, strictly enforce iss/aud. 
-    // In development (emulators), these might differ based on how the emulator is called.
-    if (isProduction) {
+    // In development or when using emulators, these might differ.
+    if (isProduction && !isEmulator) {
       if (payload.iss !== `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) return null;
       if (payload.aud !== FIREBASE_PROJECT_ID) return null;
     }
 
-    // Skip signature check in development — emulator tokens are signed with a test key
-    if (!isProduction) {
+    // Skip signature check in development or when using emulators — emulator tokens are signed with a test key
+    if (!isProduction || isEmulator) {
       return { role: payload.role?.toUpperCase() ?? 'USER' };
     }
 

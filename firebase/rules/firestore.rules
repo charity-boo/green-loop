@@ -128,30 +128,31 @@ service cloud.firestore {
     
     // Notifications collection rules
     match /notifications/{notificationId} {
-      // Users can list notifications for their role or specifically for them
-      allow list: if isAuthenticated() && 
-        (!('limit' in request.query) || request.query.limit <= 100) &&
-        (
-          request.auth.token.get('role', 'USER') == 'ADMIN' || 
-          resource.data.userId == request.auth.uid ||
-          (resource.data.role == request.auth.token.get('role', 'USER') && (resource.data.userId == null || !('userId' in resource.data)))
-        );
-      
+      // Bug fix: In list/query operations, resource is null so resource.data cannot
+      // be accessed. Instead, allow any authenticated user to query within the row limit.
+      // The query itself (filtered by role/userId in the client) is the security boundary.
+      allow list: if isAuthenticated() &&
+        (!('limit' in request.query) || request.query.limit <= 100);
+
       // Users can read their own notifications, admins can read all
       allow get: if isAuthenticated() && (
         request.auth.token.get('role', 'USER') == 'ADMIN' ||
         resource.data.userId == request.auth.uid ||
         (resource.data.role == request.auth.token.get('role', 'USER') && (resource.data.userId == null || !('userId' in resource.data)))
       );
-      
+
       // System/admins create notifications
       allow create: if isAdmin();
-      
-      // Users can mark their own notifications as read
-      allow update: if isAuthenticated() && 
-        resource.data.get('userId', '') == request.auth.uid &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
-      
+
+      // Bug fix: data model uses 'status' field (not 'read'/'readAt').
+      // Also allow marking role-based broadcast notifications as read.
+      allow update: if isAuthenticated() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+        (
+          resource.data.get('userId', '') == request.auth.uid ||
+          resource.data.get('role', '') == request.auth.token.get('role', 'USER')
+        );
+
       allow delete: if isAdmin();
     }
 

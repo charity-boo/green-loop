@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { PropertyTable } from '@/components/admin/PropertyTable';
 import { AddPropertyModal } from '@/components/admin/AddPropertyModal';
 import { ApartmentDoc } from '@/types/firestore';
-import { Plus, Search, Building2, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2 } from 'lucide-react';
 
 export default function ApartmentsPage() {
   const [apartments, setApartments] = useState<ApartmentDoc[]>([]);

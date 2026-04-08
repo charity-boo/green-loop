@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PickupHistoryItem } from "@/types";
 import { WasteStatus } from "@/types/waste-status";
@@ -20,7 +19,6 @@ const statusLabel: Record<string, string> = {
     [WasteStatus.Active]: "Active",
     [WasteStatus.Cancelled]: "Cancelled",
     assigned: "Active",
-    cancelled: "Cancelled",
 };
 
 const statusStyle: Record<string, string> = {
@@ -30,7 +28,6 @@ const statusStyle: Record<string, string> = {
     [WasteStatus.Active]: "bg-blue-50 text-blue-700 border-blue-200",
     [WasteStatus.Cancelled]: "bg-red-50 text-red-600 border-red-200",
     assigned: "bg-blue-50 text-blue-700 border-blue-200",
-    cancelled: "bg-red-50 text-red-600 border-red-200",
 };
 
 const typeStyle: Record<string, string> = {

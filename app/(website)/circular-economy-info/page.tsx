@@ -215,7 +215,7 @@ export default function CircularEconomyPage() {
                             whileHover={{ y: -10 }}
                             className="md:col-span-2 group relative p-10 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-[3rem] overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-20 mix-blend-overlay" />
                             <div className="relative z-10 h-full flex flex-col md:flex-row items-center gap-10">
                                 <div className="flex-1 space-y-6">
                                     <div className="inline-block px-4 py-1.5 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest">Powered by AI</div>
@@ -386,7 +386,7 @@ export default function CircularEconomyPage() {
                     <div className="relative p-12 md:p-24 rounded-[5rem] overflow-hidden text-center space-y-12">
                         {/* Background for CTA */}
                         <div className="absolute inset-0 bg-emerald-600 z-0">
-                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-20 mix-blend-overlay" />
                             <motion.div 
                                 className="absolute -top-1/2 -left-1/4 w-full h-full bg-emerald-400 blur-[120px] opacity-40 rounded-full"
                                 animate={{ scale: [1, 1.2, 1], x: [0, 50, 0] }}

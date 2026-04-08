@@ -8,14 +8,11 @@ import {
     LayoutDashboard,
     CalendarPlus,
     Scan,
-    MapPin,
     Settings,
     LogOut,
     Activity,
     Leaf,
     Coins,
-    ChevronRight,
-    Clock,
     TrendingUp,
     AlertTriangle,
     History,
@@ -46,7 +43,7 @@ const COLLECTOR_NAV_ITEMS = [
 export default function SidebarNav() {
     const pathname = usePathname();
     const { signOut, role } = useAuth();
-    const { nextPickup, loading, points, aiStats } = useUserData();
+    const { aiStats } = useUserData();
 
     const isCollector = role === 'COLLECTOR';
     const navItems = isCollector ? COLLECTOR_NAV_ITEMS : USER_NAV_ITEMS.map(item => {
@@ -99,6 +96,7 @@ export default function SidebarNav() {
                     "text-[10px] font-black uppercase tracking-[0.25em] px-4 mb-4",
                     isCollector ? "text-emerald-200/50" : "text-green-400/50"
                 )}>Operations</p>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {navItems.map(({ label, icon: Icon, href, subLabel }: any) => {
                     const isActive = pathname === href || (href !== '/dashboard' && href !== '/dashboard/collector' && pathname.startsWith(href));
                     return (

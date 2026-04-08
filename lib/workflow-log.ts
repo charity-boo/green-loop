@@ -4,6 +4,7 @@ export type WorkflowActorType = 'system' | 'user' | 'collector' | 'admin' | 'str
 
 export type WorkflowEvent =
   | 'schedule_created'
+  | 'schedule_cancelled'
   | 'payment_succeeded'
   | 'payment_failed'
   | 'assignment_attempted'

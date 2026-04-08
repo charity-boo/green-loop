@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       message: message,
       type: type,
       status: 'unread',
-      userId: userId,
+      userId: userId ?? null,
     });
 
     return NextResponse.json(

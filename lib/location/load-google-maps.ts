@@ -17,7 +17,10 @@ export function loadGoogleMapsPlacesScript(apiKey: string): Promise<void> {
   }
 
   // If already loaded and has importLibrary, we're good
-  if (window.google?.maps?.importLibrary) {
+  const existingImportLibrary = (
+    window as Window & { google?: { maps?: { importLibrary?: unknown } } }
+  ).google?.maps?.importLibrary;
+  if (typeof existingImportLibrary === 'function') {
     return Promise.resolve();
   }
 
@@ -32,6 +35,7 @@ export function loadGoogleMapsPlacesScript(apiKey: string): Promise<void> {
       const s = d.createElement("script");
 
       // Initialize the namespace if it doesn't exist
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const g = window as any;
       g.google ||= {};
       g.google.maps ||= {};

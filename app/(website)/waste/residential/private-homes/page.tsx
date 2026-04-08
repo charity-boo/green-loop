@@ -220,7 +220,7 @@ export default function PrivateHomesWastePage() {
 
         {/* Impact Stats Section */}
         <section className="py-12 bg-emerald-900 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-20 mix-blend-overlay"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-emerald-800">
               {stats.map((stat, i) => (
@@ -349,7 +349,7 @@ export default function PrivateHomesWastePage() {
 
         {/* CTA Section */}
         <section className="py-24 bg-emerald-950 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-30 mix-blend-overlay"></div>
           <div className="absolute top-0 -right-1/4 w-1/2 h-full bg-gradient-to-l from-emerald-500/30 to-transparent blur-3xl" />
           <div className="absolute bottom-0 -left-1/4 w-1/2 h-full bg-gradient-to-r from-teal-500/30 to-transparent blur-3xl" />
           

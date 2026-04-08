@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Recycle, Lightbulb, Building, ArrowLeft, Download, ChevronRight } from "lucide-react"; 
+import { BookOpen, Recycle, Lightbulb, Building, ArrowLeft, Download } from "lucide-react"; 
 import { motion } from "framer-motion";
 
 interface GuideCardProps {

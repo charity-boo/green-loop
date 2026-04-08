@@ -125,13 +125,14 @@ export function PerformanceStats({ tasks }: PerformanceStatsProps) {
                                     cursor={{ fill: '#f8fafc' }}
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
+                                            const value = Number(payload[0]?.value ?? 0);
                                             return (
                                                 <div className="bg-white p-3 shadow-xl border border-slate-100 rounded-2xl">
                                                     <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">
                                                         {payload[0].payload.fullDate}
                                                     </p>
                                                     <p className="text-lg font-black text-emerald-600">
-                                                        {payload[0].value.toFixed(1)} <span className="text-xs font-bold text-slate-300 ml-1">kg</span>
+                                                        {value.toFixed(1)} <span className="text-xs font-bold text-slate-300 ml-1">kg</span>
                                                     </p>
                                                 </div>
                                             );

@@ -17,7 +17,6 @@ import {
     ChevronDown,
     ChevronRight,
     Building2,
-    Building,
     Bell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

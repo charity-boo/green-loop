@@ -69,7 +69,6 @@ export default function CollectorDashboard() {
                     collectorZone="Ndagani"
                     totalWeight={totalWeight}
                     completionRate={completionRate}
-                    activeTasks={activeTasks.length}
                     completedTasksCount={completedTasks.length}
                 />
 

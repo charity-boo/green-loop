@@ -50,6 +50,7 @@ next-env.d.ts
 test-db.js
 
 # firebase emulator data
+.firebase/
 .firebase-emulator-data/
 firebase-export-*/
 

@@ -67,6 +67,7 @@ export async function classifyWasteImage(imageUrl: string): Promise<Classificati
     if (!validValues.includes(parsed.formValue?.toLowerCase())) {
       parsed.formValue = 'general';
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parsed.formValue = parsed.formValue.toLowerCase() as any;
     }
 

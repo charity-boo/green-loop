@@ -1,7 +1,6 @@
 'use client';
 
-import { motion } from "framer-motion";
-import { Trophy, Calendar, Clock, Bell, Truck, Zap, Star, Sparkles, MapPin } from "lucide-react";
+import { Calendar, Clock, Bell, Truck, Zap, Star } from "lucide-react";
 
 export function StaticStudentHub() {
   const topHostels = [

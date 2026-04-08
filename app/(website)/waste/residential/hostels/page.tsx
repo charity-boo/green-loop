@@ -147,7 +147,7 @@ export default function HostelsWastePage() {
 
         {/* Impact Stats Section */}
         <section className="py-16 bg-green-900 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-20 mix-blend-overlay"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
               {stats.map((stat, i) => (
@@ -264,7 +264,7 @@ export default function HostelsWastePage() {
 
         {/* Section: Manager Portal */}
         <section id="manager-portal" className="py-24 bg-green-950 text-white relative overflow-hidden scroll-mt-20">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-10 mix-blend-overlay"></div>
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="text-center mb-20">
                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase tracking-widest mb-6">

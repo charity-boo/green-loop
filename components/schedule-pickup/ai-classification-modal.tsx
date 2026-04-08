@@ -136,6 +136,7 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
       setAiSuggestion({
         detectedItem: localResult.detectedItem,
         wasteCategory: localResult.wasteCategory,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formValue: localResult.formValue as any,
         probability: localResult.probability,
         disposalTips: localResult.disposalTips,
@@ -157,9 +158,9 @@ export default function AIClassificationModal({ isOpen, onClose, onAccept, onOve
       let imageUrl: string | undefined;
 
       try {
-        if (user?.id) {
+        if (user?.uid) {
           const imageBlob = dataURLtoBlob(photoTaken);
-          imageUrl = await uploadImageAndGetURL(imageBlob, user.id);
+          imageUrl = await uploadImageAndGetURL(imageBlob, user.uid);
         }
         
         onAccept(

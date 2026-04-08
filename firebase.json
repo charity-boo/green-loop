@@ -1,7 +1,7 @@
 {
   "firestore": {
     "database": "(default)",
-    "location": "africa-south1",
+    "location": "us-central1",
     "rules": "firebase/rules/firestore.rules",
     "indexes": "firebase/rules/firestore.indexes.json"
   },
@@ -53,7 +53,7 @@
       "**/node_modules/**"
     ],
     "frameworksBackend": {
-      "region": "africa-south1"
+      "region": "us-central1"
     }
   },
   "storage": {

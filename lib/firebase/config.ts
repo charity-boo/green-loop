@@ -46,9 +46,7 @@ export const storage: FirebaseStorage = (app && firebaseConfig.apiKey)
   ? getStorage(app)
   : (null as unknown as FirebaseStorage);
 
-const useFirebaseEmulators =
-  process.env.NODE_ENV === 'development' &&
-  process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS !== 'false';
+const useFirebaseEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS?.trim() === 'true';
 
 const globalForEmulatorConnection = globalThis as typeof globalThis & {
   __firebaseEmulatorsConnected?: boolean;
@@ -68,6 +66,8 @@ if (app && firebaseConfig.apiKey && useFirebaseEmulators && !globalForEmulatorCo
   
   if (typeof window === 'undefined') {
     console.log('[Firebase] Connected to emulators on server-side');
+  } else {
+    console.log('[Firebase] Connected to emulators in the browser');
   }
 }
 

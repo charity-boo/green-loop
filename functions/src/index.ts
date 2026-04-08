@@ -1,6 +1,5 @@
 import { setGlobalOptions } from "firebase-functions";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
-import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 
 // Initialize Admin SDK early to avoid "FirebaseAppError: The default Firebase app does not exist"
@@ -19,6 +18,7 @@ import {
 } from "./handlers/classification";
 
 setGlobalOptions({ maxInstances: 10 });
+const logger = console;
 
 const db = admin.firestore();
 
@@ -90,6 +90,7 @@ async function sendScheduleNotification(scheduleId: string, data: any) {
     const userDoc = await db.collection("users").doc(userId).get();
     const userData = userDoc.data();
     const fcmToken = userData?.fcmToken;
+    const userRole = userData?.role || 'USER';
 
     let notificationStatus: "sent" | "failed" = "failed";
     let errorMessage: string | null = null;
@@ -108,12 +109,17 @@ async function sendScheduleNotification(scheduleId: string, data: any) {
       }
     }
 
+    // Use a structure compatible with the frontend's Notification type
     await db.collection("notifications").add({
       userId,
       scheduleId,
-      type: config.type,
+      role: userRole,
+      title: "Green Loop Update",
+      message: config.message,
+      type: "info", // map specific types to general frontend types if needed
       channel: "push",
-      status: notificationStatus,
+      status: "unread", // Frontend expects 'unread' or 'read'
+      deliveryStatus: notificationStatus,
       error: errorMessage,
       createdAt: FieldValue.serverTimestamp(),
       deliveredAt: notificationStatus === "sent" ? FieldValue.serverTimestamp() : null,
@@ -248,23 +254,37 @@ export const onWasteUpdated = onDocumentUpdated(
 
       // Calculate points if completed
       if (isNowCompleted) {
-        // Base points (50) + Weight-based points (2 per kg)
-        const weight = afterData.weight || 0;
-        const earnedPoints = 50 + Math.floor(weight * 2);
-        updateData.points = earnedPoints;
         updateData.completedAt = afterData.completedAt || FieldValue.serverTimestamp();
 
-        // Update user points
-        const userId = afterData.userId;
-        if (userId) {
-          try {
-            await db.collection("users").doc(userId).update({
-              rewardPoints: FieldValue.increment(earnedPoints),
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-            logger.info(`Awarded ${earnedPoints} points to user ${userId} for waste ${event.params.wasteId}`);
-          } catch (err) {
-            logger.error(`Failed to award points to user ${userId}:`, err);
+        // Check if points were already awarded (e.g., by the API in a transaction)
+        const alreadyAwarded = afterData.pointsEarned !== undefined || afterData.points !== undefined;
+
+        if (!alreadyAwarded) {
+          // Base points (50) + Weight-based points (2 per kg)
+          const weight = afterData.weight || 0;
+          const earnedPoints = 50 + Math.floor(weight * 2);
+          
+          // Use pointsEarned to match the API's field name
+          updateData.pointsEarned = earnedPoints;
+
+          // Update user points
+          const userId = afterData.userId;
+          if (userId) {
+            try {
+              await db.collection("users").doc(userId).update({
+                rewardPoints: FieldValue.increment(earnedPoints),
+                updatedAt: FieldValue.serverTimestamp(),
+              });
+              logger.info(`Awarded ${earnedPoints} points to user ${userId} for waste ${event.params.wasteId}`);
+            } catch (err) {
+              logger.error(`Failed to award points to user ${userId}:`, err);
+            }
+          }
+        } else {
+          logger.info(`Points already awarded for waste ${event.params.wasteId}, skipping point increment`);
+          // Ensure schedule points field is consistent even if set by API
+          if (afterData.pointsEarned !== undefined) {
+            updateData.pointsEarned = afterData.pointsEarned;
           }
         }
       }

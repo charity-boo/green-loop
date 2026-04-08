@@ -1,7 +1,8 @@
 import * as admin from "firebase-admin";
-import * as logger from "firebase-functions/logger";
 import { FieldValue } from "firebase-admin/firestore";
 import { classifyWaste } from "../ai/gemini";
+
+const logger = console;
 
 const db = admin.firestore();
 

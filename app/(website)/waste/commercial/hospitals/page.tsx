@@ -119,7 +119,7 @@ export default function HospitalsWastePage() {
         {/* Medical Hero Section */}
         <section className="bg-white py-20 lg:py-32 border-b border-green-100 relative overflow-hidden">
           {/* Subtle medical cross pattern background */}
-          <div className="absolute inset-0 bg-[url('/images/pattern-cross.svg')] opacity-[0.03] pointer-events-none filter hue-rotate-90 saturate-200" />
+          <div className="absolute inset-0 bg-[url(/images/pattern-cross.svg)] opacity-[0.03] pointer-events-none filter hue-rotate-90 saturate-200" />
           
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
@@ -313,7 +313,7 @@ export default function HospitalsWastePage() {
 
         {/* CTA (Single Login area as requested format) */}
         <section id="contact" className="py-32 bg-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-5 mix-blend-overlay"></div>
           
           <div className="max-w-4xl mx-auto px-6 relative z-10 text-center">
             <h2 className="text-4xl md:text-5xl font-black text-green-950 mb-8 leading-tight">

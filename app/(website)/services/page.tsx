@@ -5,8 +5,6 @@ import {
   BarChart3,
   MapPin,
   Clock,
-  ChevronRight,
-  CheckCircle2,
   Building2,
   Calendar,
   Phone,
@@ -17,7 +15,6 @@ import {
   type LucideIcon
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 interface ServiceCardProps {
   icon: LucideIcon;

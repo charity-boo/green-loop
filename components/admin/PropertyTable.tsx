@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { HostelDoc, ApartmentDoc } from '@/types/firestore';
 import { 
   Building2, 
@@ -8,14 +8,9 @@ import {
   Trophy, 
   ShieldCheck, 
   ShieldAlert, 
-  CheckCircle2, 
-  XCircle,
-  Calendar,
-  MoreVertical,
   Edit,
   Trash2
 } from 'lucide-react';
-import { format } from 'date-fns';
 
 type Property = HostelDoc | ApartmentDoc;
 
@@ -25,8 +20,7 @@ interface PropertyTableProps {
   onUpdate: () => void;
 }
 
-export function PropertyTable({ properties, type, onUpdate }: PropertyTableProps) {
-  const [updating, setUpdating] = useState<string | null>(null);
+export function PropertyTable({ properties, type, onUpdate: _onUpdate }: PropertyTableProps) {
 
   const getTierBadge = (tier: Property['tier']) => {
     switch (tier) {

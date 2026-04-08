@@ -51,6 +51,8 @@ export function useAvailableJobs(uid: string | undefined, region: string | undef
               id: doc.id,
               ...data,
               type: data.type ?? data.wasteType ?? 'Recyclable',
+              assignedCollectorId: data.assignedCollectorId ?? null,
+              collectorId: data.collectorId ?? null,
             };
           })
           .filter((job) => !job.assignedCollectorId && !job.collectorId) as unknown as CollectorTask[];

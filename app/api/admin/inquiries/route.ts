@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { handleApiError } from '@/lib/api-handler';
-import { HostelBookingDoc, ContactMessageDoc, ReportDoc, Inquiry } from '@/types/firestore';
+import { HostelBookingDoc, ContactMessageDoc, ReportDoc, Inquiry, InquiryStatus } from '@/types/firestore';
 
-export async function GET(req: NextRequest) {
+function toInquiryStatus(status: string): InquiryStatus {
+  return status.toUpperCase() as InquiryStatus;
+}
+
+export async function GET(_req: NextRequest) {
   try {
     const inquiries: Inquiry[] = [];
 
@@ -18,7 +22,7 @@ export async function GET(req: NextRequest) {
           title: data.propertyName,
           subtitle: data.contactPerson,
           date: data.createdAt,
-          status: data.status,
+          status: toInquiryStatus(data.status),
           data: data,
         } as Inquiry;
       });

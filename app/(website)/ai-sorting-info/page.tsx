@@ -206,7 +206,7 @@ export default function AISortingInfoPage() {
             <section className="py-32 bg-white">
                 <div className="max-w-5xl mx-auto px-6">
                     <div className="bg-emerald-950 rounded-[4rem] p-16 md:p-24 text-center text-white relative overflow-hidden shadow-2xl border border-emerald-900">
-                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+                        <div className="absolute inset-0 bg-[url(https://grainy-gradients.vercel.app/noise.svg)] opacity-20 mix-blend-overlay"></div>
                         <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/20 rounded-full blur-[80px]" />
                         <div className="relative z-10 space-y-8">
                             <h2 className="text-4xl md:text-6xl font-black italic">Test the Intelligence.</h2>

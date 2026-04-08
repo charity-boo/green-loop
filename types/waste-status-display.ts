@@ -8,6 +8,8 @@ export const WasteStatusDisplay: Record<WasteStatus, string> = {
     [WasteStatus.Active]: "Active",
     [WasteStatus.Completed]: "Completed",
     [WasteStatus.Skipped]: "Skipped",
+    [WasteStatus.Cancelled]: "Cancelled",
+    [WasteStatus.Missed]: "Missed",
 };
 
 /**
@@ -18,4 +20,6 @@ export const WasteStatusColor: Record<WasteStatus, string> = {
     [WasteStatus.Active]: "bg-blue-100 text-blue-800",
     [WasteStatus.Completed]: "bg-blue-100 text-blue-800",
     [WasteStatus.Skipped]: "bg-red-100 text-red-800",
+    [WasteStatus.Cancelled]: "bg-red-100 text-red-800",
+    [WasteStatus.Missed]: "bg-slate-100 text-slate-700",
 };

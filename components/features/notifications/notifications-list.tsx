@@ -9,7 +9,7 @@ import { markNotificationsAsRead } from "@/lib/firebase/notifications";
 import { Notification } from "@/lib/firebase/notifications";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 function formatTime(n: Notification): string {
@@ -22,12 +22,12 @@ function formatTime(n: Notification): string {
   }
 }
 
-const typeConfig: Record<string, { Icon: React.ComponentType<{ className?: string }>; style: string; label: string }> = {
-  warning:         { Icon: AlertTriangle,  style: "text-red-500", label: "Warning" },
-  alert:           { Icon: AlertCircle,    style: "text-orange-500", label: "Alert" },
-  "AI-suggestion": { Icon: Sparkles,       style: "text-emerald-600", label: "AI Suggestion" },
-  info:            { Icon: CalendarCheck,  style: "text-blue-500", label: "Information" },
-  reward_earned:   { Icon: Leaf,           style: "text-emerald-500", label: "Reward" },
+const typeConfig: Record<string, { Icon: React.ComponentType<{ className?: string }>; label: string }> = {
+  warning:         { Icon: AlertTriangle, label: "Warning" },
+  alert:           { Icon: AlertCircle, label: "Alert" },
+  "AI-suggestion": { Icon: Sparkles, label: "AI Suggestion" },
+  info:            { Icon: CalendarCheck, label: "Information" },
+  reward_earned:   { Icon: Leaf, label: "Reward" },
 };
 
 export default function NotificationsList() {
@@ -93,7 +93,7 @@ export default function NotificationsList() {
         <div className="space-y-10">
           {notifications.map((n, i) => {
             const config = typeConfig[n.type] ?? typeConfig.info;
-            const { Icon, style, label } = config;
+            const { Icon, label } = config;
             const isUnread = n.status === "unread";
             
             return (
@@ -175,4 +175,3 @@ export default function NotificationsList() {
     </div>
   );
 }
-

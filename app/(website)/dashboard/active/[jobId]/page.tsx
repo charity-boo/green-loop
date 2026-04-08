@@ -10,7 +10,6 @@ import {
     ChevronLeft,
     Phone
 } from 'lucide-react';
-import { CollectorTask } from '@/types';
 import { useActiveJob } from '@/hooks/use-active-job';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

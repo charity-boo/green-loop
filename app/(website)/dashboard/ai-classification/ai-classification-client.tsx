@@ -7,13 +7,11 @@ import {
     Zap, 
     Target,
     Scan,
-    ArrowUpRight,
     History,
     CheckCircle2,
     Sparkles,
     Cpu
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { UserDashboardData } from '@/types';
 
 interface AIClassificationClientProps {

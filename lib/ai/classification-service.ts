@@ -13,9 +13,6 @@ env.useBrowserCache = true;
 env.remoteHost = 'https://huggingface.co';
 env.remotePathTemplate = '{model}/resolve/{revision}/';
 
-// Ensure no invalid authentication token is sent, which can cause 401 Unauthorized errors.
-env.token = null;
-
 export interface ClassificationResult {
   className: string;
   probability: number;
